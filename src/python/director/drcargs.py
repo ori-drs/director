@@ -61,7 +61,7 @@ class DRCArgParser(object):
                             'software/models/val_description/director_config_simple.json')
 
     def getDefaultHyQDirectorConfigFile(self):
-        return os.path.join(ddapp.getDRCBaseDir(),
+        return os.path.join(director.getDRCBaseDir(),
                             'software/models/hyq_description/director_config.json')
 
     def getDefaultKukaLWRConfigFile(self):
