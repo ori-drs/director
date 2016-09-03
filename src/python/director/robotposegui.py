@@ -7,7 +7,7 @@ import time
 import os
 import drc as lcmdrc
 import bot_core as lcmbotcore
-import atlas
+#import atlas
 import functools
 
 # allow control-c to kill the program

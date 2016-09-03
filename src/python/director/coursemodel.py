@@ -7,7 +7,7 @@ from director import objectmodel as om
 from director import ik
 from director.ikparameters import IkParameters
 from director.ikplanner import ConstraintSet
-from director import polarisplatformplanner
+#from director import polarisplatformplanner
 from director import robotstate
 from director import segmentation
 from director import sitstandplanner

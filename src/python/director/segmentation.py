@@ -48,7 +48,8 @@ DRILL_TRIANGLE_TOP_LEFT = 'top left'
 DRILL_TRIANGLE_TOP_RIGHT = 'top right'
 
 # using drc plane segmentation instead of PCL
-planeSegmentationFilter = vtk.vtkPlaneSegmentation
+# mfallon: disabled this for husky, for now
+#planeSegmentationFilter = vtk.vtkPlaneSegmentation
 #planeSegmentationFilter = vtk.vtkPCLSACSegmentationPlane
 
 

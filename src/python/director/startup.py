@@ -4,7 +4,7 @@
 from __future__ import division
 
 import director
-from director import irisdriver
+#from director import irisdriver
 
 import os
 import sys
@@ -28,13 +28,13 @@ from director import doordemo
 from director import drilldemo
 from director import valvedemo
 from director import drivingplanner
-from director import egressplanner
-from director import polarisplatformplanner
+#from director import egressplanner
+#from director import polarisplatformplanner
 from director import surprisetask
-from director import continuouswalkingdemo
+#from director import continuouswalkingdemo
 from director import sitstandplanner
 from director import walkingtestdemo
-from director import terraintask
+#from director import terraintask
 from director import ik
 from director import ikplanner
 from director import objectmodel as om
@@ -46,7 +46,7 @@ from director import perception
 from director import segmentation
 from director import cameraview
 from director import colorize
-from director import drakevisualizer
+#from director import drakevisualizer
 from director.fieldcontainer import FieldContainer
 from director import robotstate
 from director import roboturdf
@@ -54,13 +54,13 @@ from director import robotsystem
 from director import affordancepanel
 from director import filterUtils
 from director import footstepsdriver
-from director import footstepsdriverpanel
+#from director import footstepsdriverpanel
 from director import framevisualization
 from director import lcmloggerwidget
 from director import lcmgl
 from director import lcmoctomap
 from director import lcmcollections
-from director import atlasdriver
+#from director import atlasdriver
 from director import atlasdriverpanel
 from director import multisensepanel
 from director import navigationpanel
@@ -74,7 +74,7 @@ from director import coursemodel
 
 from director import copmonitor
 from director import robotplanlistener
-from director import handdriver
+#from director import handdriver
 from director import planplayback
 from director import playbackpanel
 from director import screengrabberpanel
@@ -103,7 +103,7 @@ from director.tasks.descriptions import loadTaskDescriptions
 import drc as lcmdrc
 import bot_core as lcmbotcore
 import maps as lcmmaps
-import atlas
+#import atlas
 
 from collections import OrderedDict
 import functools
@@ -136,26 +136,26 @@ robotSystem = robotsystem.create(view)
 globals().update(dict(robotSystem))
 
 
-useIk = True
+useIk = False
 useAtlasConvexHull = False
 useRobotState = True
 usePerception = True
 useGrid = True
 useSpreadsheet = True
-useFootsteps = True
-useHands = True
-usePlanning = True
-useAtlasDriver = True
+useFootsteps = False
+useHands = False
+usePlanning = False
+useAtlasDriver = False
 useLCMGL = True
 useOctomap = True
 useLightColorScheme = True
 useLoggingWidget = True
-useDrakeVisualizer = True
-useNavigationPanel = True
+useDrakeVisualizer = False
+useNavigationPanel = False
 useFootContactVis = False
 useFallDetectorVis = True
 useCameraFrustumVisualizer = True
-useControllerRate = True
+useControllerRate = False
 useForceDisplay = True
 useSkybox = False
 useDataFiles = True
@@ -552,8 +552,8 @@ if usePlanning:
     for obj in om.getObjects():
         obj.setProperty('Deletable', False)
 
-if useCOPMonitor and not ikPlanner.fixedBaseArm:
-    copMonitor = copmonitor.COPMonitor(robotSystem, view);
+#if useCOPMonitor and not ikPlanner.fixedBaseArm:
+#    copMonitor = copmonitor.COPMonitor(robotSystem, view);
 
 
 if useLoggingWidget:
@@ -788,7 +788,7 @@ setImageWidgetSource = imageWidget.setImageName
 
 screengrabberpanel.init(view)
 framevisualization.init(view)
-affordancePanel = affordancepanel.init(view, affordanceManager, ikServer, robotStateJointController, raycastDriver)
+affordancePanel = affordancepanel.init(view, affordanceManager, None, robotStateJointController, None)
 camerabookmarks.init(view)
 
 cameraControlPanel = cameracontrolpanel.CameraControlPanel(view)
@@ -1001,8 +1001,8 @@ def initCenterOfMassVisulization():
         model.connectModelChanged(drawCenterOfMass)
         drawCenterOfMass(model)
 
-if not ikPlanner.fixedBaseArm:
-    initCenterOfMassVisulization()
+#if not ikPlanner.fixedBaseArm:
+#    initCenterOfMassVisulization()
 
 
 class RobotMoverWidget(object):

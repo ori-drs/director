@@ -9,7 +9,7 @@ from director import cameracontrol
 from director import splinewidget
 from director import transformUtils
 from director import teleoppanel
-from director import footstepsdriverpanel
+#from director import footstepsdriverpanel
 from director import applogic as app
 from director import vtkAll as vtk
 from director import filterUtils
@@ -664,8 +664,8 @@ class RobotViewBehaviors(object):
 
         robotSystem = _robotSystem
         robotModel = robotSystem.robotStateModel
-        handFactory = robotSystem.handFactory
-        footstepsDriver = robotSystem.footstepsDriver
+        #handFactory = robotSystem.handFactory
+        #footstepsDriver = robotSystem.footstepsDriver
         neckDriver = robotSystem.neckDriver
         if app.getMainWindow() is not None:
             robotLinkSelector = RobotLinkSelector()

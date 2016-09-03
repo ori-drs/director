@@ -1,4 +1,4 @@
-from director import irisdriver
+#from director import irisdriver
 from director import applogic
 from director import vtkAll as vtk
 from director import callbacks
@@ -14,11 +14,11 @@ from director import robotstate
 from director import roboturdf
 from director import footstepsdriver
 from director import drcargs
-from director import atlasdriver
+#from director import atlasdriver
 from director import affordanceitems
 from director import affordancemanager
 from director import robotplanlistener
-from director import handdriver
+#from director import handdriver
 from director import planplayback
 from director import playbackpanel
 from director import teleoppanel
@@ -44,10 +44,10 @@ class RobotSystem(object):
 
         useRobotState = True
         usePerception = True
-        useFootsteps = True
-        useHands = True
-        usePlanning = True
-        useAtlasDriver = True
+        useFootsteps = False
+        useHands = False
+        usePlanning = False
+        useAtlasDriver = False
         useAtlasConvexHull = False
         useWidgets = False
 
@@ -142,17 +142,19 @@ class RobotSystem(object):
 
             manipPlanner = robotplanlistener.ManipulationPlanDriver(ikPlanner)
 
-            affordanceManager = affordancemanager.AffordanceObjectModelManager(view)
-            affordanceitems.MeshAffordanceItem.getMeshManager().initLCM()
-            affordanceitems.MeshAffordanceItem.getMeshManager().collection.sendEchoRequest()
-            affordanceManager.collection.sendEchoRequest()
-            segmentation.affordanceManager = affordanceManager
-
             plannerPub = plannerPublisher.PlannerPublisher(ikPlanner,affordanceManager,ikRobotModel)
             ikPlanner.setPublisher(plannerPub)
 
             # This joint angle is mapped to the Multisense panel
             neckPitchJoint = ikPlanner.neckPitchJoint
+
+
+        affordanceManager = affordancemanager.AffordanceObjectModelManager(view)
+        affordanceitems.MeshAffordanceItem.getMeshManager().initLCM()
+        affordanceitems.MeshAffordanceItem.getMeshManager().collection.sendEchoRequest()
+        affordanceManager.collection.sendEchoRequest()
+        segmentation.affordanceManager = affordanceManager
+
 
         applogic.resetCamera(viewDirection=[-1,0,0], view=view)
 
