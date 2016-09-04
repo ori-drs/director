@@ -63,7 +63,7 @@ from director import lcmcollections
 #from director import atlasdriver
 from director import atlasdriverpanel
 from director import multisensepanel
-from director import navigationpanel
+#from director import navigationpanel
 from director import handcontrolpanel
 from director import sensordatarequestpanel
 from director import tasklaunchpanel
@@ -1041,7 +1041,7 @@ class RobotGridUpdater(object):
         t.Translate((x*10,y*10,z))
         self.gridFrame.copyFrame(t)
 
-#gridUpdater = RobotGridUpdater(grid.getChildFrame(), robotStateModel, robotStateJointController)
+gridUpdater = RobotGridUpdater(grid.getChildFrame(), robotStateModel, robotStateJointController)
 
 
 class IgnoreOldStateMessagesSelector(object):
