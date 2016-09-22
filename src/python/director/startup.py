@@ -791,7 +791,7 @@ framevisualization.init(view)
 affordancePanel = affordancepanel.init(view, affordanceManager, None, robotStateJointController, None)
 camerabookmarks.init(view)
 
-cameraControlPanel = cameracontrolpanel.CameraControlPanel(view)
+cameraControlPanel = cameracontrolpanel.CameraControlPanel(view, robotStateJointController)
 app.addWidgetToDock(cameraControlPanel.widget, action=None).hide()
 
 
