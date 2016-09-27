@@ -469,7 +469,7 @@ if usePlanning:
 
     motionPlanningPanel = motionplanningpanel.init(planningUtils, robotStateModel, robotStateJointController, teleopRobotModel, teleopJointController,
                             ikPlanner, manipPlanner, affordanceManager, playbackPanel.setPlan, playbackPanel.hidePlan, footstepsDriver)
-    
+
     if useGamepad:
         gamePad = gamepad.Gamepad(teleopPanel, teleopJointController, ikPlanner, view)
 
@@ -791,7 +791,7 @@ framevisualization.init(view)
 affordancePanel = affordancepanel.init(view, affordanceManager, None, robotStateJointController, None)
 camerabookmarks.init(view)
 
-cameraControlPanel = cameracontrolpanel.CameraControlPanel(view)
+cameraControlPanel = cameracontrolpanel.CameraControlPanel(view, robotStateJointController)
 app.addWidgetToDock(cameraControlPanel.widget, action=None).hide()
 
 
