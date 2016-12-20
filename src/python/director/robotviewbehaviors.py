@@ -206,9 +206,10 @@ def onNewDrivingGoal(frame):
     lcmUtils.publish('DRIVING_PLAN_REQUEST', msg)
 
 def newDrivingGoal(displayPoint, view):
-    # Places the driving goal on the plane of the footprint and uses current yaw
-
-    footFrame = robotModel.getLinkFrame('base_footprint')
+    # Places the driving goal on the plane of the root link current yaw
+    # for husky: the bottom of the wheels. for hyq: the midpoint of the trunk
+    # TODO: read the link from the director config
+    footFrame = robotModel.getLinkFrame('base_link')
 
     worldPt1, worldPt2 = vis.getRayFromDisplayPoint(view, displayPoint)
     groundOrigin = footFrame.GetPosition()
