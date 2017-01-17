@@ -103,7 +103,6 @@ from director.tasks.descriptions import loadTaskDescriptions
 import drc as lcmdrc
 import bot_core as lcmbotcore
 import maps as lcmmaps
-import atlas
 
 from collections import OrderedDict
 import functools
@@ -167,6 +166,7 @@ useCOPMonitor = True
 useCourseModel = False
 useLimitJointsSentToPlanner = False
 useFeetlessRobot = False
+useCOMMonitor = True
 
 # Sensor Flags
 useKinect = False
@@ -964,13 +964,13 @@ def drawCenterOfMass(model):
     d.addSphere(com, radius=0.015)
     obj = vis.updatePolyData(d.getPolyData(), 'COM %s' % model.getProperty('Name'), color=[1,0,0], visible=False, parent=model)
 
-def initCenterOfMassVisulization():
+def initCenterOfMassVisualization():
     for model in [robotStateModel, teleopRobotModel, playbackRobotModel]:
         model.connectModelChanged(drawCenterOfMass)
         drawCenterOfMass(model)
 
-if not ikPlanner.fixedBaseArm:
-    initCenterOfMassVisulization()
+if useCOMMonitor:
+    initCenterOfMassVisualization()
 
 
 class RobotMoverWidget(object):
@@ -997,19 +997,25 @@ class RobotGridUpdater(object):
         self.robotModel = robotModel
         self.jointController = jointController
         self.robotModel.connectModelChanged(self.updateGrid)
+        self.z_offset = 0.627 # for Husky # 0.85 for Atlas
+
+    def setZOffset(self, z_offset):
+        self.z_offset = z_offset
+        self.updateGrid(None)
 
     def updateGrid(self, model):
         pos = self.jointController.q[:3]
 
         x = int(np.round(pos[0])) / 10
         y = int(np.round(pos[1])) / 10
-        z = int(np.round(pos[2] - 0.85)) / 1
+        z = np.round( (pos[2]-self.z_offset)*10.0 ) / 10.0
+
 
         t = vtk.vtkTransform()
         t.Translate((x*10,y*10,z))
         self.gridFrame.copyFrame(t)
 
-#gridUpdater = RobotGridUpdater(grid.getChildFrame(), robotStateModel, robotStateJointController)
+gridUpdater = RobotGridUpdater(grid.getChildFrame(), robotStateModel, robotStateJointController)
 
 
 class IgnoreOldStateMessagesSelector(object):
