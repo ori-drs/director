@@ -43,7 +43,7 @@
 #include <lcmtypes/maps/scans_t.hpp>
 #include <lcmtypes/maps/data_request_t.hpp>
 
-#include <maps/LcmTranslator.hpp>
+#include <maps_lcm/LcmTranslator.hpp>
 #include <maps/DepthImageView.hpp>
 #include <maps/DepthImage.hpp>
 #include <maps/PointCloudView.hpp>
