@@ -69,6 +69,7 @@ class CollectionsObject(om.ObjectModelItem):
         self.addProperty('Points Alpha', 0.8, attributes=om.PropertyAttributes(decimals=2, minimum=0, maximum=1.0, singleStep=0.1))
         self.addProperty('Point Width', 5.0, attributes=om.PropertyAttributes(decimals=0, minimum=1.0, maximum=30.0, singleStep=1))
         self.addProperty('Pose Width', 1.0, attributes=om.PropertyAttributes(decimals=1, minimum=0.1, maximum=30.0, singleStep=0.1))
+        self.addProperty('Normal Width', 1.0, attributes=om.PropertyAttributes(decimals=1, minimum=0, maximum=5.0, singleStep=0.1))
         self.addProperty('Color Poses', False)
 
         self.addProperty('Fill Scans', False)
@@ -102,6 +103,8 @@ class CollectionsObject(om.ObjectModelItem):
             self.actor.setPointWidth(self.getProperty(propertyName))
         elif propertyName == 'Pose Width':
             self.actor.setPoseWidth(self.getProperty(propertyName))
+        elif propertyName == 'Normal Width':
+            self.actor.setNormalWidth(self.getProperty(propertyName))
         elif propertyName == 'Color Poses':
             self.actor.setColorPoses(self.getProperty(propertyName))
         elif propertyName == 'Color by Time':
