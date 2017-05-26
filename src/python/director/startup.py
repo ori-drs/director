@@ -208,11 +208,11 @@ if useIk:
     startIkServer()
 
 
-if useAtlasDriver:
-    atlasdriver.systemStatus.outputConsole = app.getOutputConsole()
-    atlasdriverpanel.init(atlasDriver)
-else:
-    app.removeToolbarMacro('ActionAtlasDriverPanel')
+#if useAtlasDriver:
+#    atlasdriver.systemStatus.outputConsole = app.getOutputConsole()
+#    atlasdriverpanel.init(atlasDriver)
+#else:
+#    app.removeToolbarMacro('ActionAtlasDriverPanel')
 
 
 if usePerception:
@@ -328,6 +328,11 @@ if usePlanning:
     def planHomeNominal():
         ''' Move the robot back to a safe posture, 1m above its feet, w/o moving the hands '''
         ikPlanner.computeHomeNominalPlan(robotStateJointController.q, footstepsDriver.getFeetMidPoint(robotStateModel), 1.0167)
+
+    def planHomeNominalHyq():
+        ''' Move the robot back to a safe posture, 0.627m above its feet '''
+        ikPlanner.computeHomeNominalPlanHyq(robotStateJointController.q, footstepsDriver.getFeetMidPoint(robotStateModel), 0.627)
+
 
     if useMultisense:
         def fitDrillMultisense():
@@ -529,7 +534,7 @@ if useLoggingWidget:
 
 
 
-
+useControllerRate = False
 if useControllerRate:
 
     class ControllerRateLabel(object):

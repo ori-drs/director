@@ -139,7 +139,7 @@ class MatlabDrakePlannerPublisher(PlannerPublisher):
     def processTraj(self, constraints, ikParameters, positionCosts, nominalPoseName="", seedPoseName="", endPoseName=""):
 
         listener = self.ikPlanner.getManipPlanListener()
-        info = self.ikServer.runIkTraj(constraints, poseStart=seedPoseName, poseEnd=endPoseName, nominalPose=nominalPoseName, ikParameters=ikParameters, additionalTimeSamples=self.ikPlanner.additionalTimeSamples, graspToHandLinkFrame=self.ikPlanner.newGraspToHandFrame(ikParameters.rrtHand))
+        info = self.ikServer.runIkTraj(constraints, poseStart=seedPoseName, poseEnd=endPoseName, nominalPose=nominalPoseName, ikParameters=ikParameters, additionalTimeSamples=self.ikPlanner.additionalTimeSamples, graspToHandLinkFrame=None)#self.ikPlanner.newGraspToHandFrame(ikParameters.rrtHand))
         plan = listener.waitForResponse(timeout=12000)
         listener.finish()
 
