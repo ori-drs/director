@@ -25,7 +25,7 @@ class RobotSystemFactory(ComponentFactory):
         addComponent('Footsteps', ['RobotState'])
         addComponent('RaycastDriver', ['Footsteps'])
         addComponent('IRISDriver', ['RobotState', 'Footsteps'])
-        addComponent('AtlasDriver', [])
+        #addComponent('AtlasDriver', [])
         addComponent('Planning', ['RobotState'])
         addComponent('Playback', ['Planning'])
         addComponent('Teleop', ['Planning', 'Playback', 'Affordances'])
@@ -33,7 +33,7 @@ class RobotSystemFactory(ComponentFactory):
         addComponent('FootstepsPlayback', ['Footsteps', 'Playback'])
         addComponent('Affordances', [])
         addComponent('PlannerPublisher', ['Planning', 'Affordances'])
-        addComponent('ViewBehaviors', ['Footsteps', 'PerceptionDrivers', 'Planning'])
+        addComponent('ViewBehaviors', ['PerceptionDrivers'])
 
     def initDirectorConfig(self, robotSystem):
 
