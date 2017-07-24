@@ -131,8 +131,7 @@ class MultisenseItem(om.ObjectModelItem):
 class LidarItem(om.ObjectModelItem):
 
     def __init__(self, model):
-
-        om.ObjectModelItem.__init__(self, 'Lidar', om.Icons.EyeOff)
+        om.ObjectModelItem.__init__(self, model.channelName, om.Icons.EyeOff)
 
         self.model = model
         self.scalarBarWidget = None
@@ -480,19 +479,21 @@ class MultiSenseSource(TimerCallback):
 
 class LidarSource(TimerCallback):
 
-    def __init__(self, view):
+    def __init__(self, view, channelName, intensityRange=(400,4000)):
         TimerCallback.__init__(self)
         self.view = view
+        self.channelName = channelName
         self.reader = None
         self.displayedRevolution = -1
         self.lastScanLine = 0
-        self.numberOfScanLines = 1000
+        self.numberOfScanLines = 100
         self.nextScanLineId = 0
         self.scanLines = []
         self.pointSize = 1
         self.alpha = 0.5
         self.visible = True
         self.colorBy = 'Solid Color'
+        self.intensityRange = intensityRange
         self.initScanLines()
 
         self.revPolyData = vtk.vtkPolyData()
@@ -517,6 +518,8 @@ class LidarSource(TimerCallback):
         for i in xrange(self.numberOfScanLines):
             polyData = vtk.vtkPolyData()
             scanLine = vis.PolyDataItem('scan line %d' % i, polyData, self.view)
+            scanLine.rangeMap["intensity"] = self.intensityRange
+
             scanLine.actor.SetPickable(0)
             #scanLine.setSolidColor((0,1,0))
             self.scanLines.append(scanLine)
@@ -552,6 +555,7 @@ class LidarSource(TimerCallback):
     def start(self):
         if self.reader is None:
             self.reader = drc.vtkLidarSource()
+            self.reader.subscribe(self.channelName)
             self.reader.InitBotConfig(drcargs.args().config_file)
             self.reader.SetDistanceRange(0.25, 80.0)
             self.reader.SetHeightRange(-80.0, 80.0)
@@ -814,8 +818,11 @@ def init(view):
     global _multisenseItem
     global multisenseDriver
 
-    global _lidarItem
-    global lidarDriver
+    global _lidarItem0
+    global lidarDriver0
+
+    global _lidarItem1
+    global lidarDriver1
 
     sensorsFolder = om.getOrCreateContainer('sensors')
 
@@ -825,13 +832,23 @@ def init(view):
     _multisenseItem = MultisenseItem(m)
     om.addToObjectModel(_multisenseItem, sensorsFolder)
 
-    useLidarSource = True
-    if useLidarSource:
-        l = LidarSource(view)
-        l.start()
-        lidarDriver = l
-        _lidarItem = LidarItem(l)
-        om.addToObjectModel(_lidarItem, sensorsFolder)
+    # TODO: This is a pretty clunky way of doing this
+    # should read the list of channels to display from director_config
+    useLidarSource0 = True
+    if useLidarSource0:
+        l0 = LidarSource(view, "SICK_SCAN", (100,400))
+        l0.start()
+        lidarDriver0 = l0
+        _lidarItem0 = LidarItem(l0)
+        om.addToObjectModel(_lidarItem0, sensorsFolder)
+
+    useLidarSource1 = True
+    if useLidarSource1:
+        l1 = LidarSource(view, "HORIZONTAL_SCAN")
+        l1.start()
+        lidarDriver1 = l1
+        _lidarItem1 = LidarItem(l1)
+        om.addToObjectModel(_lidarItem1, sensorsFolder)
 
 
     useMapServer = hasattr(drc, 'vtkMapServerSource')
