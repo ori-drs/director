@@ -43,7 +43,7 @@
 #include <lcmtypes/maps/scans_t.hpp>
 #include <lcmtypes/maps/data_request_t.hpp>
 
-#include <maps/LcmTranslator.hpp>
+#include <maps_lcm/LcmTranslator.hpp>
 #include <maps/DepthImageView.hpp>
 #include <maps/DepthImage.hpp>
 #include <maps/PointCloudView.hpp>
@@ -561,13 +561,13 @@ protected:
     int height = depthImage->getHeight();
 
     vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
-    image->SetWholeExtent(0, width-1, 0, height-1, 0, 0);
+// fixe me mfallon:    image->SetWholeExtent(0, width-1, 0, height-1, 0, 0);
     image->SetSpacing(1.0, 1.0, 1.0);
     image->SetOrigin(0.0, 0.0, 0.0);
-    image->SetExtent(image->GetWholeExtent());
-    image->SetNumberOfScalarComponents(1);
-    image->SetScalarType(VTK_FLOAT);
-    image->AllocateScalars();
+// fix me mfallon:    image->SetExtent(image->GetWholeExtent());
+// fix me mfallon:    image->SetNumberOfScalarComponents(1);
+// fix me mfallon:    image->SetScalarType(VTK_FLOAT);
+// fix me mfallon:    image->AllocateScalars();
 
     std::vector<float> imageData = depthImage->getData(maps::DepthImage::TypeDepth);
 
@@ -919,11 +919,15 @@ int vtkMapServerSource::RequestData(
   vtkDataSet *output = vtkDataSet::SafeDownCast(info->Get(vtkDataObject::DATA_OBJECT()));
 
   int timestep = 0;
+
+// fixme mfallon
+/*
   if (info->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS()))
     {
     double timeRequest = info->Get(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS())[0];
     timestep = static_cast<int>(floor(timeRequest+0.5));
     }
+*/
 
   this->Internal->Listener->SetDistanceRange(this->DistanceRange);
   this->Internal->Listener->SetHeightRange(this->HeightRange);

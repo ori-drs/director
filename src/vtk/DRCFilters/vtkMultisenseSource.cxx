@@ -742,11 +742,15 @@ int vtkMultisenseSource::RequestData(
   vtkDataSet *output = vtkDataSet::SafeDownCast(info->Get(vtkDataObject::DATA_OBJECT()));
 
   int timestep = 0;
+
+// fixme mfallon
+/*
   if (info->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS()))
     {
     double timeRequest = info->Get(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS())[0];
     timestep = static_cast<int>(floor(timeRequest+0.5));
     }
+*/
 
   this->Internal->Listener->SetDistanceRange(this->DistanceRange);
   this->Internal->Listener->SetHeightRange(this->HeightRange);

@@ -96,7 +96,7 @@ void vtkDepthImageUtils::DepthBufferToDepthImage(vtkImageData* depthBuffer, vtkI
 
       //pts->InsertNextPoint(ptToWorld[0], ptToWorld[1], ptToWorld[2]);
       pts->InsertNextPoint(ptToCamera[0], ptToCamera[1], ptToCamera[2]);
-      ptColors->InsertNextTypedTuple(&colorData[colorPtr]);
+// fixme mfallon:      ptColors->InsertNextTypedTuple(&colorData[colorPtr]);
     }
   }
 }
