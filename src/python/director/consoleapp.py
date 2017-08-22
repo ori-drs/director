@@ -182,7 +182,7 @@ class ConsoleApp(object):
 
 
 def main(globalsDict=None):
-
+    print "herf"
     app = ConsoleApp()
     app.showPythonConsole()
     view = app.createView()
