@@ -516,14 +516,11 @@ vtkSmartPointer<vtkImageData> ddBotImageQueue::toVtkImage(CameraData* cameraData
 
   vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
 
-  std::cout << "mfallon mod 2\n";
-// mfallon  image->SetWholeExtent(0, w-1, 0, h-1, 0, 0);
+  image->SetExtent(0, w-1, 0, h-1, 0, 0);
   image->SetSpacing(1.0, 1.0, 1.0);
   image->SetOrigin(0.0, 0.0, 0.0);
-// mfallon image->SetExtent(image->GetWholeExtent());
-// mfallon  image->SetNumberOfScalarComponents(nComponents);
-// mfallon  image->SetScalarType(componentType);
-// mfallon  image->AllocateScalars();
+  image->SetExtent(image->GetExtent());
+  image->AllocateScalars(componentType, nComponents);
 
   unsigned char* outPtr = static_cast<unsigned char*>(image->GetScalarPointer(0, 0, 0));
 
