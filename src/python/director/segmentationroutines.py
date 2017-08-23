@@ -225,7 +225,7 @@ def labelPointDistanceAlongAxis(polyData, axis, origin=None, resultArrayName='di
 def applyEuclideanClustering(dataObj, clusterTolerance=0.05, minClusterSize=100, maxClusterSize=1e6):
 
     f = vtk.vtkPCLEuclideanClusterExtraction()
-    f.SetInput(dataObj)
+    f.SetInputData(dataObj)
     f.SetClusterTolerance(clusterTolerance)
     f.SetMinClusterSize(int(minClusterSize))
     f.SetMaxClusterSize(int(maxClusterSize))
@@ -268,7 +268,7 @@ def applyVoxelGrid(polyData, leafSize=0.01):
 
     v = vtk.vtkPCLVoxelGrid()
     v.SetLeafSize(leafSize, leafSize, leafSize)
-    v.SetInput(polyData)
+    v.SetInputData(polyData)
     v.Update()
     return shallowCopy(v.GetOutput())
 

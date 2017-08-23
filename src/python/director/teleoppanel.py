@@ -106,6 +106,11 @@ class EndEffectorTeleopPanel(object):
         #self.ui.interactiveCheckbox.visible = False
         #self.ui.updateIkButton.visible = False
 
+        if (self.panel.ikPlanner.quadruped):
+            # teleop configuration for a quadruped
+            self.setLHandPlanningSupportEnabled(True)
+            self.setRHandPlanningSupportEnabled(True)
+
         if 'kneeJointLimits' in drcargs.getDirectorConfig():
             self.kneeJointLimits = drcargs.getDirectorConfig()['kneeJointLimits']
 
@@ -436,8 +441,69 @@ class EndEffectorTeleopPanel(object):
         startPose = self.panel.planningUtils.getPlanningStartPose()
         ikPlanner.addPose(startPose, startPoseName)
 
+        if ikPlanner.quadruped:
+            constraints = []
+            constraints.append(ikPlanner.createQuasiStaticConstraintQuadruped())
+
+            if self.getLFootConstraint() == 'fixed':
+                constraints.append(ikPlanner.createFixedLinkConstraintsQuadruped(startPoseName, ikPlanner.leftFootLink, tspan=[0.0, 1.0], lowerBound=-0.0001*np.ones(3), upperBound=0.0001*np.ones(3), angleToleranceInDegrees=0.1))
+            elif self.getLFootConstraint() == 'constrained':
+                constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.leftFootLink, pointInLink=[0.341,0,0], tspan=[1.0, 1.0]))
+            elif self.getLFootConstraint() == 'sliding':
+                print 'sliding not supported'
+
+            if self.getRFootConstraint() == 'fixed':
+                constraints.append(ikPlanner.createFixedLinkConstraintsQuadruped(startPoseName, ikPlanner.rightFootLink, tspan=[0.0, 1.0], lowerBound=-0.0001*np.ones(3), upperBound=0.0001*np.ones(3), angleToleranceInDegrees=0.1))
+            elif self.getRFootConstraint() == 'constrained':
+                constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.rightFootLink, pointInLink=[0.341,0,0], tspan=[1.0, 1.0]))
+            elif self.getRFootConstraint() == 'sliding':
+                print 'sliding not supported'
+
+            if self.getLHandConstraint() == 'arm fixed':
+                constraints.append(ikPlanner.createFixedLinkConstraintsQuadruped(startPoseName, ikPlanner.leftHandLink, tspan=[0.0, 1.0], lowerBound=-0.0001*np.ones(3), upperBound=0.0001*np.ones(3), angleToleranceInDegrees=0.1))
+            elif self.getLHandConstraint() == 'position':
+                constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.leftHandLink, pointInLink=[0.341,0,0], tspan=[1.0, 1.0]))
+            else:
+                print 'only arm fixed and position supported'
+
+            if self.getRHandConstraint() == 'arm fixed':
+                constraints.append(ikPlanner.createFixedLinkConstraintsQuadruped(startPoseName, ikPlanner.rightHandLink, tspan=[0.0, 1.0], lowerBound=-0.0001*np.ones(3), upperBound=0.0001*np.ones(3), angleToleranceInDegrees=0.1))
+            elif self.getRHandConstraint() == 'position':
+                constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.rightHandLink, pointInLink=[0.341,0,0], tspan=[1.0, 1.0]))
+            else:
+                print 'only arm fixed and position supported'
+
+            if self.getBaseConstraint() == 'fixed':
+                constraints.append(ikPlanner.createLockedBasePostureConstraint(startPoseName, lockLegs=False))
+                ikPlanner.setBaseLocked(True)
+            elif self.getBaseConstraint() == 'constrained':
+                constraints.extend(ikPlanner.createSixDofLinkConstraints(startPoseName, ikPlanner.pelvisLink, tspan=[1.0, 1.0]))
+                ikPlanner.setBaseLocked(False)
+            elif self.getBaseConstraint() == 'xyz only':
+                constraints.append(ikPlanner.createXYZMovingBasePostureConstraint(startPoseName))
+                #constraints.append(ikPlanner.createKneePostureConstraint(self.kneeJointLimits))
+                ikPlanner.setBaseLocked(False)
+            elif self.getBaseConstraint() == 'z only':
+                constraints.append(ikPlanner.createZMovingBasePostureConstraint(startPoseName))
+                #constraints.append(ikPlanner.createKneePostureConstraint(self.kneeJointLimits))
+                ikPlanner.setBaseLocked(False)
+            elif self.getBaseConstraint() == 'limited':
+                constraints.append(ikPlanner.createMovingBaseSafeLimitsConstraint())
+                #constraints.append(ikPlanner.createKneePostureConstraint(self.kneeJointLimits))
+                ikPlanner.setBaseLocked(False)
+            elif self.getBaseConstraint() == 'free':
+                #constraints.append(ikPlanner.createKneePostureConstraint(self.kneeJointLimits))
+                ikPlanner.setBaseLocked(False)
+            elif self.getBaseConstraint() == 'constr xyz':
+                # constrained to this xyz position, orientation is not constrained
+                constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.pelvisLink, tspan=[1.0, 1.0]))
+                ikPlanner.setBaseLocked(False)
+            elif self.getBaseConstraint() == 'constr rpy':
+                print 'pelvis rpy constraint not implemented yet'
+
+
         # Humanoid, i.e. robot has feet and is not a fixed base arm
-        if not ikPlanner.fixedBaseArm and not ikPlanner.robotNoFeet:
+        if (not ikPlanner.fixedBaseArm and not ikPlanner.robotNoFeet) and not ikPlanner.quadruped:
             constraints = []
             constraints.append(ikPlanner.createQuasiStaticConstraint())
             constraints.append(ikPlanner.createLockedNeckPostureConstraint(startPoseName))
@@ -469,7 +535,7 @@ class EndEffectorTeleopPanel(object):
             if self.getBaseConstraint() == 'fixed':
                 constraints.append(ikPlanner.createLockedBasePostureConstraint(startPoseName, lockLegs=False))
                 ikPlanner.setBaseLocked(True)
-            if self.getBaseConstraint() == 'constrained':
+            elif self.getBaseConstraint() == 'constrained':
                 constraints.extend(ikPlanner.createSixDofLinkConstraints(startPoseName, ikPlanner.pelvisLink, tspan=[1.0, 1.0]))
                 ikPlanner.setBaseLocked(False)
             elif self.getBaseConstraint() == 'xyz only':
@@ -658,13 +724,20 @@ class EndEffectorTeleopPanel(object):
             frame.connectFrameModified(self.onGoalFrameModified)
             #addHandMesh(handModels[side], frame)
 
-        if not ikPlanner.fixedBaseArm and not ikPlanner.robotNoFeet:
+        if (not ikPlanner.fixedBaseArm and not ikPlanner.robotNoFeet) and not ikPlanner.quadruped:
+            # biped
             for linkName in [ikPlanner.leftFootLink, ikPlanner.rightFootLink, ikPlanner.pelvisLink]:
                 frameName = linkName + ' constraint frame'
                 om.removeFromObjectModel(om.findObjectByName(frameName))
                 frame = vis.showFrame(ikPlanner.getLinkFrameAtPose(linkName, startPose), frameName, parent=folder, scale=0.2)
                 frame.connectFrameModified(self.onGoalFrameModified)
 
+        if ikPlanner.quadruped:
+            for linkName in [ikPlanner.leftFootLink, ikPlanner.rightFootLink, ikPlanner.leftHandLink, ikPlanner.rightHandLink, ikPlanner.pelvisLink]:
+                frameName = linkName + ' constraint frame'
+                om.removeFromObjectModel(om.findObjectByName(frameName))
+                frame = vis.showFrame(ikPlanner.getLinkFrameAtPose(linkName, startPose), frameName, parent=folder, scale=0.2)
+                frame.connectFrameModified(self.onGoalFrameModified)
 
     def newReachTeleop(self, frame, side, reachTargetObject=None):
         '''
@@ -1056,7 +1129,9 @@ class JointTeleopPanel(object):
 
         if jointGroups is None:
             # Add only these joint groups:
-            telopJointGroupNames = ['Back', 'Base', 'Left Arm', 'Right Arm', 'Neck']
+            #telopJointGroupNames = ['Back', 'Base', 'Left Arm', 'Right Arm', 'Neck']
+            # Add only these joint groups:
+            telopJointGroupNames = ['Back', 'Base', 'Left Arm', 'Right Arm', 'Left Hind', 'Right Hind']
             allJointGroups = drcargs.getDirectorConfig()['teleopJointGroups']
             jointGroups = []
             for jointGroup in allJointGroups:

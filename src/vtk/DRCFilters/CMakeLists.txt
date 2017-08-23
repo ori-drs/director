@@ -1,4 +1,26 @@
+find_package(PythonQt REQUIRED)
+find_package(CTKPythonConsole REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(QtPropertyBrowser REQUIRED)
+if(DD_QT_VERSION EQUAL 4)
+  include(${QT_USE_FILE})
+else()
+  include_directories(${Qt5Core_INCLUDE_DIRS})
+endif()
 
+find_package(VTK REQUIRED COMPONENTS
+  vtkWrappingPythonCore
+  vtkGUISupportQt
+  vtkInteractionWidgets
+  vtkRenderingAnnotation
+  vtkRenderingFreeType
+  vtkInteractionStyle
+  vtkIOXML
+  vtkIOImage
+  vtkIOGeometry
+  )
+include(${VTK_USE_FILE})
+check_vtk_qt_version()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
@@ -107,12 +129,14 @@ endif()
 
 if (USE_DRC_MAPS)
   find_package(Maps REQUIRED)
+  find_package(MapsLcm REQUIRED)
   find_package(PCL REQUIRED)
 
   list(APPEND sources vtkMapServerSource.cxx)
   include_directories(${PCL_INCLUDE_DIRS})
-  include_directories(${MAPS_INCLUDE_DIRS})
-  list(APPEND deps ${MAPS_LIBRARIES} ${PCL_LIBRARIES})
+  include_directories(${MAPS_INCLUDE_DIRS})# ${MAPSLCM_INCLUDE_DIRS})
+  list(APPEND deps ${MAPS_LIBRARIES} ${MAPSLCM_LIBRARIES} ${PCL_LIBRARIES})
+  use_cpp11()
 endif()
 
 if (USE_DRC_PLANE_SEG)
@@ -141,7 +165,7 @@ endif()
 
 if(USE_OCTOMAP)
 
-  setup_qt4()
+  #setup_qt4()
 
   find_library(OCTOVIS_LIBRARY octovis)
   list(APPEND sources vtkOctomap.cxx)

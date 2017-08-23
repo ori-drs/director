@@ -131,7 +131,6 @@ class MultisenseItem(om.ObjectModelItem):
 class LidarItem(om.ObjectModelItem):
 
     def __init__(self, model):
-
         om.ObjectModelItem.__init__(self, model.sensorName, om.Icons.EyeOff)
 
         self.model = model
@@ -484,20 +483,21 @@ class MultiSenseSource(TimerCallback):
 
 class LidarSource(TimerCallback):
 
-    def __init__(self, view, channelName, coordinateFrame, sensorName, intensityRange):
+    def __init__(self, view, channelName, coordinateFrame, sensorName, intensityRange=(400,4000)):
         TimerCallback.__init__(self)
         self.view = view
         self.channelName = channelName
         self.reader = None
         self.displayedRevolution = -1
         self.lastScanLine = 0
-        self.numberOfScanLines = 1000
+        self.numberOfScanLines = 100
         self.nextScanLineId = 0
         self.scanLines = []
         self.pointSize = 1
         self.alpha = 0.5
         self.visible = True
         self.colorBy = 'Solid Color'
+        self.intensityRange = intensityRange
         self.initScanLines()
         self.sensorName = sensorName
         self.coordinateFrame = coordinateFrame
@@ -525,6 +525,8 @@ class LidarSource(TimerCallback):
         for i in xrange(self.numberOfScanLines):
             polyData = vtk.vtkPolyData()
             scanLine = vis.PolyDataItem('scan line %d' % i, polyData, self.view)
+            scanLine.rangeMap["intensity"] = self.intensityRange
+
             scanLine.actor.SetPickable(0)
             #scanLine.setSolidColor((0,1,0))
             self.scanLines.append(scanLine)
@@ -844,7 +846,6 @@ def init(view):
             lidarDriver = l
             _lidarItem = LidarItem(l)
             om.addToObjectModel(_lidarItem, sensorsFolder)
-
 
     useMapServer = hasattr(drc, 'vtkMapServerSource')
     if useMapServer:

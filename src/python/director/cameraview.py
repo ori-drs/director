@@ -26,7 +26,7 @@ def clipRange(dataObj, arrayName, thresholdRange):
     dataObj.GetPointData().SetScalars(dataObj.GetPointData().GetArray(arrayName))
 
     f = vtk.vtkClipPolyData()
-    f.SetInput(dataObj)
+    f.SetInputData(dataObj)
     f.SetValue(thresholdRange[0])
     f.SetInputArrayToProcess(0, 0, 0, vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS, arrayName)
 
@@ -124,7 +124,7 @@ class ImageManager(object):
 
         image = vtk.vtkImageData()
         tex = vtk.vtkTexture()
-        tex.SetInput(image)
+        tex.SetInputData(image)
         tex.EdgeClampOn()
         tex.RepeatOff()
 
@@ -402,7 +402,7 @@ class ImageWidget(object):
 
         self.flip = vtk.vtkImageFlip()
         self.flip.SetFilteredAxis(1)
-        self.flip.SetInput(imageManager.getImage(imageName))
+        self.flip.SetInputData(imageManager.getImage(imageName))
         imageRep.SetImage(self.flip.GetOutput())
 
         self.eventFilter = PythonQt.dd.ddPythonEventFilter()
@@ -561,7 +561,7 @@ class CameraImageView(object):
         self.interactorStyle.AddObserver('SelectionChangedEvent', self.onRubberBandPick)
 
         self.imageActor = vtk.vtkImageActor()
-        self.imageActor.SetInput(self.getImage())
+        self.imageActor.SetInputData(self.getImage())
         self.imageActor.SetVisibility(False)
         self.view.renderer().AddActor(self.imageActor)
 

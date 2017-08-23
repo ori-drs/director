@@ -84,6 +84,7 @@ public:
 
   void setPointWidth(double pointWidth);
   void setPoseWidth(double poseWidth);
+  void setNormalWidth(double normalWidth);
   void setColorPoses(bool colorPoses);
 
   void setColorByTime(bool colorByTime);

@@ -182,7 +182,6 @@ class ConsoleApp(object):
 
 
 def main(globalsDict=None):
-
     app = ConsoleApp()
     app.showPythonConsole()
     view = app.createView()

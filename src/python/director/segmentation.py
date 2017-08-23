@@ -481,7 +481,7 @@ def applyPlaneFit(polyData, distanceThreshold=0.02, expectedNormal=None, perpend
 
     # perform plane segmentation
     f = planeSegmentationFilter()
-    f.SetInput(fitInput)
+    f.SetInputData(fitInput)
     f.SetDistanceThreshold(distanceThreshold)
     if perpendicularAxis is not None:
         f.SetPerpendicularConstraintEnabled(True)
@@ -517,9 +517,9 @@ def normalEstimation(dataObj, searchCloud=None, searchRadius=0.05, useVoxelGrid=
 
     f = vtk.vtkPCLNormalEstimation()
     f.SetSearchRadius(searchRadius)
-    f.SetInput(dataObj)
+    f.SetInputData(dataObj)
     if searchCloud:
-        f.SetInput(1, searchCloud)
+        f.SetInputData(1, searchCloud)
     elif useVoxelGrid:
         f.SetInput(1, applyVoxelGrid(dataObj, voxelGridLeafSize))
     f.Update()
@@ -1765,8 +1765,8 @@ def applyArrowGlyphs(polyData, computeNormals=True, voxelGridLeafSize=0.03, norm
 
     glyph = vtk.vtkGlyph3D()
     glyph.SetScaleFactor(arrowSize)
-    glyph.SetSource(arrow.GetOutput())
-    glyph.SetInput(polyData)
+    glyph.SetSourceData(arrow.GetOutput())
+    glyph.SetInputData(polyData)
     glyph.SetVectorModeToUseNormal()
     glyph.Update()
 
@@ -3517,7 +3517,7 @@ def showObbs(polyData):
 
     f = vtk.vtkAnnotateOBBs()
     f.SetInputArrayToProcess(0,0,0, vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS, labelsArrayName)
-    f.SetInput(polyData)
+    f.SetInputData(polyData)
     f.Update()
     showPolyData(f.GetOutput(), 'bboxes')
 
@@ -3536,7 +3536,7 @@ def getOrientedBoundingBox(polyData):
 
     f = vtk.vtkAnnotateOBBs()
     f.SetInputArrayToProcess(0,0,0, vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS, labelsArrayName)
-    f.SetInput(polyData)
+    f.SetInputData(polyData)
     f.Update()
 
     assert f.GetNumberOfBoundingBoxes() == 1
