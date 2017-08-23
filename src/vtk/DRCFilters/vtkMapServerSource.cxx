@@ -562,13 +562,11 @@ protected:
 
     // this wasnt fixed during the upgrade/ mfallon:
     vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
-    image->SetWholeExtent(0, width-1, 0, height-1, 0, 0);
+    image->SetExtent(0, width-1, 0, height-1, 0, 0);
     image->SetSpacing(1.0, 1.0, 1.0);
     image->SetOrigin(0.0, 0.0, 0.0);
-    image->SetExtent(image->GetWholeExtent());
-    image->SetNumberOfScalarComponents(1);
-    image->SetScalarType(VTK_FLOAT);
-    image->AllocateScalars();
+    image->SetExtent(image->GetExtent());
+    image->AllocateScalars(VTK_FLOAT, 1);
 
     std::vector<float> imageData = depthImage->getData(maps::DepthImage::TypeDepth);
 
@@ -921,10 +919,11 @@ int vtkMapServerSource::RequestData(
 
   int timestep = 0;
 
-  // fixme mfallon
-  if (info->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS()))
+  // This was changed when updating to 16.06 - but I couldn't test it
+  // - mfallon
+  if (info->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEP()))
     {
-    double timeRequest = info->Get(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS())[0];
+    double timeRequest = info->Get(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEP());
     timestep = static_cast<int>(floor(timeRequest+0.5));
     }
 
