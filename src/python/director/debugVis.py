@@ -37,7 +37,7 @@ class DebugData(object):
                 extraArray[:] = labelValue
                 addNumpyToVtk(polyData, extraArray, labelName)
 
-        self.append.AddInput(polyData)
+        self.append.AddInputData(polyData)
 
 
     def addLine(self, p1, p2, radius=0.0, color=[1,1,1]):
@@ -57,6 +57,12 @@ class DebugData(object):
             tube.SetInputConnection(line.GetOutputPort())
             tube.Update()
             self.addPolyData(tube.GetOutput(), color)
+
+    def addPolyLine(self, points, isClosed=False, radius=0.0, color=[1,1,1]):
+        for (p1, p2) in zip(points[:-1], points[1:]):
+            self.addLine(p1, p2, radius=radius, color=color)
+        if isClosed:
+            self.addLine(points[-1], points[0], radius=radius, color=color)
 
     def addFrame(self, frame, scale, tubeRadius=0.0):
 
@@ -87,20 +93,22 @@ class DebugData(object):
             edges.Update()
             self.addPolyData(edges.GetOutput(), color)
 
-    def addArrow(self, start, end, headRadius=0.05, tubeRadius=0.01, color=[1,1,1], startHead=False, endHead=True):
+    def addArrow(self, start, end, headRadius=0.05, headLength=None, tubeRadius=0.01, color=[1,1,1], startHead=False, endHead=True):
+        if headLength is None:
+            headLength = headRadius
         normal = np.array(end) - np.array(start)
         normal = normal / np.linalg.norm(normal)
         if startHead:
-            start = np.array(start) + headRadius * normal
+            start = np.array(start) + 0.5 * headLength * normal
         if endHead:
-            end = np.array(end) - headRadius * normal
+            end = np.array(end) - 0.5 * headLength * normal
         self.addLine(start, end, radius=tubeRadius, color=color)
         if startHead:
             self.addCone(origin=start, normal=-normal, radius=headRadius,
-                         height=headRadius, color=color, fill=True)
+                         height=headLength, color=color, fill=True)
         if endHead:
             self.addCone(origin=end, normal=normal, radius=headRadius,
-                         height=headRadius, color=color, fill=True)
+                         height=headLength, color=color, fill=True)
 
     def addSphere(self, center, radius=0.05, color=[1,1,1], resolution=24):
 
@@ -123,6 +131,17 @@ class DebugData(object):
         cube.Update()
         self.addPolyData(cube.GetOutput(), color)
 
+    def addPlane(self, origin, normal, width, height, resolution=1, color=[1,1,1]):
+        plane = vtk.vtkPlaneSource()
+        plane.SetOrigin(-width/2.0, -height/2.0, 0.0)
+        plane.SetPoint1(width/2.0, -height/2.0, 0.0)
+        plane.SetPoint2(-width/2.0, height/2.0, 0.0)
+        plane.SetCenter(origin)
+        plane.SetNormal(normal)
+        plane.SetResolution(resolution, resolution)
+        plane.Update()
+        self.addPolyData(plane.GetOutput(), color)
+
     def addCylinder(self, center, axis, length, radius, color=[1,1,1]):
         axis = np.asarray(axis) / np.linalg.norm(axis)
         center = np.array(center)
@@ -131,9 +150,9 @@ class DebugData(object):
     def addCapsule(self, center, axis, length, radius, color=[1,1,1]):
         axis = np.asarray(axis) / np.linalg.norm(axis)
         center = np.array(center)
-        self.addCylinder(center=center, axis=axis, radius=radius, length=length)
-        self.addSphere(center=center-0.5*length*axis, radius=radius)
-        self.addSphere(center=center+0.5*length*axis, radius=radius)
+        self.addCylinder(center=center, axis=axis, radius=radius, length=length, color=color)
+        self.addSphere(center=center-0.5*length*axis, radius=radius, color=color)
+        self.addSphere(center=center+0.5*length*axis, radius=radius, color=color)
 
     def addTorus(self, radius, thickness, resolution=30):
 
@@ -174,7 +193,7 @@ class DebugData(object):
         transformFilter.SetTransform(transform)
         transformFilter.SetInputConnection(sphere.GetOutputPort())
         transformFilter.Update()
-        self.addPolyData(transformFilter.GetOutput())
+        self.addPolyData(transformFilter.GetOutput(), color)
 
     def getPolyData(self):
 

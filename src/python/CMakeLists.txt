@@ -7,6 +7,7 @@ set(python_files
   director/affordancemanager.py
   director/affordancepanel.py
   director/affordanceurdf.py
+  director/affordanceviewbehaviors.py
   director/applogic.py
   director/appsettings.py
   director/assimp2vtk.py
@@ -33,6 +34,7 @@ set(python_files
   director/depthscanner.py
   director/doordemo.py
   director/drakevisualizer.py
+  director/drakevisualizerapp.py
   director/drcargs.py
   director/drilldemo.py
   director/drivingplanner.py
@@ -53,6 +55,7 @@ set(python_files
   director/ikparameters.py
   director/ikplanner.py
   director/imageview.py
+  director/imageviewapp.py
   director/ioUtils.py
   director/irisUtils.py
   director/irisdriver.py
@@ -61,6 +64,7 @@ set(python_files
   director/korgnano.py
   director/lcmframe.py
   director/lcmloggerwidget.py
+  director/lcmlogplayer.py
   director/lcmgl.py
   director/lcmobjectcollection.py
   director/lcmoctomap.py
@@ -71,13 +75,17 @@ set(python_files
   director/mapsregistrar.py
   director/matlab.py
   director/matlabik.py
+  director/measurementpanel.py
   director/meshmanager.py
   director/midi.py
   director/multisensepanel.py
   director/navigationpanel.py
   director/objectmodel.py
-  director/otdfmodel.py
+  director/opendatahandler.py
   director/openscope.py
+  director/optitrackvisualizer.py
+  director/otdfmodel.py
+  director/outputconsole.py
   director/packagepath.py
   director/perception.py
   director/planningutils.py
@@ -85,17 +93,21 @@ set(python_files
   director/playbackpanel.py
   director/pointcloudlcm.py
   director/pointpicker.py
+  director/pointselector.py
   director/polarisplatformplanner.py
   director/propertyanimation.py
   director/propertyset.py
   director/pydrakeik.py
+  director/qtutils.py
   director/raycastdriver.py
+  director/robotlinkselector.py
   director/robotstate.py
   director/robotplanlistener.py
   director/robotposegui.py
   director/robotsystem.py
   director/roboturdf.py
   director/robotviewbehaviors.py
+  director/sceneloader.py
   director/screengrabberpanel.py
   director/segmentation.py
   director/segmentationpanel.py
@@ -121,6 +133,9 @@ set(python_files
   director/timercallback.py
   director/transformUtils.py
   director/trackers.py
+  director/treeviewer.py
+  director/uipanel.py
+  director/undoredo.py
   director/utime.py
   director/uuidutil.py
   director/valvedemo.py
@@ -128,6 +143,7 @@ set(python_files
   director/viconvisualizer.py
   director/viewbehaviors.py
   director/viewcolors.py
+  director/viewerclient.py
   director/vieweventfilter.py
   director/visualization.py
   director/vtkAll.py
@@ -136,12 +152,6 @@ set(python_files
   director/wristforcetorquevisualizer.py
   director/kinectlcm.py
   director/plannerPublisher.py
-
-
-  director/macros/segmentation_view/ortho_x.py
-  director/macros/segmentation_view/ortho_y.py
-  director/macros/segmentation_view/ortho_z.py
-  director/macros/segmentation_view/perspective.py
 
   director/tasks/__init__.py
   director/tasks/robottasks.py
@@ -162,8 +172,6 @@ set(python_files
   director/thirdparty/naming.py
   director/thirdparty/pysdf.py
   director/thirdparty/toposort.py
-
-  director/sceneloader.py
 
   urdf_parser_py/__init__.py
   urdf_parser_py/sdf.py
@@ -218,23 +226,6 @@ add_custom_command(
   )
 
 add_custom_target(python_byte_compile ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/compile_complete")
-
-# cleanup old python files if needed
-set(cleanup_files
-  director/macros/popout.py
-  director/macros/publish.py
-)
-foreach(file ${cleanup_files})
-  foreach(search_dir "${python_module_dir}" "${CMAKE_INSTALL_PREFIX}/${DD_INSTALL_PYTHON_DIR}")
-    if (EXISTS "${search_dir}/${file}")
-      file(REMOVE "${search_dir}/${file}")
-    endif()
-    if (EXISTS "${search_dir}/${file}c")
-      file(REMOVE "${search_dir}/${file}c")
-    endif()
-  endforeach()
-endforeach()
-
 
 add_subdirectory(extensions)
 add_subdirectory(tests)

@@ -13,6 +13,7 @@ from director import vtkAll as vtk
 from director import vtkNumpy as vnp
 from director import visualization as vis
 from director import packagepath
+from director.fieldcontainer import FieldContainer
 
 import bot_core as lcmbot
 
@@ -25,13 +26,10 @@ lcmrl = lcmbot
 
 from PythonQt import QtGui
 
-USE_TEXTURE_MESHES = True
-USE_SHADOWS = False
-
 class Geometry(object):
 
+    MeshCache = {}
     TextureCache = {}
-    MeshToTexture = {}
 
     PackageMap = None
 
@@ -130,9 +128,7 @@ class Geometry(object):
     @staticmethod
     def transformGeometry(polyDataList, geom):
         t = transformUtils.transformFromPose(geom.position, geom.quaternion)
-        polyDataList = [filterUtils.transformPolyData(polyData, t) for polyData in polyDataList]
-        return polyDataList
-
+        return [filterUtils.transformPolyData(polyData, t) for polyData in polyDataList]
 
     @staticmethod
     def computeNormals(polyDataList):
@@ -142,7 +138,6 @@ class Geometry(object):
             return polyData if hasNormals else filterUtils.computeNormals(polyData)
 
         return [addNormals(polyData) for polyData in polyDataList]
-
 
     @staticmethod
     def getTextureFileName(polyData):
@@ -165,7 +160,7 @@ class Geometry(object):
             imageFile = textureFileName
 
         if not os.path.isfile(imageFile):
-            print 'cannot find texture file:', textureFileName
+            print 'failed to find image file:', imageFile
             return
 
         image = ioUtils.readImage(imageFile)
@@ -174,7 +169,7 @@ class Geometry(object):
             return
 
         texture = vtk.vtkTexture()
-        texture.SetInput(image)
+        texture.SetInputData(image)
         texture.EdgeClampOn()
         texture.RepeatOn()
 
@@ -196,10 +191,13 @@ class Geometry(object):
         return Geometry.PackageMap.resolveFilename(filename) or filename
 
     @staticmethod
-    def loadPolyDataMeshes(geom):
+    def createPolyDataFromFiles(geom):
 
         filename = Geometry.resolvePackageFilename(geom.string_data)
         basename, ext = os.path.splitext(filename)
+
+        if filename in Geometry.MeshCache:
+            return Geometry.MeshCache[filename]
 
         preferredExtensions = ['.vtm', '.vtp', '.obj']
 
@@ -212,74 +210,85 @@ class Geometry(object):
             print 'warning, cannot find file:', filename
             return []
 
+        visInfo = None
+
         if filename.endswith('vtm'):
             polyDataList = ioUtils.readMultiBlock(filename)
         else:
-            polyDataList = [ioUtils.readPolyData(filename)]
+            if filename.endswith('obj'):
+                polyDataList, actors = ioUtils.readObjMtl(filename)
+                if actors:
+                    visInfo = Geometry.makeVisInfoFromActors(actors)
+            else:
+                polyDataList = [ioUtils.readPolyData(filename)]
 
-        if USE_TEXTURE_MESHES:
-            for polyData in polyDataList:
-                Geometry.loadTextureForMesh(polyData, filename)
+        for polyData in polyDataList:
+            Geometry.loadTextureForMesh(polyData, filename)
 
-
-        return polyDataList
-
+        result = (polyDataList, visInfo)
+        Geometry.MeshCache[filename] = result
+        return result
 
     @staticmethod
-    def createPolyDataForGeometry(geom):
+    def makeVisInfoFromMessage(polyDataList, geom):
 
-        polyDataList = []
+        def make(polyData):
+            texture = Geometry.TextureCache.get(Geometry.getTextureFileName(polyData))
+            color = [1.0, 1.0, 1.0] if texture else geom.color[:3]
+            alpha = geom.color[3]
+            return FieldContainer(color=color, alpha=alpha, texture=texture)
+
+        return [make(polyData) for polyData in polyDataList]
+
+    @staticmethod
+    def makeVisInfoFromActors(actors):
+
+        def make(actor):
+            color = actor.GetProperty().GetColor()
+            alpha = actor.GetProperty().GetOpacity()
+            texture = actor.GetTexture()
+            return FieldContainer(color=color, alpha=alpha, texture=texture)
+
+        return [make(actor) for actor in actors]
+
+    @staticmethod
+    def createGeometry(name, geom):
+
+        visInfo = None
 
         if geom.type != lcmrl.viewer_geometry_data_t.MESH:
             polyDataList = [Geometry.createPolyDataFromPrimitive(geom)]
-
+        elif not geom.string_data:
+            polyDataList = [Geometry.createPolyDataFromMeshMessage(geom)]
         else:
-            if not geom.string_data:
-                polyDataList = [Geometry.createPolyDataFromMeshMessage(geom)]
-            else:
-                polyDataList = Geometry.loadPolyDataMeshes(geom)
-                polyDataList = Geometry.scaleGeometry(polyDataList, geom)
+            polyDataList, visInfo = Geometry.createPolyDataFromFiles(geom)
+            polyDataList = Geometry.scaleGeometry(polyDataList, geom)
+
+        if not visInfo:
+            visInfo = Geometry.makeVisInfoFromMessage(polyDataList, geom)
+
+        assert len(polyDataList) == len(visInfo)
 
         polyDataList = Geometry.transformGeometry(polyDataList, geom)
         polyDataList = Geometry.computeNormals(polyDataList)
 
-        return polyDataList
-
-    @staticmethod
-    def createGeometry(name, geom, parentTransform):
-        polyDataList = Geometry.createPolyDataForGeometry(geom)
-
-        geometry = []
-        for polyData in polyDataList:
-            g = Geometry(name, geom, polyData, parentTransform)
-            geometry.append(g)
-        return geometry
+        return [Geometry(name, polyData, visInfo) for polyData, visInfo in zip(polyDataList, visInfo)]
 
 
-    def __init__(self, name, geom, polyData, parentTransform):
+    def __init__(self, name, polyData, visInfo):
         self.polyDataItem = vis.PolyDataItem(name, polyData, view=None)
-        self.polyDataItem.setProperty('Alpha', geom.color[3])
-        self.polyDataItem.actor.SetTexture(Geometry.TextureCache.get( Geometry.getTextureFileName(polyData) ))
-
-        if self.polyDataItem.actor.GetTexture():
-            self.polyDataItem.setProperty('Color', QtGui.QColor(255, 255, 255))
-
-        else:
-            self.polyDataItem.setProperty('Color', QtGui.QColor(geom.color[0]*255, geom.color[1]*255, geom.color[2]*255))
-
-        if USE_SHADOWS:
-            self.polyDataItem.shadowOn()
+        self.polyDataItem.setProperty('Color', visInfo.color)
+        self.polyDataItem.setProperty('Alpha', visInfo.alpha)
+        self.polyDataItem.actor.SetTexture(visInfo.texture)
 
 
 class Link(object):
 
     def __init__(self, link):
         self.transform = vtk.vtkTransform()
-
         self.geometry = []
         for g in link.geom:
-            self.geometry.extend(Geometry.createGeometry(link.name + ' geometry data', g, self.transform))
-
+            self.geometry.extend(Geometry.createGeometry(link.name + ' geometry data', g))
 
     def setTransform(self, pos, quat):
         self.transform = transformUtils.transformFromPose(pos, quat)
@@ -292,6 +301,7 @@ class Link(object):
 
 
 class DrakeVisualizer(object):
+    name = 'Drake Visualizer'
 
     def __init__(self, view):
 
@@ -299,11 +309,12 @@ class DrakeVisualizer(object):
         self.view = view
         self.robots = {}
         self.linkWarnings = set()
-        self.sendStatusMessage('loaded')
         self.enable()
+        self.sendStatusMessage('loaded')
 
     def _addSubscribers(self):
         self.subscribers.append(lcmUtils.addSubscriber('DRAKE_VIEWER_LOAD_ROBOT', lcmrl.viewer_load_robot_t, self.onViewerLoadRobot))
+        self.subscribers.append(lcmUtils.addSubscriber('DRAKE_VIEWER_ADD_ROBOT', lcmrl.viewer_load_robot_t, self.onViewerAddRobot))
         self.subscribers.append(lcmUtils.addSubscriber('DRAKE_VIEWER_DRAW', lcmrl.viewer_draw_t, self.onViewerDraw))
         self.subscribers.append(lcmUtils.addSubscriber('DRAKE_PLANAR_LIDAR_.*', lcmbot.planar_lidar_t, self.onPlanarLidar, callbackNeedsChannel=True))
         self.subscribers.append(lcmUtils.addSubscriber('DRAKE_POINTCLOUD_.*', lcmbot.pointcloud_t, self.onPointCloud, callbackNeedsChannel=True))
@@ -330,14 +341,18 @@ class DrakeVisualizer(object):
 
     def onViewerLoadRobot(self, msg):
         self.removeAllRobots()
-        for link in msg.link:
-            l = Link(link)
-            self.addLink(l, link.robot_num, link.name)
-
+        self.addLinksFromLCM(msg)
         self.sendStatusMessage('successfully loaded robot')
 
+    def onViewerAddRobot(self, msg):
+        robotNumsToReplace = set(link.robot_num for link in msg.link)
+        for robotNum in robotNumsToReplace:
+            self.removeRobot(robotNum)
+        self.addLinksFromLCM(msg)
+        self.sendStatusMessage('successfully added robot')
+
     def getRootFolder(self):
-        return om.getOrCreateContainer('drake viewer', parentObj=om.findObjectByName('scene'))
+        return om.getOrCreateContainer(self.name.lower(), parentObj=om.findObjectByName('scene'))
 
     def getRobotFolder(self, robotNum):
         return om.getOrCreateContainer('robot %d' % robotNum, parentObj=self.getRootFolder())
@@ -347,6 +362,10 @@ class DrakeVisualizer(object):
 
     def getPointCloudFolder(self):
         return om.getOrCreateContainer('pointclouds', parentObj=self.getRootFolder())
+
+    def addLinksFromLCM(self, load_msg):
+        for link in load_msg.link:
+            self.addLink(Link(link), link.robot_num, link.name)
 
     def addLink(self, link, robotNum, linkName):
         self.robots.setdefault(robotNum, {})[linkName] = link
@@ -374,6 +393,11 @@ class DrakeVisualizer(object):
             if child.getProperty('Name') != "pointclouds":
                 om.removeFromObjectModel(child)
         self.robots = {}
+
+    def removeRobot(self, robotNum):
+        if robotNum in self.robots:
+            om.removeFromObjectModel(self.getRobotFolder(robotNum))
+            del self.robots[robotNum]
 
     def sendStatusMessage(self, message):
         msg = lcmrl.viewer_command_t()
@@ -420,9 +444,8 @@ class DrakeVisualizer(object):
                 polyData = vtk.vtkPolyData()
 
                 name = linkName + ' geometry data'
-                geom = type('', (), {})
-                geom.color = [1.0,0.0,0.0,1.0]
-                g = Geometry(name, geom, polyData, link.transform)
+                visInfo = FieldContainer(color=[1.0,0.0,0.0], alpha=1.0, texture=None)
+                g = Geometry(name, polyData, visInfo)
                 link.geometry.append(g)
 
                 linkFolder = self.getLinkFolder(robotNum, linkName)
@@ -482,222 +505,3 @@ class DrakeVisualizer(object):
                 item._updateColorByProperty()
                 item.setProperty("Color By", "rgb")
             om.addToObjectModel(item, parentObj=folder)
-
-
-##########################################################
-from director.screengrabberpanel import ScreenGrabberPanel
-from director import lcmgl
-from director import objectmodel as om
-from director import applogic
-from director import appsettings
-from director import viewbehaviors
-from director import camerabookmarks
-from director import cameracontrolpanel
-import PythonQt
-from PythonQt import QtCore, QtGui
-
-
-class DrakeVisualizerApp():
-
-    def __init__(self):
-
-        self.applicationInstance().setOrganizationName('RobotLocomotionGroup')
-        self.applicationInstance().setApplicationName('drake-visualizer')
-
-        om.init()
-        self.view = PythonQt.dd.ddQVTKWidgetView()
-
-        # init grid
-        self.gridObj = vis.showGrid(self.view, parent='scene')
-        self.gridObj.setProperty('Surface Mode', 'Surface with edges')
-        self.gridObj.setProperty('Color', [0,0,0])
-        self.gridObj.setProperty('Alpha', 0.1)
-
-        # init view options
-        self.viewOptions = vis.ViewOptionsItem(self.view)
-        om.addToObjectModel(self.viewOptions, parentObj=om.findObjectByName('scene'))
-        self.viewOptions.setProperty('Background color', [0.3, 0.3, 0.35])
-        self.viewOptions.setProperty('Background color 2', [0.95,0.95,1])
-
-        # setup camera
-        applogic.setCameraTerrainModeEnabled(self.view, True)
-        applogic.resetCamera(viewDirection=[-1, 0, -0.3], view=self.view)
-
-        # This setting improves the near plane clipping resolution.
-        # Drake often draws a very large ground plane which is detrimental to
-        # the near clipping for up close objects.  The trade-off is Z buffer
-        # resolution but in practice things look good with this setting.
-        self.view.renderer().SetNearClippingPlaneTolerance(0.0005)
-
-        # add view behaviors
-        self.viewBehaviors = viewbehaviors.ViewBehaviors(self.view)
-        applogic._defaultRenderView = self.view
-
-        self.mainWindow = QtGui.QMainWindow()
-        self.mainWindow.setCentralWidget(self.view)
-        self.mainWindow.resize(768 * (16/9.0), 768)
-        self.mainWindow.setWindowTitle('Drake Visualizer')
-        self.mainWindow.setWindowIcon(QtGui.QIcon(':/images/drake_logo.png'))
-
-        self.settings = QtCore.QSettings()
-
-        self.fileMenu = self.mainWindow.menuBar().addMenu('&File')
-        self.viewMenu = self.mainWindow.menuBar().addMenu('&View')
-        self.viewMenuManager = PythonQt.dd.ddViewMenu(self.viewMenu)
-
-        self.drakeVisualizer = DrakeVisualizer(self.view)
-        self.lcmglManager = lcmgl.LCMGLManager(self.view) if lcmgl.LCMGL_AVAILABLE else None
-
-        model = om.getDefaultObjectModel()
-        model.getTreeWidget().setWindowTitle('Scene Browser')
-        model.getPropertiesPanel().setWindowTitle('Properties Panel')
-
-        self.sceneBrowserDock = self.addWidgetToDock(model.getTreeWidget(), QtCore.Qt.LeftDockWidgetArea, visible=False)
-        self.propertiesDock = self.addWidgetToDock(self.wrapScrollArea(model.getPropertiesPanel()), QtCore.Qt.LeftDockWidgetArea, visible=False)
-
-        self.addViewMenuSeparator()
-
-        self.screenGrabberPanel = ScreenGrabberPanel(self.view)
-        self.screenGrabberDock = self.addWidgetToDock(self.screenGrabberPanel.widget, QtCore.Qt.RightDockWidgetArea, visible=False)
-
-        self.cameraBookmarksPanel = camerabookmarks.CameraBookmarkWidget(self.view)
-        self.cameraBookmarksDock = self.addWidgetToDock(self.cameraBookmarksPanel.widget, QtCore.Qt.RightDockWidgetArea, visible=False)
-
-        self.cameraControlPanel = cameracontrolpanel.CameraControlPanel(self.view)
-        self.cameraControlDock = self.addWidgetToDock(self.cameraControlPanel.widget, QtCore.Qt.RightDockWidgetArea, visible=False)
-
-        act = self.fileMenu.addAction('&Quit')
-        act.setShortcut(QtGui.QKeySequence('Ctrl+Q'))
-        act.connect('triggered()', self.applicationInstance().quit)
-
-        self.fileMenu.addSeparator()
-
-        act = self.fileMenu.addAction('&Open Data...')
-        act.setShortcut(QtGui.QKeySequence('Ctrl+O'))
-        act.connect('triggered()', self._onOpenDataFile)
-
-        applogic.addShortcut(self.mainWindow, 'F1', self._toggleObjectModel)
-        applogic.addShortcut(self.mainWindow, 'F8', applogic.showPythonConsole)
-        self.applicationInstance().connect('aboutToQuit()', self._onAboutToQuit)
-
-        for obj in om.getObjects():
-            obj.setProperty('Deletable', False)
-
-        self.mainWindow.show()
-        self._saveWindowState('MainWindowDefault')
-        self._restoreWindowState('MainWindowCustom')
-
-    def _onAboutToQuit(self):
-        self._saveWindowState('MainWindowCustom')
-        self.settings.sync()
-
-    def _restoreWindowState(self, key):
-        appsettings.restoreState(self.settings, self.mainWindow, key)
-
-    def _saveWindowState(self, key):
-        appsettings.saveState(self.settings, self.mainWindow, key)
-
-    def _toggleObjectModel(self):
-        self.sceneBrowserDock.setVisible(not self.sceneBrowserDock.visible)
-        self.propertiesDock.setVisible(not self.propertiesDock.visible)
-
-    def _toggleScreenGrabber(self):
-        self.screenGrabberDock.setVisible(not self.screenGrabberDock.visible)
-
-    def _toggleCameraBookmarks(self):
-        self.cameraBookmarksDock.setVisible(not self.cameraBookmarksDock.visible)
-
-    def _getOpenDataDirectory(self):
-        return self.settings.value('OpenDataDir') or os.path.expanduser('~')
-
-    def _storeOpenDataDirectory(self, filename):
-
-        if os.path.isfile(filename):
-            filename = os.path.dirname(filename)
-        if os.path.isdir(filename):
-            self.settings.setValue('OpenDataDir', filename)
-
-
-    def _showErrorMessage(self, title, message):
-        QtGui.QMessageBox.warning(self.mainWindow, title, message)
-
-
-    def onOpenVrml(self, filename):
-        meshes, color = ioUtils.readVrml(filename)
-        folder = om.getOrCreateContainer(os.path.basename(filename), parentObj=om.getOrCreateContainer('files'))
-        for i, pair in enumerate(zip(meshes, color)):
-            mesh, color = pair
-            obj = vis.showPolyData(mesh, 'mesh %d' % i, color=color, parent=folder)
-            vis.addChildFrame(obj)
-
-    def _openGeometry(self, filename):
-
-        if filename.lower().endswith('wrl'):
-            self.onOpenVrml(filename)
-            return
-
-        polyData = ioUtils.readPolyData(filename)
-
-        if not polyData or not polyData.GetNumberOfPoints():
-            self._showErrorMessage('Failed to read any data from file: %s' % filename, title='Reader error')
-            return
-
-        vis.showPolyData(polyData, os.path.basename(filename), parent='files')
-
-    def _onOpenDataFile(self):
-        fileFilters = "Data Files (*.obj *.ply *.stl *.vtk *.vtp *.wrl)";
-        filename = QtGui.QFileDialog.getOpenFileName(self.mainWindow, "Open...", self._getOpenDataDirectory(), fileFilters)
-        if not filename:
-            return
-
-        self._storeOpenDataDirectory(filename)
-        self._openGeometry(filename)
-
-    def wrapScrollArea(self, widget):
-        w = QtGui.QScrollArea()
-        w.setWidget(widget)
-        w.setWidgetResizable(True)
-        w.setWindowTitle(widget.windowTitle)
-        #w.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-        return w
-
-    def addWidgetToViewMenu(self, widget):
-        self.viewMenuManager.addWidget(widget, widget.windowTitle)
-
-    def addViewMenuSeparator(self):
-        self.viewMenuManager.addSeparator()
-
-    def addWidgetToDock(self, widget, dockArea, visible=True):
-        dock = QtGui.QDockWidget()
-        dock.setWidget(widget)
-        dock.setWindowTitle(widget.windowTitle)
-        dock.setObjectName(widget.windowTitle + ' Dock')
-        dock.setVisible(visible)
-        self.mainWindow.addDockWidget(dockArea, dock)
-        self.addWidgetToViewMenu(dock)
-        return dock
-
-    def quit(self):
-        self.applicationInstance().quit()
-
-    def applicationInstance(self):
-        return QtCore.QCoreApplication.instance()
-
-    def start(self, globalsDict=None):
-        if globalsDict:
-            globalsDict['app'] = self
-            globalsDict['view'] = self.view
-            globalsDict['quit'] = self.quit
-            globalsDict['exit'] = self.quit
-
-        return QtCore.QCoreApplication.instance().exec_()
-
-
-def main(globalsDict=None):
-
-    app = DrakeVisualizerApp()
-    app.start(globalsDict)
-
-
-if __name__ == '__main__':
-    main(globals())

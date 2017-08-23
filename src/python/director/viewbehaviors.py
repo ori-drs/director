@@ -79,17 +79,15 @@ def showRightClickMenu(displayPoint, view):
 
     propertiesPanel = PythonQt.dd.ddPropertiesPanel()
     propertiesPanel.setBrowserModeToWidget()
-    propertyset.PropertyPanelHelper.addPropertiesToPanel(pickedObj.properties, propertiesPanel)
-
-    def onPropertyChanged(prop):
-        om.PropertyPanelHelper.setPropertyFromPanel(prop, propertiesPanel, pickedObj.properties)
-    propertiesPanel.connect('propertyValueChanged(QtVariantProperty*)', onPropertyChanged)
+    panelConnector = propertyset.PropertyPanelConnector(pickedObj.properties, propertiesPanel)
+    def onMenuHidden():
+      panelConnector.cleanup()
+    menu.connect('aboutToHide()', onMenuHidden)
 
     propertiesMenu = menu.addMenu('Properties')
     propertiesWidgetAction = QtGui.QWidgetAction(propertiesMenu)
     propertiesWidgetAction.setDefaultWidget(propertiesPanel)
     propertiesMenu.addAction(propertiesWidgetAction)
-
 
     actions = getContextMenuActions(view, pickedObj, pickedPoint)
 
@@ -141,14 +139,15 @@ class ViewBehaviors(vieweventfilter.ViewEventFilter):
 
     def onLeftDoubleClick(self, event):
 
-        displayPoint = vis.mapMousePosition(self.view, event)
+        displayPoint = self.getMousePositionInView(event)
         if toggleFrameWidget(displayPoint, self.view):
             self.consumeEvent()
+        else:
+            self.callHandler(self.LEFT_DOUBLE_CLICK_EVENT, displayPoint, self.view, event)
 
     def onRightClick(self, event):
-        displayPoint = vis.mapMousePosition(self.view, event)
+        displayPoint = self.getMousePositionInView(event)
         showRightClickMenu(displayPoint, self.view)
-
 
     def onKeyPress(self, event):
 

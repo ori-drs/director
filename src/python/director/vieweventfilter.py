@@ -4,10 +4,13 @@ import director.visualization as vis
 
 class ViewEventFilter(object):
 
+    LEFT_DOUBLE_CLICK_EVENT = 'LEFT_DOUBLE_CLICK_EVENT'
+
     def __init__(self, view):
         self.view = view
         self._leftMouseStart = None
         self._rightMouseStart = None
+        self._handlers = {}
         self.installEventFilter()
 
     def installEventFilter(self):
@@ -30,6 +33,15 @@ class ViewEventFilter(object):
                 QtCore.QEvent.KeyPress,
                 QtCore.QEvent.KeyRelease]
 
+    def addHandler(self, eventType, handler):
+        self._handlers.setdefault(eventType, []).append(handler)
+
+    def callHandler(self, eventType, *args, **kwargs):
+        for handler in self._handlers.get(eventType, []):
+            if handler(*args, **kwargs):
+                self.consumeEvent()
+                break
+
     def getMousePositionInView(self, event):
         return vis.mapMousePosition(self.view, event)
 
@@ -51,30 +63,34 @@ class ViewEventFilter(object):
 
         elif event.type() == QtCore.QEvent.MouseButtonPress and event.button() == QtCore.Qt.RightButton:
             self._rightMouseStart = QtCore.QPoint(event.pos())
+            self.onRightMousePress(event)
 
         elif event.type() == QtCore.QEvent.MouseMove:
+
+            if self._rightMouseStart is not None:
+                delta = QtCore.QPoint(event.pos()) - self._rightMouseStart
+                if delta.manhattanLength() > 3:
+                    self._rightMouseStart = None
+
+            if self._leftMouseStart is not None:
+                delta = QtCore.QPoint(event.pos()) - self._leftMouseStart
+                if delta.manhattanLength() > 3:
+                    self._leftMouseStart = None
 
             if self._rightMouseStart is None and self._leftMouseStart is None:
                 self.onMouseMove(event)
 
-            else:
-                if self._rightMouseStart is not None:
-                    delta = QtCore.QPoint(event.pos()) - self._rightMouseStart
-                    if delta.manhattanLength() > 3:
-                        self._rightMouseStart = None
+        elif event.type() == QtCore.QEvent.MouseButtonRelease and event.button() == QtCore.Qt.LeftButton:
+            self.onLeftMouseRelease(event)
+            if self._leftMouseStart is not None:
+                self._leftMouseStart = None
+                self.onLeftClick(event)
 
-                if self._leftMouseStart is not None:
-                    delta = QtCore.QPoint(event.pos()) - self._leftMouseStart
-                    if delta.manhattanLength() > 3:
-                        self._leftMouseStart = None
-
-        elif event.type() == QtCore.QEvent.MouseButtonRelease and event.button() == QtCore.Qt.LeftButton and self._leftMouseStart is not None:
-            self._leftMouseStart = None
-            self.onLeftClick(event)
-
-        elif event.type() == QtCore.QEvent.MouseButtonRelease and event.button() == QtCore.Qt.RightButton and self._rightMouseStart is not None:
-            self._rightMouseStart = None
-            self.onRightClick(event)
+        elif event.type() == QtCore.QEvent.MouseButtonRelease and event.button() == QtCore.Qt.RightButton:
+            self.onRightMouseRelease(event)
+            if self._rightMouseStart is not None:
+                self._rightMouseStart = None
+                self.onRightClick(event)
 
         elif event.type() == QtCore.QEvent.Wheel:
             self.onMouseWheel(event)
@@ -94,6 +110,15 @@ class ViewEventFilter(object):
         pass
 
     def onLeftMousePress(self, event):
+        pass
+
+    def onRightMousePress(self, event):
+        pass
+
+    def onLeftMouseRelease(self, event):
+        pass
+
+    def onRightMouseRelease(self, event):
         pass
 
     def onLeftDoubleClick(self, event):

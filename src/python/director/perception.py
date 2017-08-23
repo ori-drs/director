@@ -131,7 +131,7 @@ class MultisenseItem(om.ObjectModelItem):
 class LidarItem(om.ObjectModelItem):
 
     def __init__(self, model):
-        om.ObjectModelItem.__init__(self, model.channelName, om.Icons.EyeOff)
+        om.ObjectModelItem.__init__(self, model.sensorName, om.Icons.EyeOff)
 
         self.model = model
         self.scalarBarWidget = None
@@ -289,7 +289,6 @@ class MultiSenseSource(TimerCallback):
         self.polyDataObj = vis.PolyDataItem('Multisense Sweep', self.revPolyData, view)
         self.polyDataObj.actor.SetPickable(1)
 
-
         self.setPointSize(self.pointSize)
         self.setAlpha(self.alpha)
         self.targetFps = 60
@@ -356,6 +355,8 @@ class MultiSenseSource(TimerCallback):
             self.reader.SetDistanceRange(0.25, 4.0)
             self.reader.SetHeightRange(-80.0, 80.0)
             self.reader.Start()
+
+        self.setIntensityRange(400, 4000)
 
         TimerCallback.start(self)
 
@@ -475,11 +476,14 @@ class MultiSenseSource(TimerCallback):
         m.joint_position = jointPositions
         lcmUtils.publish('DESIRED_NECK_ANGLES', m)
 
+    def setIntensityRange(self, lowerBound, upperBound):
+        self.polyDataObj.setRangeMap('intensity', [lowerBound, upperBound])
+
 
 
 class LidarSource(TimerCallback):
 
-    def __init__(self, view, channelName, intensityRange=(400,4000)):
+    def __init__(self, view, channelName, coordinateFrame, sensorName, intensityRange=(400,4000)):
         TimerCallback.__init__(self)
         self.view = view
         self.channelName = channelName
@@ -495,11 +499,14 @@ class LidarSource(TimerCallback):
         self.colorBy = 'Solid Color'
         self.intensityRange = intensityRange
         self.initScanLines()
+        self.sensorName = sensorName
+        self.coordinateFrame = coordinateFrame
 
         self.revPolyData = vtk.vtkPolyData()
         self.polyDataObj = vis.PolyDataItem('Lidar Sweep', self.revPolyData, view)
         self.polyDataObj.actor.SetPickable(1)
 
+        self.polyDataObj.setRangeMap('intensity', intensityRange)
 
         self.setPointSize(self.pointSize)
         self.setAlpha(self.alpha)
@@ -556,6 +563,7 @@ class LidarSource(TimerCallback):
         if self.reader is None:
             self.reader = drc.vtkLidarSource()
             self.reader.subscribe(self.channelName)
+            self.reader.setCoordinateFrame(self.coordinateFrame)
             self.reader.InitBotConfig(drcargs.args().config_file)
             self.reader.SetDistanceRange(0.25, 80.0)
             self.reader.SetHeightRange(-80.0, 80.0)
@@ -600,7 +608,8 @@ class LidarSource(TimerCallback):
     def tick(self):
         self.updateScanLines()
 
-
+    def setIntensityRange(self, lowerBound, upperBound):
+        self.polyDataObj.setRangeMap('intensity', [lowerBound, upperBound])
 
 class NeckDriver(object):
 
@@ -818,12 +827,6 @@ def init(view):
     global _multisenseItem
     global multisenseDriver
 
-    global _lidarItem0
-    global lidarDriver0
-
-    global _lidarItem1
-    global lidarDriver1
-
     sensorsFolder = om.getOrCreateContainer('sensors')
 
     m = MultiSenseSource(view)
@@ -832,24 +835,17 @@ def init(view):
     _multisenseItem = MultisenseItem(m)
     om.addToObjectModel(_multisenseItem, sensorsFolder)
 
-    # TODO: This is a pretty clunky way of doing this
-    # should read the list of channels to display from director_config
-    useLidarSource0 = True
-    if useLidarSource0:
-        l0 = LidarSource(view, "SICK_SCAN", (100,400))
-        l0.start()
-        lidarDriver0 = l0
-        _lidarItem0 = LidarItem(l0)
-        om.addToObjectModel(_lidarItem0, sensorsFolder)
-
-    useLidarSource1 = True
-    if useLidarSource1:
-        l1 = LidarSource(view, "HORIZONTAL_SCAN")
-        l1.start()
-        lidarDriver1 = l1
-        _lidarItem1 = LidarItem(l1)
-        om.addToObjectModel(_lidarItem1, sensorsFolder)
-
+    queue = PythonQt.dd.ddPointCloudLCM(lcmUtils.getGlobalLCMThread())
+    queue.init(lcmUtils.getGlobalLCMThread(), drcargs.args().config_file)
+    lidarNames = queue.getLidarNames()
+    for lidar in lidarNames:
+        if queue.displayLidar(lidar):
+            
+            l = LidarSource(view, queue.getLidarChannelName(lidar), queue.getLidarCoordinateFrame(lidar), queue.getLidarFriendlyName(lidar), queue.getLidarIntensity(lidar))
+            l.start()
+            lidarDriver = l
+            _lidarItem = LidarItem(l)
+            om.addToObjectModel(_lidarItem, sensorsFolder)
 
     useMapServer = hasattr(drc, 'vtkMapServerSource')
     if useMapServer:
@@ -867,5 +863,3 @@ def init(view):
     om.addToObjectModel(spindleDebug, sensorsFolder)
 
     return multisenseDriver, mapServerSource
-
-

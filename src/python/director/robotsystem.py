@@ -2,38 +2,37 @@ from director.componentgraph import ComponentFactory
 from director.fieldcontainer import FieldContainer
 
 
-class RobotSystemFactory(ComponentFactory):
+class RobotSystemFactory(object):
 
-    def initDefaultOptions(self, options):
-        '''
-        Components are enabled by default.  This function
-        determines which components should be disabled.
-        '''
-        options.useConvexHullModel = False
+    def getComponents(self):
 
-    def addComponents(self, componentGraph):
+        components = {
+            'DirectorConfig' : [],
+            'RobotState' : ['DirectorConfig'],
+            'Segmentation' : [],
+            'SegmentationRobotState' : ['Segmentation', 'RobotState'],
+            'SegmentationAffordances' : ['Segmentation', 'Affordances'],
+            'PerceptionDrivers' : ['RobotState', 'Planning'],
+            'HandDrivers' : [],
+            'Footsteps' : ['RobotState'],
+            'RaycastDriver' : ['Footsteps'],
+            'IRISDriver' : ['RobotState', 'Footsteps'],
+            #'AtlasDriver' : [],
+            'Planning' : ['RobotState'],
+            'Playback' : ['Planning'],
+            'Teleop' : ['Planning', 'Playback', 'Affordances'],
+            'ConvexHullModel' : ['Playback'],
+            'FootstepsPlayback' : ['Footsteps', 'Playback'],
+            'Affordances' : [],
+            'PlannerPublisher' : ['Planning', 'Affordances'],
+            'ViewBehaviors' : ['Footsteps', 'PerceptionDrivers', 'Planning', 'Affordances'],
+            'RobotLinkSelector' : ['ViewBehaviors']}
 
-        addComponent = componentGraph.addComponent
+        disabledComponents = [
+            'ConvexHullModel',
+            'RobotLinkSelector']
 
-        addComponent('DirectorConfig', [])
-        addComponent('RobotState', ['DirectorConfig'])
-        addComponent('Segmentation', [])
-        addComponent('SegmentationRobotState', ['Segmentation', 'RobotState'])
-        addComponent('SegmentationAffordances', ['Segmentation', 'Affordances'])
-        addComponent('PerceptionDrivers', ['RobotState', 'Planning'])
-        addComponent('HandDrivers', [])
-        addComponent('Footsteps', ['RobotState'])
-        addComponent('RaycastDriver', ['Footsteps'])
-        addComponent('IRISDriver', ['RobotState', 'Footsteps'])
-        #addComponent('AtlasDriver', [])
-        addComponent('Planning', ['RobotState'])
-        addComponent('Playback', ['Planning'])
-        addComponent('Teleop', ['Planning', 'Playback', 'Affordances'])
-        addComponent('ConvexHullModel', ['Playback'])
-        addComponent('FootstepsPlayback', ['Footsteps', 'Playback'])
-        addComponent('Affordances', [])
-        addComponent('PlannerPublisher', ['Planning', 'Affordances'])
-        addComponent('ViewBehaviors', ['PerceptionDrivers'])
+        return components, disabledComponents
 
     def initDirectorConfig(self, robotSystem):
 
@@ -286,10 +285,14 @@ class RobotSystemFactory(ComponentFactory):
         robotSystem.ikPlanner.addPublisher('matlabdrake', matlabPlannerPub)
         robotSystem.ikPlanner.addPublisher('exotica', exoticaPlannerPub)
 
-        robotSystem.ikPlanner.planningMode = 'matlabdrake'
+        directorConfig = robotSystem.directorConfig
+        if 'planningMode' in directorConfig:
+            robotSystem.ikPlanner.planningMode = directorConfig['planningMode']
+        else:
+            robotSystem.ikPlanner.planningMode = 'matlabdrake'
+
 
         linkNameArgs = ['','','']
-        directorConfig = robotSystem.directorConfig
         if 'leftFootLink' in directorConfig:
             linkNameArgs = [directorConfig['leftFootLink'], directorConfig['rightFootLink'], directorConfig['pelvisLink']]
 
@@ -309,6 +312,15 @@ class RobotSystemFactory(ComponentFactory):
             startIkServer=startIkServer
             )
 
+    def initRobotLinkSelector(self, robotSystem):
+
+        from director import robotlinkselector
+        robotLinkSelector = robotlinkselector.RobotLinkSelector()
+        robotSystem.viewBehaviors.addHandler(
+            robotSystem.viewBehaviors.LEFT_DOUBLE_CLICK_EVENT,
+            robotLinkSelector.onLeftDoubleClick)
+        return FieldContainer(robotLinkSelector=robotLinkSelector)
+
     def initViewBehaviors(self, robotSystem):
 
         from director import applogic
@@ -319,8 +331,7 @@ class RobotSystemFactory(ComponentFactory):
         return FieldContainer(viewBehaviors=viewBehaviors)
 
 
-
-def create(view=None, globalsDict=None, options=None):
+def create(view=None, globalsDict=None, options=None, planningOnly=False):
     '''
     Convenience function for initializing a robotSystem
     with the default options and populating a globals()
@@ -331,8 +342,14 @@ def create(view=None, globalsDict=None, options=None):
 
     view = view or applogic.getCurrentRenderView()
 
-    factory = RobotSystemFactory()
+    factory = ComponentFactory()
+    factory.register(RobotSystemFactory)
     options = options or factory.getDefaultOptions()
+
+    if planningOnly:
+        options = factory.getDisabledOptions()
+        factory.setDependentOptions(options, usePlannerPublisher=True, useTeleop=True)
+
     robotSystem = factory.construct(options, view=view)
 
     if globalsDict is not None:

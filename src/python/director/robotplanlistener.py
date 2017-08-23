@@ -19,10 +19,6 @@ except ImportError:
     USE_DRC_MESSAGES = True
 
 
-class ManipulationPlanItem(om.ObjectModelItem):
-    pass
-
-
 class ManipulationPlanDriver(object):
 
     PLAN_RECEIVED = 'PLAN_RECEIVED'
@@ -53,6 +49,8 @@ class ManipulationPlanDriver(object):
 
     def onManipPlan(self, msg):
         self.lastManipPlan = msg
+        if USE_DRC_MESSAGES and self.ikPlanner.clipFloat32SafeJointLimits:
+            self.lastManipPlan = self.ikPlanner.clipPlan(msg)
         self.callbacks.process(self.PLAN_RECEIVED, msg)
 
 

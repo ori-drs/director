@@ -48,6 +48,9 @@ class ConstraintSet(object):
         self.seedPoseName = None
         self.nominalPoseName = None
         self.positionCosts = []
+        # Get joint limits
+        self.jointLimitsLower = np.array([ikPlanner.robotModel.model.getJointLimits(jointName)[0] for jointName in robotstate.getDrakePoseJointNames()])
+        self.jointLimitsUpper = np.array([ikPlanner.robotModel.model.getJointLimits(jointName)[1] for jointName in robotstate.getDrakePoseJointNames()])
 
     def runIk(self):
         seedPoseName = self.seedPoseName
@@ -68,6 +71,9 @@ class ConstraintSet(object):
         ikParameters = self.ikPlanner.mergeWithDefaultIkParameters(self.ikParameters)
 
         self.endPose, self.info = self.ikPlanner.plannerPub.processIK(self.constraints, ikParameters, positionCosts, nominalPoseName=nominalPoseName, seedPoseName=seedPoseName)
+
+        if self.ikPlanner.clipFloat32SafeJointLimits:
+            self.endPose = self.ikPlanner.clipState(self.endPose, self.jointLimitsLower, self.jointLimitsUpper)
 
         self.ikPlanner.addPose(self.endPose, 'q_end')
         print 'info:', self.info
@@ -318,6 +324,8 @@ class IKPlanner(object):
             self.neckPitchJoint = self.neckJoints[0]
 
         self.initDefaultPositionCosts()
+
+        self.clipFloat32SafeJointLimits = False
 
     def getJointGroup(self, name):
         jointGroup = filter(lambda group: group['name'] == name, self.jointGroups)
@@ -889,6 +897,11 @@ class IKPlanner(object):
         return self.computePostureGoal(startPose, endPose)
 
 
+    def computeDatabasePosturePlan(self, startPose, poseGroup, poseName, side=None):
+        endPose = self.getMergedPostureFromDatabase(startPose, poseGroup, poseName)
+        return self.computePostureGoal(startPose, endPose)
+
+
     def computeStandPose(self, startPose, ikParameters=None):
 
         nominalPoseName = 'q_nom'
@@ -917,7 +930,7 @@ class IKPlanner(object):
         return self.computePostureGoal(startPose, endPose)
 
 
-    def computeHomeNominalPose(self, startPose, footReferenceFrame, pelvisHeightAboveFeet=1.0167, ikParameters=None):
+    def computeHomeNominalPose(self, startPose, footReferenceFrame, pelvisHeightAboveFeet=1.0167, ikParameters=None, moveArms=True):
         ''' Compute a pose with the pelvis above the mid point of the feet with zero roll and pitch.
             The back and neck joints are also zeroed. Don't move the arm joints.
             The default height is Valkyrie specific
@@ -941,8 +954,12 @@ class IKPlanner(object):
         q.tspan = [1.0, 1.0]
         constraints.extend([p, q])
 
-        constraints.append(self.createLockedLeftArmPostureConstraint(nominalPoseName))
-        constraints.append(self.createLockedRightArmPostureConstraint(nominalPoseName))
+        if moveArms:
+            constraints.append(self.createLockedLeftArmPostureConstraint(nominalPoseName))
+            constraints.append(self.createLockedRightArmPostureConstraint(nominalPoseName))
+        else:
+            constraints.append(self.createLockedLeftArmPostureConstraint(startPoseName))
+            constraints.append(self.createLockedRightArmPostureConstraint(startPoseName))
         constraints.append( self.createPostureConstraint('q_zero', self.neckJoints) )
 
         constraintSet = ConstraintSet(self, constraints, '', startPoseName)
@@ -951,9 +968,9 @@ class IKPlanner(object):
         return endPose, info
 
 
-    def computeHomeNominalPlan(self, startPose, footReferenceFrame, pelvisHeightAboveFeet=1.0167):
+    def computeHomeNominalPlan(self, startPose, footReferenceFrame, pelvisHeightAboveFeet=1.0167, moveArms=True):
 
-        endPose, info = self.computeHomeNominalPose(startPose, footReferenceFrame, pelvisHeightAboveFeet)
+        endPose, info = self.computeHomeNominalPose(startPose, footReferenceFrame, pelvisHeightAboveFeet, None, moveArms)
         print 'info:', info
 
         return self.computePostureGoal(startPose, endPose)
@@ -1565,6 +1582,22 @@ class IKPlanner(object):
         newIkParameters.fillInWith(self.defaultIkParameters)
         return newIkParameters
 
+    def clipState(self, jointPositions, lowerBound, upperBound):
+        jointPositions = np.array(jointPositions)
+        jointPositionsClipped = np.clip(jointPositions, lowerBound, upperBound)
+        if np.max(np.abs(jointPositions-jointPositionsClipped)) > 1e-6:
+            print 'State is outside of joint limits! clipped to limits.'
+        return jointPositionsClipped.tolist()
+        
+
+    def clipPlan(self, plan):
+        names = plan.plan[0].joint_name
+        jointLimitsLower = np.array([self.robotModel.model.getJointLimits(jointName)[0] for jointName in names])
+        jointLimitsUpper = np.array([self.robotModel.model.getJointLimits(jointName)[1] for jointName in names])
+        for i in range(0, plan.num_states):
+            plan.plan[i].joint_position = tuple(self.clipState(plan.plan[i].joint_position, jointLimitsLower, jointLimitsUpper))
+        return plan
+
     def runIkTraj(self, constraints, poseStart, poseEnd, nominalPoseName='q_nom', ikParameters=None, positionCosts=None):
 
         if positionCosts is None:
@@ -1573,6 +1606,8 @@ class IKPlanner(object):
         ikParameters = self.mergeWithDefaultIkParameters(ikParameters)
 
         self.lastManipPlan, info = self.plannerPub.processTraj(constraints, ikParameters, positionCosts, nominalPoseName=nominalPoseName, seedPoseName=poseStart, endPoseName=poseEnd)
+        if self.clipFloat32SafeJointLimits: 
+            self.lastManipPlan = self.clipPlan(self.lastManipPlan)
 
         print 'traj info:', info
         return self.lastManipPlan
@@ -1664,11 +1699,6 @@ class RobotPoseGUIWrapper(object):
         cls.rpg.setDirectorConfigFile(drcargs.args().directorConfigFile)
         cls.rpg.lcmWrapper = cls.rpg.LCMWrapper()
         cls.main = cls.rpg.MainWindow()
-        parents = [w for w in QtGui.QApplication.topLevelWidgets() if isinstance(w, PythonQt.dd.ddMainWindow)]
-        mainWindow = parents[0] if parents else None
-        cls.main.messageBoxWarning = functools.partial(QtGui.QMessageBox.warning, mainWindow)
-        cls.main.messageBoxQuestion = functools.partial(QtGui.QMessageBox.question, mainWindow)
-        cls.main.messageBoxInput = functools.partial(QtGui.QInputDialog.getText, mainWindow)
         cls.initialized = True
 
     @classmethod
@@ -1689,16 +1719,29 @@ class RobotPoseGUIWrapper(object):
     @classmethod
     def show(cls):
         cls.init()
-        cls.main.show()
-        cls.main.raise_()
-        cls.main.activateWindow()
+        cls.main.widget.show()
+        cls.main.widget.raise_()
+        cls.main.widget.activateWindow()
+
+
+    @classmethod
+    def getConfig(cls):
+        cls.init()
+        return cls.rpg.loadConfig(cls.main.getPoseConfigFile())
+
+    @classmethod
+    def getPoseNamesInGroup(cls, groupName):
+        config = cls.getConfig()
+        assert groupName in config
+        names = []
+        for pose in config[groupName]:
+            names.append(pose['name'])
+        return names
 
     @classmethod
     def getPose(cls, groupName, poseName, side=None):
 
-        cls.init()
-
-        config = cls.rpg.loadConfig(cls.main.getPoseConfigFile())
+        config = cls.getConfig()
         assert groupName in config
 
         poses = {}

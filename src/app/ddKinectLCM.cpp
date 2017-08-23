@@ -4,11 +4,13 @@
 #include <vtkCellArray.h>
 #include <vtkNew.h>
 
-#include <multisense_utils/multisense_utils.hpp>
 #include <lcmtypes/kinect/frame_msg_t.hpp>
 #include <lcmtypes/kinect_frame_msg_t.h>
-#include <zlib.h>
 
+#include <image_utils/jpeg.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <zlib.h>
 
 //-----------------------------------------------------------------------------
 ddKinectLCM::ddKinectLCM(QObject* parent) : QObject(parent)
@@ -297,7 +299,7 @@ vtkSmartPointer<vtkPolyData> PolyDataFromPointCloud(pcl::PointCloud<pcl::PointXY
     float point[3] = {cloud->points[i].x, cloud->points[i].y, cloud->points[i].z};
     unsigned char color[3] = {cloud->points[i].r, cloud->points[i].g, cloud->points[i].b};
     points->SetPoint(j, point);
-    rgbArray->SetTupleValue(j, color);
+    rgbArray->SetTypedTuple(j, color);
     j++;
   }
   nr_points = j;

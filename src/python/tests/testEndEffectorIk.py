@@ -1,3 +1,8 @@
+# import pydrakeik first.  This is a workaround for the issue:
+# https://github.com/RobotLocomotion/director/issues/467
+from director import pydrakeik
+
+import director
 from director import robotsystem
 from director.consoleapp import ConsoleApp
 from director import transformUtils
@@ -11,11 +16,9 @@ import time
 import itertools
 
 
-
 def onMatlabStartup(ikServer, startSuccess):
     assert startSuccess
     runTest()
-
 
 
 def computeIk(goalFrame, constraints, ikParameters, seedPoseName, nominalPoseName):
@@ -27,8 +30,8 @@ def computeIk(goalFrame, constraints, ikParameters, seedPoseName, nominalPoseNam
     cs.nominalPoseName = nominalPoseName
     return cs.runIk()
 
-def runTest():
 
+def runTest():
 
     side = 'left'
     testTolerances = False
@@ -69,7 +72,11 @@ def runTest():
     if randomizeSamples:
         np.random.shuffle(allSamples)
 
-    linkName = ikPlanner.getHandLink(side)
+    if 'endEffectorConfig' in robotSystem.directorConfig:
+        linkName = robotSystem.directorConfig['endEffectorConfig']['endEffectorLinkNames'][0]
+    else:
+        linkName = ikPlanner.getHandLink(side)
+
     linkFrame = robotModel.getLinkFrame(linkName)
 
     constraints = []
@@ -198,14 +205,17 @@ app.setupGlobals(globals())
 view = app.createView()
 view.show()
 
-robotSystem = robotsystem.create(view)
+robotSystem = robotsystem.create(view, planningOnly=True)
+view.resetCamera()
 
-#robotSystem.ikPlanner.planningMode = 'pydrake'
 
-if robotSystem.ikPlanner.planningMode == 'matlabdrake':
+if robotSystem.ikPlanner.planningMode == 'pydrake':
+    robotSystem.ikPlanner.plannerPub._setupLocalServer()
+    runTest()
+
+elif robotSystem.ikPlanner.planningMode == 'matlabdrake':
     robotSystem.ikServer.connectStartupCompleted(onMatlabStartup)
     robotSystem.startIkServer()
     app.start(enableAutomaticQuit=False)
-else:
-    runTest()
+    # after the app starts, runTest() will be called by onMatlabStartup
 

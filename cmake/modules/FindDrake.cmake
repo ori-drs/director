@@ -1,5 +1,11 @@
+find_package(drake QUIET CONFIG)
+if(drake_FOUND)
+  set(DRAKE_LIBRARIES drake::drake)
+  return()
+endif()
+
 if(DRAKE_DIR)
-  set(_include_dir_hint ${DRAKE_DIR})
+  set(_include_dir_hint ${DRAKE_DIR}/include)
   set(_lib_dir_hint ${DRAKE_DIR}/lib)
 endif()
 
@@ -13,6 +19,7 @@ macro(find_drake_library varName name doc)
   list(APPEND _library_var_names ${varName})
 endmacro()
 
+find_drake_library(DRAKE_MULTI_BODY_PARSERS_LIBRARY drakeMultibodyParsers "Drake Multibody Parsers library")
 find_drake_library(DRAKE_RBM_LIBRARY drakeRBM "Drake RBM library")
 find_drake_library(DRAKE_COMMON_LIBRARY drakeCommon "Drake Common library")
 find_drake_library(DRAKE_JOINTS_LIBRARY drakeJoints "Drake Joints library")
@@ -20,6 +27,9 @@ find_drake_library(DRAKE_SHAPES_LIBRARY drakeShapes "Drake Shapes library")
 find_drake_library(DRAKE_CHULL_LIBRARY drakeConvexHull "Drake Convex Hull library")
 find_drake_library(DRAKE_GEOMETRYUTIL_LIBRARY drakeGeometryUtil "Drake Geometry Util library")
 
+if(NOT DRAKE_MULTI_BODY_PARSERS_LIBRARY)
+  list(REMOVE_ITEM _library_var_names DRAKE_MULTI_BODY_PARSERS_LIBRARY)
+endif()
 
 if(NOT DRAKE_COMMON_LIBRARY)
   list(REMOVE_ITEM _library_var_names DRAKE_COMMON_LIBRARY)

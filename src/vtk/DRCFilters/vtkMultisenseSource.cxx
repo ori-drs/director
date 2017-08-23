@@ -742,9 +742,11 @@ int vtkMultisenseSource::RequestData(
   vtkDataSet *output = vtkDataSet::SafeDownCast(info->Get(vtkDataObject::DATA_OBJECT()));
 
   int timestep = 0;
-  if (info->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS()))
+  // This was changed when updating to 16.06 - but I couldn't test it
+  // - mfallon
+  if (info->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEP()))
     {
-    double timeRequest = info->Get(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS())[0];
+    double timeRequest = info->Get(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEP());
     timestep = static_cast<int>(floor(timeRequest+0.5));
     }
 

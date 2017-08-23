@@ -3,6 +3,7 @@ import PythonQt
 from PythonQt import QtCore, QtGui
 from director import callbacks
 from director import drcargs
+import director
 import director.applogic as app
 import director.objectmodel as om
 import director.visualization as vis
@@ -102,6 +103,14 @@ class RobotModelItem(om.ObjectModelItem):
         t = vtk.vtkTransform()
         t.PostMultiply()
         if self.model.getLinkToWorld(linkName, t):
+            return t
+        else:
+            return None
+
+    def getFrameToWorld(self, frameId):
+        t = vtk.vtkTransform()
+        t.PostMultiply()
+        if self.model.getFrameToWorld(frameId, t):
             return t
         else:
             return None
@@ -231,10 +240,10 @@ def loadRobotModel(name=None, view=None, parent='scene', urdfFile=None, color=No
 
     return obj, jointController
 
-
-def loadRobotModelFromFile(filename):
+# floating joint type can be one of 'FIXED','ROLLPITCHYAW','QUATERNION'
+def loadRobotModelFromFile(filename, floatingJointType='ROLLPITCHYAW'):
     model = PythonQt.dd.ddDrakeModel()
-    if not model.loadFromFile(filename):
+    if not model.loadFromFile(filename, floatingJointType):
         return None
     return model
 
@@ -313,7 +322,6 @@ def getBuiltinPackagePaths():
         'software/models/lwr_defs',
         'software/models/husky_description',
         'software/models/mit_gazebo_models/mit_robot',
-        'software/models/mit_gazebo_models/V1',
         'software/models/common_components/multisense_sl',
         'software/models/common_components/irobot_hand',
         'software/models/common_components/handle_description',
@@ -347,9 +355,17 @@ def getPackagePaths():
     return paths
 
 
+def addPathsFromPackageMap(packageMap):
+    for path in packageMap.map.values():
+        if os.path.exists(path):
+            PythonQt.dd.ddDrakeModel.addPackageSearchPath(path)
+
+
 def _setupPackagePaths():
     for path in getPackagePaths():
-        PythonQt.dd.ddDrakeModel.addPackageSearchPath(path)
+        if os.path.exists(path):
+            PythonQt.dd.ddDrakeModel.addPackageSearchPath(path)
+
 
 _setupPackagePaths()
 
@@ -428,14 +444,21 @@ class HandLoader(object):
         self.handLinkName = thisCombination['handLinkName']
         self.handUrdf = thisCombination['handUrdf']
 
+        self.loadHandModel()
+        self.initHandTransforms(robotModel, thisCombination)
+
+    def initHandTransforms(self, robotModel, thisCombination):
+
         handRootLink = thisCombination['handRootLink']
         robotMountLink = thisCombination['robotMountLink']
         palmLink = thisCombination['palmLink']
 
+        baseLinkName = 'plane::xy::base'
+        if baseLinkName in self.handModel.model.getLinkNames():
+            baseToHandRoot = self.getLinkToLinkTransform(self.handModel, baseLinkName, handRootLink)
+        else:
+            baseToHandRoot = self.handModel.getLinkFrame(handRootLink)
 
-        self.loadHandModel()
-
-        baseToHandRoot = self.getLinkToLinkTransform(self.handModel, 'plane::xy::base', handRootLink)
         robotMountToHandRoot = self.getLinkToLinkTransform(robotModel, robotMountLink, handRootLink)
         robotMountToHandLink = self.getLinkToLinkTransform(robotModel, robotMountLink, self.handLinkName)
         robotMountToPalm = self.getLinkToLinkTransform(robotModel, robotMountLink, palmLink)
@@ -446,13 +469,16 @@ class HandLoader(object):
         t.Concatenate(robotMountToHandRoot.GetLinearInverse())
         t.Concatenate(robotMountToPalm)
         self.modelToPalm = t
-
         self.handLinkToPalm = self.getLinkToLinkTransform(robotModel, self.handLinkName, palmLink)
         self.palmToHandLink = self.handLinkToPalm.GetLinearInverse()
 
-    def getHandUrdf(self):
-        urdfBase = os.path.join(getDRCBaseDir(), 'software/models/common_components')
-        return os.path.join(urdfBase, 'hand_factory', self.handUrdf)
+
+    def getHandUrdfFullPath(self):
+        if director.getDRCBaseIsSet():
+            urdfBase = os.path.join(getDRCBaseDir(), 'software/models/common_components/hand_factory')
+        else:
+            urdfBase = drcargs.DirectorConfig.getDefaultInstance().dirname
+        return os.path.join(urdfBase, self.handUrdf)
 
     @staticmethod
     def getLinkToLinkTransform(model, linkA, linkB):
@@ -468,26 +494,10 @@ class HandLoader(object):
 
 
     def loadHandModel(self):
-
-        filename = self.getHandUrdf()
+        filename = self.getHandUrdfFullPath()
         handModel = loadRobotModelFromFile(filename)
         handModel = RobotModelItem(handModel)
         self.handModel = handModel
-
-        '''
-        color = [1.0, 1.0, 0.0]
-        if self.side == 'right':
-            color = [0.33, 1.0, 0.0]
-
-        handModel = RobotModelItem(handModel)
-        om.addToObjectModel(handModel, om.getOrCreateContainer('hands'))
-        handModel.setProperty('Name', os.path.basename(filename).replace('.urdf', '').replace('_', ' '))
-        handModel.setProperty('Visible', False)
-        color = np.array(color)*255
-        handModel.setProperty('Color', QtGui.QColor(color[0], color[1], color[2]))
-        handModel.setProperty('Alpha', 1.0)
-        #handModel.addToView(view)
-        '''
 
 
     def getNewHandPolyData(self):

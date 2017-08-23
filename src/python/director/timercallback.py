@@ -11,8 +11,7 @@ class TimerCallback(object):
         '''
         self.targetFps = targetFps
         self.timer = QtCore.QTimer()
-        self.useScheduledTimer = True
-        self.timer.setSingleShot(True)
+        self.enableScheduledTimer()
 
         self.singleShotTimer = QtCore.QTimer()
         self.singleShotTimer.setSingleShot(True)
@@ -39,6 +38,8 @@ class TimerCallback(object):
         '''
         self.timer.stop()
         self.timer.disconnect('timeout()', self._timerEvent)
+        self.singleShotTimer.stop()
+        self.singleShotTimer.disconnect('timeout()', self._singleShotTimerEvent)
 
     def tick(self):
         '''
@@ -52,6 +53,10 @@ class TimerCallback(object):
         Return whether or not the timer is active.
         '''
         return self.timer.isActive()
+
+    def enableScheduledTimer(self):
+        self.useScheduledTimer = True
+        self.timer.setSingleShot(True)
 
     def disableScheduledTimer(self):
         self.useScheduledTimer = False
@@ -69,7 +74,7 @@ class TimerCallback(object):
     def _schedule(self, elapsedTimeInSeconds):
         '''
         This method is given an elapsed time since the start of the last
-        call to ticks().  It schedules a timer event to acheive the targetFps.
+        call to ticks().  It schedules a timer event to achieve the targetFps.
         '''
         fpsDelayMilliseconds = int(1000.0 / self.targetFps)
         elapsedMilliseconds = int(elapsedTimeInSeconds*1000.0)

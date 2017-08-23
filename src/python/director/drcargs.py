@@ -5,7 +5,6 @@ import argparse
 import json
 
 
-
 class DRCArgParser(object):
 
     def __init__(self):
@@ -38,7 +37,6 @@ class DRCArgParser(object):
             return [item for sublist in l for item in sublist]
 
         # now flatten some list of lists
-        self._args.scripts = flatten(self._args.scripts)
         self._args.data_files = flatten(self._args.data_files)
 
 
@@ -88,7 +86,28 @@ class DRCArgParser(object):
         return os.path.join(director.getDRCBaseDir(),
                             'software/models/dual_arm_husky_description/director_config.json')
 
-    def addDirectorConfigShortcuts(self, directorConfig):
+
+    def _isPyDrakeAvailable(self):
+        try:
+            import pydrake
+        except ImportError:
+            return False
+        if 'DRAKE_RESOURCE_ROOT' not in os.environ:
+            return False
+        return True
+
+    def addDrakeConfigShortcuts(self, directorConfig):
+
+        import pydrake
+
+        directorConfig.add_argument(
+            '--iiwa-drake',
+            dest='directorConfigFile',
+            action='store_const',
+            const=pydrake.common.FindResourceOrThrow('drake/examples/kuka_iiwa_arm/director_config.json'),
+            help='Use KUKA IIWA from drake/examples')
+
+    def addOpenHumanoidsConfigShortcuts(self, directorConfig):
 
         directorConfig.add_argument('-v3', '--atlas_v3', dest='directorConfigFile',
                             action='store_const',
@@ -150,17 +169,16 @@ class DRCArgParser(object):
 
         directorConfig = parser.add_mutually_exclusive_group(required=False)
         directorConfig.add_argument('--director-config', '--director_config', dest='directorConfigFile',
-                                    type=str, metavar='filename',
+                                    type=str, default='', metavar='filename',
                                     help='JSON file specifying which urdfs to use')
 
         if director.getDRCBaseIsSet():
-            self.addDirectorConfigShortcuts(directorConfig)
+            self.addOpenHumanoidsConfigShortcuts(directorConfig)
             parser.set_defaults(directorConfigFile=self.getDefaultDirectorConfigFile(),
                                 config_file=self.getDefaultBotConfigFile())
 
-        parser.add_argument('data_files', type=str, nargs='*',
-                            default=[], action='append', metavar='filename',
-                            help='data files to load at startup')
+        if self._isPyDrakeAvailable():
+            self.addDrakeConfigShortcuts(directorConfig)
 
         parser.add_argument('--data', type=str, nargs='+', dest='data_files',
                             default=[], action='append', metavar='filename',
@@ -195,7 +213,7 @@ class DirectorConfig(object):
 
         self.filename = filename
         if not os.path.isfile(filename):
-            raise Exception('File not found: %s' % filename)
+            raise Exception('Director config file not found: %s' % filename)
 
         self.dirname = os.path.dirname(os.path.abspath(filename))
         self.config = json.load(open(filename))
@@ -212,6 +230,9 @@ class DirectorConfig(object):
     @classmethod
     def getDefaultInstance(cls):
         if cls._defaultInstance is None:
+            if not args().directorConfigFile:
+                raise Exception('Director config file is not defined. '
+                                'Use --director-config <filename> on the command line.')
             cls._defaultInstance = DirectorConfig(args().directorConfigFile)
         return cls._defaultInstance
 

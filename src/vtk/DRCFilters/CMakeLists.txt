@@ -1,4 +1,26 @@
+find_package(PythonQt REQUIRED)
+find_package(CTKPythonConsole REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(QtPropertyBrowser REQUIRED)
+if(DD_QT_VERSION EQUAL 4)
+  include(${QT_USE_FILE})
+else()
+  include_directories(${Qt5Core_INCLUDE_DIRS})
+endif()
 
+find_package(VTK REQUIRED COMPONENTS
+  vtkWrappingPythonCore
+  vtkGUISupportQt
+  vtkInteractionWidgets
+  vtkRenderingAnnotation
+  vtkRenderingFreeType
+  vtkInteractionStyle
+  vtkIOXML
+  vtkIOImage
+  vtkIOGeometry
+  )
+include(${VTK_USE_FILE})
+check_vtk_qt_version()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
@@ -13,13 +35,13 @@ set(sources
   vtkGridSource.cxx
   vtkFrameWidget.cxx
   vtkFrameWidgetRepresentation.cxx
-
   vtkInteractorStyleTerrain2.cxx
-
-  vtkDepthImageProcessingPass.cxx
-  vtkEDLShading.cxx
+  vtkPickCenteredInteractorStyle.cxx
   )
 
+# extra source files to compile but do not python wrap
+set(EXTRA_SRCS
+  )
 
 #####
 
@@ -38,9 +60,7 @@ set(GLSL_SRCS
 # Create custom commands to encode each glsl file into a C string literal
 # in a header file
 # -----------------------------------------------------------------------------
-set(EXTRA_SRCS)
-
-if(NOT EXISTS "${VTK_ENCODESTRING_EXE}")
+if(NOT TARGET vtkEncodeString)
   message(SEND_ERROR "The required vtkEncodeString executable was not found.\nThis may indicate an error in your VTK install or configuration.")
 endif()
 
@@ -50,7 +70,7 @@ foreach(file ${GLSL_SRCS})
   add_custom_command(
     OUTPUT ${res}
     DEPENDS ${src}
-    COMMAND ${VTK_ENCODESTRING_EXE}
+    COMMAND vtkEncodeString
     ARGS ${res} ${src} ${file}
     )
   set(EXTRA_SRCS ${EXTRA_SRCS} ${res})
@@ -60,9 +80,14 @@ endforeach(file)
 #####
 
 set(VTK_LIBRARIES
-  vtkFiltering
-  vtkIO
-  vtkWidgets
+  vtkInteractionWidgets
+  vtkInteractionStyle
+  vtkRenderingFreeType
+  vtkRenderingCore
+  vtkRendering${VTK_RENDERING_BACKEND}
+  vtkFiltersExtraction
+  vtkFiltersCore
+  vtkCommonCore
   )
 
 
@@ -77,7 +102,7 @@ if (USE_DRC)
 
   # requires libbot, lcm, eigen, drc lcmtypes
 
-  find_package(LibBot REQUIRED)
+  find_package(LibBot REQUIRED MODULE)
   include_directories(${LIBBOT_INCLUDE_DIRS})
 
   find_package(Eigen REQUIRED)
@@ -127,26 +152,21 @@ if (USE_DRC_PLANE_SEG)
   include_directories(${PLANE_SEG_INCLUDE_DIRS})
   include_directories(${PCL_INCLUDE_DIRS})
   list(APPEND deps ${PLANE_SEG_LIBRARIES} ${PCL_LIBRARIES})
-  use_cpp11()
 endif()
 
 if(USE_LCMGL)
 
-  find_package(OpenGL REQUIRED)
+  find_package(LibBot REQUIRED MODULE)
+  include_directories(${LIBBOT_INCLUDE_DIRS})
   list(APPEND sources vtkLCMGLProp.cxx)
   list(APPEND deps ${LIBBOT_LIBRARIES} ${OPENGL_LIBRARIES})
 
-  list(APPEND pkg_deps
-    bot2-lcmgl-client
-    bot2-lcmgl-renderer
-  )
 endif()
 
 if(USE_OCTOMAP)
 
-  setup_qt4()
+  #setup_qt4()
 
-  find_package(OpenGL REQUIRED)
   find_library(OCTOVIS_LIBRARY octovis)
   list(APPEND sources vtkOctomap.cxx)
   list(APPEND deps ${LIBBOT_LIBRARIES} ${OPENGL_LIBRARIES} ${OCTOVIS_LIBRARY})
@@ -159,7 +179,6 @@ endif()
 
 if (USE_COLLECTIONS)
 
-  find_package(OpenGL REQUIRED)
   list(APPEND sources vtkCollections.cxx)
   list(APPEND deps ${OPENGL_LIBRARIES})
 
@@ -178,14 +197,21 @@ if(pkg_deps)
 endif()
 
 install(TARGETS ${library_name}
+    EXPORT ${DD_TARGETS_NAME}
     RUNTIME DESTINATION ${DD_INSTALL_BIN_DIR}
     LIBRARY DESTINATION ${DD_INSTALL_LIB_DIR}
     ARCHIVE DESTINATION ${DD_INSTALL_LIB_DIR})
 
-if(VTK_WRAP_PYTHON)
-  find_package(PythonLibs 2.7 REQUIRED)
-  include_directories(${PYTHON_INCLUDE_DIR})
-  include(${CMAKE_SOURCE_DIR}/cmake/wrap-python.cmake)
-  wrap_python(${library_name} "${sources}")
-  set_target_properties(${library_name}Python PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${DD_INSTALL_PYTHON_DIR}/director")
+if(NOT VTK_WRAP_PYTHON)
+  message(FATAL_ERROR "VTK was compiled without Python support. "
+    "VTK_WRAP_PYTHON is OFF. You must use a version of VTK with Python. "
+    "VTK_DIR is: ${VTK_DIR}")
 endif()
+
+include_directories(${PYTHON_INCLUDE_DIR})
+include(${CMAKE_SOURCE_DIR}/cmake/wrap-python.cmake)
+wrap_python(${library_name} "${sources}")
+set_target_properties(${library_name}Python
+  PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${DD_INSTALL_PYTHON_DIR}/director")
+target_link_libraries(${library_name}Python ${PYTHON_LIBRARIES})
+target_link_libraries(${library_name}PythonD ${PYTHON_LIBRARIES})

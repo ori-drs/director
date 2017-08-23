@@ -1,6 +1,8 @@
 import os
 import vtkAll as vtk
 from shallowCopy import shallowCopy
+import shelve
+import os.path
 
 def readPolyData(filename, computeNormals=False):
 
@@ -57,6 +59,7 @@ def readImage(filename):
     readers = {
             '.png' : vtk.vtkPNGReader,
             '.jpg' : vtk.vtkJPEGReader,
+            '.vti' : vtk.vtkXMLImageDataReader,
               }
 
     if ext not in readers:
@@ -85,6 +88,43 @@ def readVrml(filename):
     return meshes, colors
 
 
+def readObjMtl(filename):
+    '''
+    Read an obj file and return a list of vtkPolyData objects.
+    If the obj file has an associated material file, this function returns
+    (polyDataList, actors).  If there is not a material file, this function
+    returns (polyDataList, None).
+    '''
+
+    def getMtlFilename(filename, maxLines=1000):
+        with open(filename) as f:
+            for i, l in enumerate(f):
+                if l.startswith('mtllib'):
+                    tokens = l.split()
+                    if len(tokens) < 2:
+                        raise Exception('Error parsing mtllib line in file: %s\n%s' % (filename, l))
+                    return os.path.join(os.path.dirname(filename), tokens[1])
+
+    mtlFilename = getMtlFilename(filename)
+
+    l = vtk.vtkOBJImporter()
+    l.SetFileName(filename)
+    if mtlFilename:
+        l.SetFileNameMTL(mtlFilename)
+    l.SetTexturePath(os.path.dirname(filename))
+    l.Read()
+    w = l.GetRenderWindow()
+    ren = w.GetRenderers().GetItemAsObject(0)
+    actors = ren.GetActors()
+    actors = [actors.GetItemAsObject(i) for i in xrange(actors.GetNumberOfItems())]
+    meshes = [a.GetMapper().GetInput() for a in actors]
+
+    if mtlFilename:
+        return (meshes, actors)
+    else:
+        return (meshes, None)
+
+
 def writePolyData(polyData, filename):
 
     ext = os.path.splitext(filename)[1].lower()
@@ -110,7 +150,7 @@ def writePolyData(polyData, filename):
             writer.SetArrayName('RGB255')
 
     writer.SetFileName(filename)
-    writer.SetInput(polyData)
+    writer.SetInputData(polyData)
     writer.Update()
 
 def writeImage(image, filename):
@@ -131,19 +171,31 @@ def writeImage(image, filename):
 
     writer = writers[ext]()
     writer.SetFileName(filename)
-    writer.SetInput(image)
+    writer.SetInputData(image)
     writer.Write()
-
 
 def _computeNormals(polyData):
     normals = vtk.vtkPolyDataNormals()
     normals.SetFeatureAngle(45)
-    normals.SetInput(polyData)
+    normals.SetInputData(polyData)
     normals.Update()
     return shallowCopy(normals.GetOutput())
 
 def _triangulate(polyData):
     normals = vtk.vtkTriangleFilter()
-    normals.SetInput(polyData)
+    normals.SetInputData(polyData)
     normals.Update()
     return shallowCopy(normals.GetOutput())
+
+def saveDataToFile(filename, dataDict, overwrite=False):
+    if overwrite is False and os.path.isfile(filename):
+        raise ValueError("file already exists, overwrite option was False")
+
+    myShelf = shelve.open(filename,'n')
+    myShelf['dataDict'] = dataDict
+    myShelf.close()
+
+def readDataFromFile(filename):
+    myShelf = shelve.open(filename)
+    dataDict = myShelf['dataDict']
+    return dataDict

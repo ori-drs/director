@@ -19,11 +19,13 @@ class PointPicker(object):
         self.tolerance = 0.01
         self.numberOfPoints = numberOfPoints
         self.drawLines = drawLines
+        self.drawClosedLoop = False
         self.annotationObj = None
         self.annotationFunc = callback
         self.abortFunc = abortCallback
         self.annotationName = 'annotation'
         self.annotationFolder = 'segmentation'
+        self.eventFilter = None
         self.clear()
 
     def start(self):
@@ -45,7 +47,9 @@ class PointPicker(object):
         self.eventFilter.connect('handleEvent(QObject*, QEvent*)', self.onEvent)
 
     def removeEventFilter(self):
-        self.view.vtkWidget().removeEventFilter(self.eventFilter)
+        if self.eventFilter:
+            self.view.vtkWidget().removeEventFilter(self.eventFilter)
+            self.eventFilter = None
 
     def onEvent(self, obj, event):
 
@@ -70,6 +74,8 @@ class PointPicker(object):
             self.onMousePress(vis.mapMousePosition(obj, event), event.modifiers())
 
     def clear(self):
+        if self.annotationObj:
+            self.annotationObj.setProperty('Visible', False)
         self.annotationObj = None
         self.points = [None for i in xrange(self.numberOfPoints)]
         self.hoverPos = None
@@ -116,10 +122,13 @@ class PointPicker(object):
                     d.addLine(a, b)
 
             # connect end points
-            if points[-1] is not None:
+            if points[-1] is not None and self.drawClosedLoop:
                 d.addLine(points[0], points[-1])
 
-        self.annotationObj = vis.updatePolyData(d.getPolyData(), self.annotationName, parent=self.annotationFolder)
+        self.annotationObj = vis.updatePolyData(d.getPolyData(),
+                                                self.annotationName,
+                                                parent=self.annotationFolder,
+                                                view=self.view)
         self.annotationObj.setProperty('Color', [1,0,0])
         self.annotationObj.actor.SetPickable(False)
 
@@ -127,11 +136,15 @@ class PointPicker(object):
     def tick(self):
 
         if self.obj is None:
-            self.hoverPos, prop, _ = vis.pickPoint(self.lastMovePos, self.view, pickType=self.pickType, tolerance=self.tolerance)
+            pickedPointFields = vis.pickPoint(self.lastMovePos, self.view, pickType=self.pickType,
+                                                   tolerance=self.tolerance)
+            self.hoverPos = pickedPointFields.pickedPoint
+            prop = pickedPointFields.pickedProp
             if prop is None:
                 self.hoverPos = None
         else:
-            self.hoverPos = vis.pickPoint(self.lastMovePos, self.view, obj=self.obj, pickType=self.pickType, tolerance=self.tolerance)
+            pickedPointFields = vis.pickPoint(self.lastMovePos, self.view, obj=self.obj, pickType=self.pickType, tolerance=self.tolerance)
+            self.hoverPos = pickedPointFields.pickedPoint
 
         self.draw()
 
@@ -151,6 +164,7 @@ class ImagePointPicker(object):
         self.drawLines = drawLines
         self.annotationObj = None
         self.annotationFunc = callback
+        self.eventFilter = None
         self.numberOfPoints = numberOfPoints
         self.showCursor = False
         self.cursorObj = None
@@ -177,7 +191,9 @@ class ImagePointPicker(object):
         self.eventFilter.connect('handleEvent(QObject*, QEvent*)', self.onEvent)
 
     def removeEventFilter(self):
-        self.view.vtkWidget().removeEventFilter(self.eventFilter)
+        if self.eventFilter:
+            self.view.vtkWidget().removeEventFilter(self.eventFilter)
+            self.eventFilter = None
 
     def connectDoubleClickEvent(self, func):
         return self.callbacks.connect(self.DOUBLE_CLICK_EVENT, func)
@@ -204,6 +220,7 @@ class ImagePointPicker(object):
                 self.hideCursor()
 
         if event.modifiers() != QtCore.Qt.ShiftModifier:
+            self.showCursor = False
             if self.annotationObj:
                 self.hoverPos = None
                 self.draw()
@@ -261,8 +278,10 @@ class ImagePointPicker(object):
             points.append(self.hoverPos)
 
         # draw points
+        radius = 5
+        scale = (2*self.view.camera().GetParallelScale())/(self.view.renderer().GetSize()[1])
         for p in points:
-            d.addSphere(p, radius=5)
+            d.addSphere(p, radius=radius*scale)
 
         if self.drawLines and len(points) > 1:
             for a, b in zip(points, points[1:]):
@@ -300,7 +319,7 @@ class ImagePointPicker(object):
     def displayPointToImagePoint(self, displayPoint, restrictToImageDimensions=True):
         point = self.imageView.getImagePixel(displayPoint, restrictToImageDimensions)
         if point is not None:
-            point[2] = -1.0
+            point[2] = np.sign(self.view.camera().GetPosition()[2])
             return point
 
 
@@ -315,6 +334,7 @@ class PlacerWidget(object):
         self.handle = handle
         self.points = points
         self.moving = False
+        self.eventFilter = None
 
     def start(self):
         self.installEventFilter()
@@ -333,7 +353,9 @@ class PlacerWidget(object):
         self.eventFilter.connect('handleEvent(QObject*, QEvent*)', self.onEvent)
 
     def removeEventFilter(self):
-        self.view.vtkWidget().removeEventFilter(self.eventFilter)
+        if self.eventFilter:
+            self.view.vtkWidget().removeEventFilter(self.eventFilter)
+            self.eventFilter = None
 
     def onEvent(self, obj, event):
 
@@ -387,10 +409,12 @@ class PlacerWidget(object):
             self.handle._renderAllViews()
 
     def getHandlePick(self, displayPoint):
-        return vis.pickPoint(displayPoint, self.view, obj=self.handle, pickType='cells', tolerance=0.01)
+        pickData = vis.pickPoint(displayPoint, self.view, obj=self.handle, pickType='cells', tolerance=0.01)
+        return pickData.pickedPoint
 
     def getPointPick(self, displayPoint):
-        return vis.pickPoint(displayPoint, self.view, obj=self.points, pickType='cells', tolerance=0.01)
+        pickData = vis.pickPoint(displayPoint, self.view, obj=self.points, pickType='cells', tolerance=0.01)
+        return pickData.pickedPoint
 
 
 class ObjectPicker(object):
@@ -405,8 +429,12 @@ class ObjectPicker(object):
         self.abortFunc = abortCallback
         self.hoverColor = hoverColor[0:3]
         self.hoverAlpha = hoverColor[3]
+        self.modifier = 0
+        self.mouseSelectionEventType = QtCore.QEvent.MouseButtonPress
+        self.eventFilter = None
         self.pickedObj = None
         self.storedProps = {}
+        self.repeat = False
         self.clear()
 
     def start(self):
@@ -423,12 +451,15 @@ class ObjectPicker(object):
 
         self.eventFilter.addFilteredEventType(QtCore.QEvent.MouseMove)
         self.eventFilter.addFilteredEventType(QtCore.QEvent.MouseButtonPress)
+        self.eventFilter.addFilteredEventType(QtCore.QEvent.MouseButtonDblClick)
         self.eventFilter.addFilteredEventType(QtCore.QEvent.KeyPress)
         self.eventFilter.addFilteredEventType(QtCore.QEvent.KeyRelease)
         self.eventFilter.connect('handleEvent(QObject*, QEvent*)', self.onEvent)
 
     def removeEventFilter(self):
-        self.view.vtkWidget().removeEventFilter(self.eventFilter)
+        if self.eventFilter:
+            self.view.vtkWidget().removeEventFilter(self.eventFilter)
+            self.eventFilter = None
 
     def onEvent(self, obj, event):
 
@@ -441,7 +472,7 @@ class ObjectPicker(object):
 
         if event.type() == QtCore.QEvent.MouseMove:
             self.onMouseMove(vis.mapMousePosition(obj, event), event.modifiers())
-        elif event.type() == QtCore.QEvent.MouseButtonPress and event.button() == QtCore.Qt.LeftButton:
+        elif event.type() == self.mouseSelectionEventType and event.button() == QtCore.Qt.LeftButton:
             self.onMousePress(vis.mapMousePosition(obj, event), event.modifiers())
 
     def clear(self):
@@ -454,10 +485,18 @@ class ObjectPicker(object):
 
     def onMouseMove(self, displayPoint, modifiers=None):
         self.lastMovePos = displayPoint
-        self.tick()
+        if modifiers == self.modifier:
+            self.tick()
+        else:
+            self.unsetHoverProperties(self.pickedObj)
 
     def onMousePress(self, displayPoint, modifiers=None):
+
+        if modifiers != self.modifier:
+            return
+
         for i in xrange(self.numberOfObjects):
+
             if self.objects[i] is None:
                 self.objects[i] = self.pickedObj
                 break
@@ -471,7 +510,8 @@ class ObjectPicker(object):
                 self.callbackFunc(self.objects)
             finally:
                 self.clear()
-                self.stop()
+                if not self.repeat:
+                    self.stop()
 
     def unsetHoverProperties(self, obj):
         if obj is None:
@@ -487,7 +527,7 @@ class ObjectPicker(object):
             return
 
         for propName, value in [['Color', self.hoverColor],
-                                ['Color Mode', 'Solid Color'],
+                                ['Color By', 'Solid Color'],
                                 ['Alpha', self.hoverAlpha]]:
 
             if obj.hasProperty(propName):
@@ -498,7 +538,11 @@ class ObjectPicker(object):
 
         objs = self.getObjectsFunction() if self.getObjectsFunction else None
 
-        self.hoverPos, prop, _ = vis.pickPoint(self.lastMovePos, self.view, pickType='cells', tolerance=self.tolerance, obj=objs)
+        pickedPointFields = vis.pickPoint(self.lastMovePos, self.view, pickType='cells', tolerance=self.tolerance,
+                                              obj=objs)
+        self.hoverPos = pickedPointFields.pickedPoint
+        prop = pickedPointFields.pickedProp
+
         prevPickedObj = self.pickedObj
         curPickedObj = vis.getObjectByProp(prop)
 

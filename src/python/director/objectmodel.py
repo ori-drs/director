@@ -1,7 +1,8 @@
 import os
+import re
 import PythonQt
 from PythonQt import QtCore, QtGui
-from director.propertyset import PropertySet, PropertyAttributes, PropertyPanelHelper
+from director.propertyset import PropertySet, PropertyAttributes, PropertyPanelHelper, PropertyPanelConnector
 from director import callbacks
 
 class Icons(object):
@@ -172,16 +173,23 @@ class ContainerItem(ObjectModelItem):
 class ObjectModelTree(object):
 
     ACTION_SELECTED = 'ACTION_SELECTED'
-    SELECTION_CHANGED = 'SELECTION_CHANGED'
     OBJECT_ADDED = 'OBJECT_ADDED'
+    OBJECT_CLICKED = 'OBJECT_CLICKED'
+    SELECTION_CHANGED = 'SELECTION_CHANGED'
 
     def __init__(self):
         self._treeWidget = None
         self._propertiesPanel = None
         self._objects = {}
         self._blockSignals = False
+        self._propertyConnector = None
         self.actions = []
-        self.callbacks = callbacks.CallbackRegistry([self.ACTION_SELECTED, self.SELECTION_CHANGED, self.OBJECT_ADDED])
+        self.callbacks = callbacks.CallbackRegistry([
+                            self.ACTION_SELECTED,
+                            self.OBJECT_ADDED,
+                            self.OBJECT_CLICKED,
+                            self.SELECTION_CHANGED,
+                            ])
 
     def getTreeWidget(self):
         return self._treeWidget
@@ -245,29 +253,18 @@ class ObjectModelTree(object):
             if child.getProperty('Name') == name:
                 return child
 
-    def onPropertyChanged(self, prop):
-
-        if self._blockSignals:
-            return
-
-        propertiesPanel = self.getPropertiesPanel()
-        propertySet = self.getActiveObject().properties
-
-        PropertyPanelHelper.setPropertyFromPanel(prop, propertiesPanel, propertySet)
-
-
     def _onTreeSelectionChanged(self):
 
+        if self._propertyConnector:
+          self._propertyConnector.cleanup()
+          self._propertyConnector = None
+
         panel = self.getPropertiesPanel()
-        self._blockSignals = True
         panel.clear()
-        self._blockSignals = False
 
         obj = self.getActiveObject()
         if obj:
-            self._blockSignals = True
-            PropertyPanelHelper.addPropertiesToPanel(obj.properties, panel)
-            self._blockSignals = False
+            self._propertyConnector = PropertyPanelConnector(obj.properties, panel)
 
         self.callbacks.process(self.SELECTION_CHANGED, self)
 
@@ -297,11 +294,6 @@ class ObjectModelTree(object):
         elif propertyName == 'Icon':
             self.updateObjectIcon(obj)
 
-        if obj == self.getActiveObject():
-            self._blockSignals = True
-            PropertyPanelHelper.onPropertyValueChanged(self.getPropertiesPanel(), obj.properties, propertyName)
-            self._blockSignals = False
-
     def _onItemClicked(self, item, column):
 
         obj = self._objects[item]
@@ -309,7 +301,7 @@ class ObjectModelTree(object):
         if column == 1 and obj.hasProperty('Visible'):
             obj.setProperty('Visible', not obj.getProperty('Visible'))
             self.updateVisIcon(obj)
-
+        self.callbacks.process(self.OBJECT_CLICKED, self, obj)
 
     def _removeItemFromObjectModel(self, item):
         while item.childCount():
@@ -472,21 +464,30 @@ class ObjectModelTree(object):
     def disconnectObjectAdded(self, callbackId):
         self.callbacks.disconnect(callbackId)
 
+    def connectObjectClicked(self, func):
+        return self.callbacks.connect(self.OBJECT_CLICKED, func)
+
+    def disconnectObjectClicked(self, func):
+        self.callbacks.disconnect(callbackId)
+
     def init(self, treeWidget, propertiesPanel):
 
         self._treeWidget = treeWidget
         self._propertiesPanel = propertiesPanel
         propertiesPanel.clear()
         propertiesPanel.setBrowserModeToWidget()
-        propertiesPanel.connect('propertyValueChanged(QtVariantProperty*)', self.onPropertyChanged)
 
         treeWidget.setColumnCount(2)
         treeWidget.setHeaderLabels(['Name', ''])
         treeWidget.headerItem().setIcon(1, Icons.getIcon(Icons.Eye))
         treeWidget.header().setVisible(True)
         treeWidget.header().setStretchLastSection(False)
-        treeWidget.header().setResizeMode(0, QtGui.QHeaderView.Stretch)
-        treeWidget.header().setResizeMode(1, QtGui.QHeaderView.Fixed)
+        if int(re.search(r'^([0-9]+).*', QtCore.qVersion()).group(1)) < 5:
+            treeWidget.header().setResizeMode(0, QtGui.QHeaderView.Stretch)
+            treeWidget.header().setResizeMode(1, QtGui.QHeaderView.Fixed)
+        else:
+            treeWidget.header().setSectionResizeMode(0, QtGui.QHeaderView.Stretch)
+            treeWidget.header().setSectionResizeMode(1, QtGui.QHeaderView.Fixed)
         treeWidget.setColumnWidth(1, 24)
         treeWidget.connect('itemSelectionChanged()', self._onTreeSelectionChanged)
         treeWidget.connect('itemClicked(QTreeWidgetItem*, int)', self._onItemClicked)

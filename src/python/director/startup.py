@@ -276,9 +276,9 @@ if useLCMGL:
     lcmglManager = lcmgl.init(view)
     app.MenuActionToggleHelper('Tools', 'Renderer - LCM GL', lcmglManager.isEnabled, lcmglManager.setEnabled)
 
-if useOctomap:
-    octomapManager = lcmoctomap.init(view)
-    app.MenuActionToggleHelper('Tools', 'Renderer - Octomap', octomapManager.isEnabled, octomapManager.setEnabled)
+#if useOctomap:
+#    octomapManager = lcmoctomap.init(view)
+#    app.MenuActionToggleHelper('Tools', 'Renderer - Octomap', #octomapManager.isEnabled, octomapManager.setEnabled)
 
 if useCollections:
     collectionsManager = lcmcollections.init(view)
@@ -452,6 +452,7 @@ if usePlanning:
 
     taskPanels = OrderedDict()
 
+    useHumanoidDRCDemos = False
     if useHumanoidDRCDemos:
         debrisDemo = debrisdemo.DebrisPlannerDemo(robotStateModel, robotStateJointController, playbackRobotModel,
                         ikPlanner, manipPlanner, atlasdriver.driver, lHandDriver,
@@ -1081,5 +1082,5 @@ if useKinect:
 if useFeetlessRobot:
     ikPlanner.robotNoFeet = True
 
-for filename in drcargs.args().scripts:
-    execfile(filename)
+for scriptArgs in drcargs.args().scripts:
+    execfile(scriptArgs[0])

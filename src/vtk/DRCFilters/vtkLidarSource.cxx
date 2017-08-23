@@ -158,6 +158,8 @@ public:
     // Used to filter out range returns which are oblique to lidar sensor
     this->EdgeAngleThreshold = 0;  // degrees, 30 was  default
     this->channelName = ""; // none set, no subscription made
+    this->coordinateFrame = ""; // none set, no transform made
+
 
     this->HeightRange[0] = -80.0;
     this->HeightRange[1] = 80.0;
@@ -167,6 +169,11 @@ public:
     {
       std::cerr <<"ERROR: lcm is not good()" <<std::endl;
     }
+  }
+
+  void setCoordinateFrame(std::string coordinateFrame)
+  {
+    this->coordinateFrame = coordinateFrame;
   }
 
   void subscribe(std::string channelName)
@@ -486,6 +493,12 @@ protected:
     get_trans_with_utime(this->channelName, "local", msg->utime, scanToLocalStart);
     get_trans_with_utime(this->channelName, "local", msg->utime +  1e6*3/(40*4), scanToLocalEnd);
 
+    // Assumes frame is same as channel name. TODO: look up channel from botconfig
+    get_trans_with_utime(this->coordinateFrame, "local", msg->utime, scanToLocalStart);
+    get_trans_with_utime(this->coordinateFrame, "local", msg->utime +  1e6*3/(40*4), scanToLocalEnd);
+    
+    get_trans_with_utime("body", "local", msg->utime, bodyToLocalStart);
+
     //get_trans_with_utime("MULTISENSE_SCAN", "PRE_SPINDLE", msg->utime, scanToLocal);
 
     Eigen::Isometry3d spindleRotation;
@@ -532,6 +545,7 @@ protected:
   }
 
   std::string channelName;
+  std::string coordinateFrame;
   bool NewData;
   bool ShouldStop;
   int MaxNumberOfScanLines;
@@ -638,6 +652,12 @@ void vtkLidarSource::Poll()
 void vtkLidarSource::subscribe(const char* channelName)
 {
   this->Internal->Listener->subscribe(channelName);
+}
+
+//-----------------------------------------------------------------------------
+void vtkLidarSource::setCoordinateFrame(const char* coordinateFrame)
+{
+  this->Internal->Listener->setCoordinateFrame(coordinateFrame);
 }
 
 //-----------------------------------------------------------------------------
@@ -790,12 +810,13 @@ int vtkLidarSource::RequestData(
   vtkDataSet *output = vtkDataSet::SafeDownCast(info->Get(vtkDataObject::DATA_OBJECT()));
 
   int timestep = 0;
-  if (info->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS()))
+  // This was changed when updating to 16.06 - but I couldn't test it
+  // - mfallon
+  if (info->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEP()))
     {
-    double timeRequest = info->Get(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS())[0];
+    double timeRequest = info->Get(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEP());
     timestep = static_cast<int>(floor(timeRequest+0.5));
     }
-
   this->Internal->Listener->SetDistanceRange(this->DistanceRange);
   this->Internal->Listener->SetHeightRange(this->HeightRange);
   vtkSmartPointer<vtkPolyData> polyData = this->Internal->Listener->GetDataForRevolution(timestep);

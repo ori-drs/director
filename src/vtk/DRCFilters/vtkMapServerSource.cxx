@@ -102,7 +102,7 @@ vtkSmartPointer<vtkPolyData> PolyDataFromPointCloud(pcl::PointCloud<pcl::PointXY
       float point[3] = {cloud->points[i].x, cloud->points[i].y, cloud->points[i].z};
       unsigned char color[3] = {cloud->points[i].r, cloud->points[i].g, cloud->points[i].b}; 
       points->SetPoint(i, point);
-      rgbArray->SetTupleValue(i, color);
+      rgbArray->SetTypedTuple(i, color);
     }
   }
   else
@@ -119,7 +119,7 @@ vtkSmartPointer<vtkPolyData> PolyDataFromPointCloud(pcl::PointCloud<pcl::PointXY
       float point[3] = {cloud->points[i].x, cloud->points[i].y, cloud->points[i].z};
       unsigned char color[3] = {cloud->points[i].r, cloud->points[i].g, cloud->points[i].b};
       points->SetPoint(j, point);
-      rgbArray->SetTupleValue(j, color);
+      rgbArray->SetTypedTuple(j, color);
       j++;
     }
     nr_points = j;
@@ -560,14 +560,13 @@ protected:
     int width = depthImage->getWidth();
     int height = depthImage->getHeight();
 
+    // this wasnt fixed during the upgrade/ mfallon:
     vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
-    image->SetWholeExtent(0, width-1, 0, height-1, 0, 0);
+    image->SetExtent(0, width-1, 0, height-1, 0, 0);
     image->SetSpacing(1.0, 1.0, 1.0);
     image->SetOrigin(0.0, 0.0, 0.0);
-    image->SetExtent(image->GetWholeExtent());
-    image->SetNumberOfScalarComponents(1);
-    image->SetScalarType(VTK_FLOAT);
-    image->AllocateScalars();
+    image->SetExtent(image->GetExtent());
+    image->AllocateScalars(VTK_FLOAT, 1);
 
     std::vector<float> imageData = depthImage->getData(maps::DepthImage::TypeDepth);
 
@@ -919,9 +918,12 @@ int vtkMapServerSource::RequestData(
   vtkDataSet *output = vtkDataSet::SafeDownCast(info->Get(vtkDataObject::DATA_OBJECT()));
 
   int timestep = 0;
-  if (info->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS()))
+
+  // This was changed when updating to 16.06 - but I couldn't test it
+  // - mfallon
+  if (info->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEP()))
     {
-    double timeRequest = info->Get(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS())[0];
+    double timeRequest = info->Get(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEP());
     timestep = static_cast<int>(floor(timeRequest+0.5));
     }
 

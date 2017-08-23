@@ -1,3 +1,4 @@
+import os
 from director.componentgraph import ComponentFactory
 from director import consoleapp
 import director.objectmodel as om
@@ -34,7 +35,6 @@ class MainWindowApp(object):
         self.quitAction.connect('triggered()', self.quit)
         self.fileMenu.addSeparator()
 
-
         self.pythonConsoleAction = self.toolsMenu.addAction('&Python Console')
         self.pythonConsoleAction.setShortcut(QtGui.QKeySequence('F8'))
         self.pythonConsoleAction.connect('triggered()', self.showPythonConsole)
@@ -47,7 +47,6 @@ class MainWindowApp(object):
         helpKeyboardShortcutsAction = self.helpMenu.addAction('Keyboard Shortcuts')
         helpKeyboardShortcutsAction.connect('triggered()', self.showOnlineKeyboardShortcuts)
         self.helpMenu.addSeparator()
-
 
     def quit(self):
         MainWindowApp.applicationInstance().quit()
@@ -137,36 +136,35 @@ class MainWindowApp(object):
     def _saveCustomWindowState(self):
         self._saveWindowState('MainWindowCustom')
 
+    def restoreDefaultWindowState(self):
+        self._restoreWindowState('MainWindowDefault')
+
     def initWindowSettings(self):
         self._saveWindowState('MainWindowDefault')
         self._restoreWindowState('MainWindowCustom')
         self.applicationInstance().connect('aboutToQuit()', self._saveCustomWindowState)
 
 
-class MainWindowAppFactory(ComponentFactory):
+class MainWindowAppFactory(object):
 
-    def initDefaultOptions(self, options):
-        '''
-        Components are enabled by default.  This function
-        determines which components should be disabled.
-        '''
-        pass
+    def getComponents(self):
 
-    def addComponents(self, componentGraph):
+        components = {
+            'View' : [],
+            'Globals' : [],
+            'GlobalModules' : ['Globals'],
+            'ObjectModel' : [],
+            'ViewOptions' : ['View', 'ObjectModel'],
+            'MainToolBar' : ['View', 'Grid', 'ViewOptions', 'MainWindow'],
+            'ViewBehaviors' : ['View'],
+            'Grid': ['View', 'ObjectModel'],
+            'MainWindow' : ['View', 'ObjectModel'],
+            'AdjustedClippingRange' : ['View'],
+            'ScriptLoader' : ['MainWindow', 'GlobalModules']}
 
-        addComponent = componentGraph.addComponent
+        disabledComponents = []
 
-        addComponent('View', [])
-        addComponent('Globals', [])
-        addComponent('GlobalModules', ['Globals'])
-        addComponent('ObjectModel', [])
-        addComponent('ViewOptions', ['View', 'ObjectModel'])
-        addComponent('MainToolBar', ['View', 'Grid', 'ViewOptions', 'MainWindow'])
-        addComponent('ViewBehaviors', ['View'])
-        addComponent('Grid', ['View', 'ObjectModel'])
-        addComponent('MainWindow', ['View', 'ObjectModel'])
-        addComponent('AdjustedClippingRange', ['View'])
-        addComponent('ScriptLoader', ['MainWindow', 'GlobalModules'])
+        return components, disabledComponents
 
     def initView(self, fields):
         view = PythonQt.dd.ddQVTKWidgetView()
@@ -211,15 +209,16 @@ class MainWindowAppFactory(ComponentFactory):
 
     def initMainWindow(self, fields):
 
-        from director import viewcolors
-
         organizationName = 'RobotLocomotion'
         applicationName = 'DirectorMainWindow'
+        windowTitle = 'Director App'
 
         if hasattr(fields, 'organizationName'):
             organizationName = fields.organizationName
         if hasattr(fields, 'applicationName'):
             applicationName = fields.applicationName
+        if hasattr(fields, 'windowTitle'):
+            windowTitle = fields.windowTitle
 
         MainWindowApp.applicationInstance().setOrganizationName(organizationName)
         MainWindowApp.applicationInstance().setApplicationName(applicationName)
@@ -228,7 +227,7 @@ class MainWindowAppFactory(ComponentFactory):
         app = MainWindowApp()
 
         app.mainWindow.setCentralWidget(fields.view)
-        app.mainWindow.setWindowTitle('Director App')
+        app.mainWindow.setWindowTitle(windowTitle)
         app.mainWindow.setWindowIcon(QtGui.QIcon(':/images/drake_logo.png'))
 
         sceneBrowserDock = app.addWidgetToDock(fields.objectModel.getTreeWidget(),
@@ -245,8 +244,6 @@ class MainWindowAppFactory(ComponentFactory):
 
         applogic.addShortcut(app.mainWindow, 'F1', toggleObjectModelDock)
         #applogic.addShortcut(app.mainWindow, 'F8', app.showPythonConsole)
-
-
 
         return FieldContainer(
           app=app,
@@ -289,6 +286,7 @@ class MainWindowAppFactory(ComponentFactory):
 
     def initGlobalModules(self, fields):
 
+        from PythonQt import QtCore, QtGui
         from director import objectmodel as om
         from director import visualization as vis
         from director import applogic
@@ -304,6 +302,7 @@ class MainWindowAppFactory(ComponentFactory):
 
         modules = dict(locals())
         del modules['fields']
+        del modules['self']
         fields.globalsDict.update(modules)
 
     def initGlobals(self, fields):
@@ -317,35 +316,72 @@ class MainWindowAppFactory(ComponentFactory):
 
     def initScriptLoader(self, fields):
         def loadScripts():
-            for filename in fields.commandLineArgs.scripts:
-                execfile(filename, fields.globalsDict)
+            for scriptArgs in fields.commandLineArgs.scripts:
+                filename = scriptArgs[0]
+                globalsDict = fields.globalsDict
+                prevFile = globalsDict.get('__file__')
+                globalsDict['__file__'] = filename
+                globalsDict['_argv'] = scriptArgs
+                try:
+                    execfile(filename, fields.globalsDict)
+                finally:
+                    globalsDict['__file__'] = prevFile
         fields.app.registerStartupCallback(loadScripts)
 
 
-class MainWindowPanelFactory(ComponentFactory):
+class MainWindowPanelFactory(object):
 
-    def initDefaultOptions(self, options):
-        '''
-        Components are enabled by default.  This function
-        determines which components should be disabled.
-        '''
+    def getComponents(self):
 
-        # drake visualizer depends on lcm so this
-        # module is disabled by default
-        options.useDrakeVisualizer = False
+        components = {
+            'OpenDataHandler' : ['MainWindow'],
+            'ScreenGrabberPanel' : ['MainWindow'],
+            'CameraBookmarksPanel' : ['MainWindow'],
+            'CameraControlPanel' : ['MainWindow'],
+            'MeasurementPanel' : ['MainWindow'],
+            'OutputConsole' : ['MainWindow'],
+            'UndoRedo' : ['MainWindow'],
+            'DrakeVisualizer' : ['MainWindow'],
+            'TreeViewer' : ['MainWindow'],
+            'LCMGLRenderer' : ['MainWindow']}
 
-    def addComponents(self, componentGraph):
+        # these components depend on lcm and lcmgl
+        # so they are disabled by default
+        disabledComponents = [
+            'DrakeVisualizer',
+            'TreeViewer',
+            'LCMGLRenderer']
 
-        addComponent = componentGraph.addComponent
+        return components, disabledComponents
 
-        addComponent('MainWindow', [])
-        addComponent('ScreenGrabberPanel', ['MainWindow'])
-        addComponent('CameraBookmarksPanel', ['MainWindow'])
-        addComponent('CameraControlPanel', ['MainWindow'])
-        addComponent('DrakeVisualizer', ['MainWindow'])
 
-    def initMainWindow(self, fields):
-        assert fields.view and fields.app
+    def initOpenDataHandler(self, fields):
+        from director import opendatahandler
+        openDataHandler = opendatahandler.OpenDataHandler(fields.app)
+
+        def loadData():
+            for filename in drcargs.args().data_files:
+                openDataHandler.openGeometry(filename)
+        fields.app.registerStartupCallback(loadData)
+
+        return FieldContainer(openDataHandler=openDataHandler)
+
+    def initOutputConsole(self, fields):
+        from director import outputconsole
+        outputConsole = outputconsole.OutputConsole()
+        outputConsole.addToAppWindow(fields.app, visible=False)
+
+        return FieldContainer(outputConsole=outputConsole)
+
+    def initMeasurementPanel(self, fields):
+        from director import measurementpanel
+        measurementPanel = measurementpanel.MeasurementPanel(fields.app, fields.view)
+        measurementDock = fields.app.addWidgetToDock(measurementPanel.widget, QtCore.Qt.RightDockWidgetArea, visible=False)
+
+        return FieldContainer(
+          measurementPanel=measurementPanel,
+          measurementDock=measurementDock
+          )
 
     def initScreenGrabberPanel(self, fields):
 
@@ -365,28 +401,87 @@ class MainWindowPanelFactory(ComponentFactory):
         cameraBookmarksPanel = camerabookmarks.CameraBookmarkWidget(fields.view)
         cameraBookmarksDock = fields.app.addWidgetToDock(cameraBookmarksPanel.widget, QtCore.Qt.RightDockWidgetArea, visible=False)
 
+        return FieldContainer(
+          cameraBookmarksPanel=cameraBookmarksPanel,
+          cameraBookmarksDock=cameraBookmarksDock
+          )
+
     def initCameraControlPanel(self, fields):
 
         from director import cameracontrolpanel
         cameraControlPanel = cameracontrolpanel.CameraControlPanel(fields.view)
         cameraControlDock = fields.app.addWidgetToDock(cameraControlPanel.widget, QtCore.Qt.RightDockWidgetArea, visible=False)
 
+        return FieldContainer(
+          cameraControlPanel=cameraControlPanel,
+          cameraControlDock=cameraControlDock
+          )
+
+    def initUndoRedo(self, fields):
+
+      undoStack = QtGui.QUndoStack()
+      undoView = QtGui.QUndoView(undoStack)
+      undoView.setEmptyLabel('Start')
+      undoView.setWindowTitle('History')
+      undoDock = fields.app.addWidgetToDock(undoView, QtCore.Qt.LeftDockWidgetArea, visible=False)
+
+      undoAction = undoStack.createUndoAction(undoStack)
+      redoAction = undoStack.createRedoAction(undoStack)
+      undoAction.setShortcut(QtGui.QKeySequence('Ctrl+Z'))
+      redoAction.setShortcut(QtGui.QKeySequence('Ctrl+Shift+Z'))
+
+      fields.app.editMenu.addAction(undoAction)
+      fields.app.editMenu.addAction(redoAction)
+
+      return FieldContainer(
+        undoDock=undoDock,
+        undoStack=undoStack,
+        undoView=undoView,
+        undoAction=undoAction,
+        redoAction=redoAction
+        )
+
     def initDrakeVisualizer(self, fields):
 
         from director import drakevisualizer
         drakeVisualizer = drakevisualizer.DrakeVisualizer(fields.view)
 
-        applogic.MenuActionToggleHelper('Tools', 'Renderer - Drake', drakeVisualizer.isEnabled, drakeVisualizer.setEnabled)
+        applogic.MenuActionToggleHelper('Tools', drakeVisualizer.name, drakeVisualizer.isEnabled, drakeVisualizer.setEnabled)
 
         return FieldContainer(
           drakeVisualizer=drakeVisualizer
           )
 
+    def initTreeViewer(self, fields):
+
+        from director import treeviewer
+        treeViewer = treeviewer.TreeViewer(fields.view)
+
+        applogic.MenuActionToggleHelper('Tools', treeViewer.name, treeViewer.isEnabled, treeViewer.setEnabled)
+
+        return FieldContainer(
+          treeViewer=treeViewer
+          )
+
+    def initLCMGLRenderer(self, fields):
+
+        from director import lcmgl
+        if lcmgl.LCMGL_AVAILABLE:
+            lcmglManager = lcmgl.LCMGLManager(fields.view)
+            applogic.MenuActionToggleHelper('Tools', 'LCMGL Renderer', lcmglManager.isEnabled, lcmglManager.setEnabled)
+        else:
+            lcmglManager = None
+
+        return FieldContainer(
+          lcmglManager=lcmglManager
+          )
+
 
 def construct(globalsDict=None):
-    app = MainWindowAppFactory().construct(globalsDict=globalsDict)
-    MainWindowPanelFactory().construct(view=app.view, app=app.app)
-    return app
+    fact = ComponentFactory()
+    fact.register(MainWindowAppFactory)
+    fact.register(MainWindowPanelFactory)
+    return fact.construct(globalsDict=globalsDict)
 
 
 def main(globalsDict=None):

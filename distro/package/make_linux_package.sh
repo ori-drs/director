@@ -1,7 +1,8 @@
 #!/bin/bash
+set -ex
+
 
 scriptDir=$(cd $(dirname $0) && pwd)
-
 
 superbuildInstallDir=$scriptDir/../../build/install
 
@@ -9,8 +10,14 @@ if [ ! -d "$superbuildInstallDir" ]; then
   superbuildInstallDir=$scriptDir/../../../build/install
 fi
 
-versionString=$($superbuildInstallDir/bin/directorPython -c 'import director.version as ver; print ver.versionString()')
-packageName=director-$versionString-linux
+versionString=$($superbuildInstallDir/bin/directorPython -c 'import director.version as ver; print(ver.gitDescribe())')
+
+osid=$( cat /etc/os-release | grep "^ID=" | sed s/ID=// )
+osversion=$( cat /etc/os-release | grep "VERSION_ID=" | sed s/VERSION_ID=// | sed 's/"\(.*\)"/\1/' )
+
+echo "OS ID and version set as: $osid-$osversion"
+
+packageName=director-$versionString-$osid-$osversion
 
 ######
 
@@ -35,7 +42,7 @@ fi
 
 cd $scriptDir
 echo 'running fixup_elf script'
-python fixup_elf.py $superbuildInstallDir $superbuildInstallDir/lib $patchelfExe
+python fixup_elf.py $superbuildInstallDir $patchelfExe
 
 cp -r $superbuildInstallDir $packageName
 tar -czf $packageName.tar.gz $packageName

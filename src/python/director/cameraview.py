@@ -26,7 +26,7 @@ def clipRange(dataObj, arrayName, thresholdRange):
     dataObj.GetPointData().SetScalars(dataObj.GetPointData().GetArray(arrayName))
 
     f = vtk.vtkClipPolyData()
-    f.SetInput(dataObj)
+    f.SetInputData(dataObj)
     f.SetValue(thresholdRange[0])
     f.SetInputArrayToProcess(0, 0, 0, vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS, arrayName)
 
@@ -124,7 +124,7 @@ class ImageManager(object):
 
         image = vtk.vtkImageData()
         tex = vtk.vtkTexture()
-        tex.SetInput(image)
+        tex.SetInputData(image)
         tex.EdgeClampOn()
         tex.RepeatOff()
 
@@ -402,7 +402,7 @@ class ImageWidget(object):
 
         self.flip = vtk.vtkImageFlip()
         self.flip.SetFilteredAxis(1)
-        self.flip.SetInput(imageManager.getImage(imageName))
+        self.flip.SetInputData(imageManager.getImage(imageName))
         imageRep.SetImage(self.flip.GetOutput())
 
         self.eventFilter = PythonQt.dd.ddPythonEventFilter()
@@ -491,6 +491,7 @@ class CameraImageView(object):
         self.imageName = imageName
         self.imageInitialized = False
         self.updateUtime = 0
+        self.useImageColorMap = False
         self.initView(view)
         self.initEventFilter()
 
@@ -560,7 +561,7 @@ class CameraImageView(object):
         self.interactorStyle.AddObserver('SelectionChangedEvent', self.onRubberBandPick)
 
         self.imageActor = vtk.vtkImageActor()
-        self.imageActor.SetInput(self.getImage())
+        self.imageActor.SetInputData(self.getImage())
         self.imageActor.SetVisibility(False)
         self.view.renderer().AddActor(self.imageActor)
 
@@ -624,6 +625,25 @@ class CameraImageView(object):
         self.imageActor.SetVisibility(False)
         self.view.render()
 
+    def initImageColorMap(self):
+
+        self.depthImageColorByRange = self.getImage().GetScalarRange()
+
+        lut = vtk.vtkLookupTable()
+        lut.SetNumberOfColors(256)
+        lut.SetHueRange(0, 0.667) # red to blue
+        lut.SetRange(self.depthImageColorByRange) # map red (near) to blue (far)
+        lut.SetRampToLinear()
+        lut.Build()
+
+        im = vtk.vtkImageMapToColors()
+        im.SetLookupTable(lut)
+        im.SetInput(self.getImage())
+        im.Update()
+        self.depthImageLookupTable = lut
+        self.imageMapToColors = im
+        self.imageActor.SetInput(im.GetOutput())
+
     def updateView(self):
 
         if not self.view.isVisible():
@@ -634,7 +654,11 @@ class CameraImageView(object):
             self.updateUtime = currentUtime
             self.view.render()
 
-            if not self.imageInitialized and self.imageActor.GetInput().GetDimensions()[0]:
+            if not self.imageInitialized and self.getImage().GetDimensions()[0]:
+
+                if self.useImageColorMap:
+                    self.initImageColorMap()
+
                 self.imageActor.SetVisibility(True)
                 self.resetCamera()
                 self.imageInitialized = True

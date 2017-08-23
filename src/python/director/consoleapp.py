@@ -4,6 +4,7 @@ import traceback
 import argparse
 
 from director import applogic
+from director import drcargs
 from director import objectmodel as om
 from director import viewbehaviors
 from director import visualization as vis
@@ -46,7 +47,10 @@ class ConsoleApp(object):
 
         def onStartup():
             for func in ConsoleApp._startupCallbacks:
-                func()
+                try:
+                    func()
+                except:
+                    print traceback.format_exc()
 
         startTimer = TimerCallback(callback=onStartup)
         startTimer.singleShot(0)
@@ -82,6 +86,10 @@ class ConsoleApp(object):
     @staticmethod
     def applicationInstance():
         return QtCore.QCoreApplication.instance()
+
+    @staticmethod
+    def processEvents():
+        QtCore.QCoreApplication.instance().processEvents()
 
     def showObjectModel(self):
 
@@ -140,11 +148,11 @@ class ConsoleApp(object):
     @staticmethod
     def getTestingArgs(dataDirRequired=False, outputDirRequired=False):
 
-      parser = argparse.ArgumentParser()
+      parser = drcargs.DRCArgParser().getParser()
       parser.add_argument('--testing', action='store_true', help='enable testing mode')
-      parser.add_argument('-d', '--data-dir', type=str, help='testing data directory', required=dataDirRequired)
-      parser.add_argument('-o', '--output-dir', type=str, help='output directory for writing test output', required=outputDirRequired)
-      parser.add_argument('-i', '--interactive', action='store_true', help='enable interactive testing mode')
+      parser.add_argument('--data-dir', type=str, help='testing data directory', required=dataDirRequired)
+      parser.add_argument('--output-dir', type=str, help='output directory for writing test output', required=outputDirRequired)
+      parser.add_argument('--interactive', action='store_true', help='enable interactive testing mode')
 
       args, unknown = parser.parse_known_args()
       return args
@@ -174,7 +182,6 @@ class ConsoleApp(object):
 
 
 def main(globalsDict=None):
-
     app = ConsoleApp()
     app.showPythonConsole()
     view = app.createView()

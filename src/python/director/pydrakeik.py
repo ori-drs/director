@@ -1,3 +1,8 @@
+# import pydrake first.  This is a workaround for the issue:
+# https://github.com/RobotLocomotion/director/issues/467
+import pydrake.solvers.ik as pydrakeik
+import pydrake
+
 import os
 import json
 from collections import OrderedDict
@@ -17,9 +22,6 @@ from director import transformUtils
 
 from director import lcmUtils
 
-import pydrake
-import pydrake.solvers.ik as pydrakeik
-
 try:
     from robotlocomotion import robot_plan_t
 except ImportError:
@@ -32,11 +34,12 @@ class PyDrakePlannerPublisher(plannerPublisher.PlannerPublisher):
 
         self.counter = FPSCounter()
         self.counter.printToConsole = True
-
-        # disabled for now
-        #self._setupLocalServer()
+        self.ikServer = None
 
     def _setupLocalServer(self):
+
+        if self.ikServer is not None:
+            return
 
         initArgs = FieldContainer(
             urdfFile=self.ikPlanner.robotModel.getProperty('Filename'),
@@ -77,9 +80,6 @@ class PyDrakePlannerPublisher(plannerPublisher.PlannerPublisher):
     def makePlanMessage(self, poses, poseTimes, info, fields):
 
         from director import robotstate
-
-        # rescale poseTimes
-        poseTimes = np.array(poseTimes)*2.0
 
         states = [robotstate.drakePoseToRobotState(pose) for pose in poses]
         for i, state in enumerate(states):
@@ -145,6 +145,27 @@ class RigidBodyTreeCompatNew(object):
     def get_num_velocities(rbt):
         return rbt.get_num_velocities()
 
+    @staticmethod
+    def makePackageMap(packagePaths):
+        packageMap = pydrake.rbtree.PackageMap()
+        for path in packagePaths:
+            if os.path.exists(path):
+                packageMap.Add(os.path.basename(path), path)
+        return packageMap
+
+    @staticmethod
+    def addModelInstanceFromUrdfString(rbt, urdfString, packageMap, baseDir):
+        floatingBaseType = pydrake.rbtree.kRollPitchYaw
+        weldFrame = None
+
+        pydrake.rbtree.AddModelInstanceFromUrdfStringSearchingInRosPackages(
+          urdfString,
+          packageMap,
+          baseDir,
+          floatingBaseType,
+          weldFrame,
+          rbt)
+
 
 class RigidBodyTreeCompatOld(object):
 
@@ -171,6 +192,17 @@ class RigidBodyTreeCompatOld(object):
     @staticmethod
     def get_num_velocities(rbt):
         return rbt.num_velocities
+
+    @staticmethod
+    def makePackageMap(packagePaths):
+        packageMap = pydrake.rbtree.mapStringString()
+        for path in packagePaths:
+            packageMap[os.path.basename(path)] = path
+        return packageMap
+
+    @staticmethod
+    def addModelInstanceFromUrdfString(rbt, urdfString, packageMap, baseDir):
+        rbt.addRobotFromURDFString(urdfString, packageMap, baseDir)
 
 
 if hasattr(pydrake.rbtree.RigidBodyTree, 'get_num_bodies'):
@@ -203,16 +235,13 @@ class PyDrakeIkServer(object):
 
         assert os.path.isfile(urdfFile)
 
-        packageMap = pydrake.rbtree.mapStringString()
-        for path in packagePaths:
-            packageMap[os.path.basename(path)] = path
+        packageMap = rbt.makePackageMap(packagePaths)
 
         urdfString = open(urdfFile, 'r').read()
-
         baseDir = str(os.path.dirname(urdfFile))
 
         rigidBodyTree = pydrake.rbtree.RigidBodyTree()
-        rigidBodyTree.addRobotFromURDFString(urdfString, packageMap, baseDir)
+        rbt.addModelInstanceFromUrdfString(rigidBodyTree, urdfString, packageMap, baseDir)
         return rigidBodyTree
 
     def makeIkOptions(self, fields):
@@ -249,6 +278,26 @@ class PyDrakeIkServer(object):
         #options.setAdditionaltSamples([])
 
         return options
+
+    def handleFixedLinkFromRobotPoseConstraint(self, c, fields):
+
+        bodyId = self.bodyNameToId[c.linkName]
+        pose = np.asarray(fields.poses[c.poseName], dtype=float)
+        pointInBodyFrame = np.zeros(3)
+        tolerance = np.radians(c.angleToleranceInDegrees)
+        tspan = np.asarray(c.tspan, dtype=float)
+
+        bodyToWorld = self.computeBodyToWorld(pose, c.linkName, pointInBodyFrame)
+        bodyPos = transformUtils.transformations.translation_from_matrix(bodyToWorld)
+        bodyQuat = transformUtils.transformations.quaternion_from_matrix(bodyToWorld)
+
+        lowerBound = bodyPos + c.lowerBound
+        upperBound = bodyPos + c.upperBound
+
+        pc = pydrakeik.WorldPositionConstraint(self.rigidBodyTree, bodyId, pointInBodyFrame, lowerBound, upperBound, tspan)
+        qc = pydrakeik.WorldQuatConstraint(self.rigidBodyTree, bodyId, bodyQuat, tolerance, tspan)
+
+        return [pc, qc]
 
     def handlePositionConstraint(self, c, fields):
 
@@ -339,6 +388,7 @@ class PyDrakeIkServer(object):
 
         dispatchMap = {
             ikconstraints.PositionConstraint : self.handlePositionConstraint,
+            ikconstraints.FixedLinkFromRobotPoseConstraint : self.handleFixedLinkFromRobotPoseConstraint,
             ikconstraints.QuatConstraint : self.handleQuatConstraint,
             ikconstraints.WorldGazeDirConstraint : self.handleWorldGazeDirConstraint,
             ikconstraints.PostureConstraint : self.handlePostureConstraint,
@@ -347,21 +397,32 @@ class PyDrakeIkServer(object):
 
         constraints = [dispatchMap[type(c)](c, fields) for c in fields.constraints]
 
-        constraints = [c for c in constraints if c is not None]
+        constraintList = []
+        for c in constraints:
+            if c is None:
+                continue
+            if isinstance(c, list):
+                constraintList.extend(c)
+            else:
+                constraintList.append(c)
 
-        return constraints
+        return constraintList
 
-    def forwardKinematicsExample(self):
+    def computeBodyToWorld(self, pose, bodyName, pointInBody=None):
+        if pointInBody is None:
+            pointInBody = np.zeros(3)
 
-        q = np.zeros(self.rigidBodyTree.get_num_positions())
+        assert len(pose) == self.rigidBodyTree.get_num_positions()
         v = np.zeros(self.rigidBodyTree.get_num_velocities())
-        kinsol = self.rigidBodyTree.doKinematics(q,v)
+        kinsol = self.rigidBodyTree.doKinematics(pose, v)
 
-        t = self.rigidBodyTree.relativeTransform(kinsol, self.bodyNameToId['world'], self.bodyNameToId['leftFoot'])
-        tt = transformUtils.getTransformFromNumpy(t)
-        pos = transformUtils.transformations.translation_from_matrix(t)
-        quat = transformUtils.transformations.quaternion_from_matrix(t)
+        t = self.rigidBodyTree.relativeTransform(kinsol, self.bodyNameToId['world'], self.bodyNameToId[bodyName])
+        assert t.shape == (4,4)
 
+        #tt = transformUtils.getTransformFromNumpy(t)
+        #pos = transformUtils.transformations.translation_from_matrix(t)
+        #quat = transformUtils.transformations.quaternion_from_matrix(t)
+        return t
 
     def checkJointNameOrder(self, fields):
 
@@ -417,7 +478,7 @@ class PyDrakeIkServer(object):
         '''
         Given arrays x and y and an interpolation kind 'linear', 'cubic' or 'pchip',
         this function returns the result of scipy.interpolate.interp1d or
-        scipy.interpolate.pchip.
+        scipy.interpolate.PchipInterpolator.
 
         If the interpolation is cubic or pchip, this function will duplicate the
         values at the end points of x and y (and add/subtract a very small x delta)
@@ -440,7 +501,7 @@ class PyDrakeIkServer(object):
             y = np.vstack(([y[0]], y, [y[-1]]))
 
         if kind == 'pchip':
-            return scipy.interpolate.pchip(x, y, axis=0)
+            return scipy.interpolate.PchipInterpolator(x, y, axis=0)
         else:
             return scipy.interpolate.interp1d(x, y, axis=0, kind=kind)
 
@@ -484,19 +545,16 @@ class PyDrakeIkServer(object):
 
 
         if fields.options.usePointwise:
-            numPointwiseSamples = 20
             pointwiseTimeSamples = np.linspace(timeRange[0], timeRange[1], numPointwiseSamples)
 
             q_seed_array = self.getInterpolationFunction(timeSamples, np.array(poses),
                                     kind=self.trajInterpolationMode)(pointwiseTimeSamples).transpose()
+
             assert q_seed_array.shape == (len(q_nom), numPointwiseSamples)
 
             results = pydrakeik.InverseKinPointwise(self.rigidBodyTree, pointwiseTimeSamples, q_seed_array, q_seed_array, constraints, ikoptions)
 
-
             assert len(results.q_sol) == len(pointwiseTimeSamples)
-
-            print 'pointwise info len:', len(results.info)
 
             poses = []
             for i in xrange(len(results.q_sol)):
@@ -508,4 +566,57 @@ class PyDrakeIkServer(object):
             timeSamples = pointwiseTimeSamples
 
 
+        assert timeSamples[0] == 0.0
+
+        # rescale timeSamples to respect max degrees per second option and min plan time
+        vel = np.diff(np.transpose(poses))/np.diff(timeSamples)
+        timeScaleFactor = np.max(np.abs(vel/np.radians(fields.options.maxDegreesPerSecond)))
+        timeScaleFactorMin = minPlanTime / timeSamples[-1]
+        timeScaleFactor = np.max([timeScaleFactor, timeScaleFactorMin])
+        timeSamples = np.array(timeSamples, dtype=float)*timeScaleFactor
+
+        # resample plan with warped time to adjust acceleration/deceleration profile
+        if useWarpTime:
+            tFine = np.linspace(timeSamples[0], timeSamples[-1], 100)
+            posesFine = self.getInterpolationFunction(timeSamples, np.array(poses), kind='linear')(tFine)
+            tFineWarped = warpTime(tFine/tFine[-1])*tFine[-1]
+            timeSamples = np.linspace(tFineWarped[0], tFineWarped[-1], numPointwiseSamples)
+            poses = self.getInterpolationFunction(tFineWarped, posesFine, kind=self.trajInterpolationMode)(timeSamples)
+
         return poses, timeSamples, info
+
+
+#########################################
+# todo: cleanup.
+# for testing use some global variables so they can be adjusted at runtime
+useWarpTime = True
+minPlanTime = 1.5
+acceleration_param=4
+t_acc=0.05
+t_dec=0.2
+numPointwiseSamples = 20
+
+
+def warpTime(t):
+    '''This routine has been ported from the openhumanoids Matlab code'''
+
+    assert t_acc + t_dec <= 1, 't_acc + t_dec must be less than or equal to 1'
+
+    t_max = 1 - t_acc - t_dec;
+
+    # Set up scaling constants
+    alpha = 1.0/acceleration_param;
+    C_acc = (alpha*(t_acc)**(alpha - 1))**(-1)
+    C_dec = (alpha*(t_dec)**(alpha - 1))**(-1)
+
+    # Compute indices for acceleration, max velocity, and deceleration segments
+    idx_acc = (t <= t_acc)
+    idx_dec = (t >= (1-t_dec))
+    idx_max = np.logical_and(np.logical_not(idx_acc), np.logical_not(idx_dec))
+
+    # Generate warped time
+    t_warped = np.zeros(len(t))
+    t_warped[idx_acc] = C_acc*t[idx_acc]**alpha
+    t_warped[idx_max] = C_acc*(t_acc)**alpha - t_acc + t[idx_max]
+    t_warped[idx_dec] = C_acc*(t_acc)**alpha + C_dec*(t_dec)**alpha + t_max - C_dec*(1-t[idx_dec])**alpha;
+    return t_warped

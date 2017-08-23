@@ -17,6 +17,7 @@ from director.shallowCopy import shallowCopy
 from director import segmentationpanel
 from director import segmentation
 from director import segmentationroutines
+from director.robotlinkselector import RobotLinkSelector
 from director.vieweventfilter import ViewEventFilter
 from director import viewbehaviors
 from director.utime import getUtime
@@ -77,9 +78,6 @@ def resetCameraToHeadView(view):
     view.render()
 
 
-
-
-
 def getChildFrame(obj):
     if hasattr(obj, 'getChildFrame'):
         return obj.getChildFrame()
@@ -95,7 +93,9 @@ def placeHandModel(displayPoint, view, side='left'):
         handFrame.frameSync.addFrame(handFrame, ignoreIncoming=True)
         return
 
-    pickedPoint, prop, _, normal = vis.pickPoint(displayPoint, view, pickType='cells', tolerance=0.0, returnNormal=True)
+    pickedPointFields = vis.pickPoint(displayPoint, view, pickType='cells', tolerance=0.0)
+    pickedPoint = pickedPointFields.pickedPoint
+    prop = pickedPointFields.pickedProp
 
     obj = vis.getObjectByProp(prop)
     if not obj:
@@ -123,63 +123,6 @@ def placeHandModel(displayPoint, view, side='left'):
         handFrame.frameSync = vis.FrameSync()
         handFrame.frameSync.addFrame(handFrame, ignoreIncoming=True)
         handFrame.frameSync.addFrame(syncFrame)
-
-
-class RobotLinkSelector(object):
-
-    def __init__(self):
-        self.selectedLink = None
-        self.setupMenuAction()
-
-    def setupMenuAction(self):
-        self.action = app.addMenuAction('Tools', 'Robot Link Selector')
-        self.action.setCheckable(True)
-        self.action.checked = False
-
-    def enabled(self):
-        return self.action.checked == True
-
-    def selectLink(self, displayPoint, view):
-
-        if not self.enabled():
-            return False
-
-        robotModel, _ = vis.findPickedObject(displayPoint, view)
-
-        try:
-            robotModel.model.getLinkNameForMesh
-        except AttributeError:
-            return False
-
-        model = robotModel.model
-
-        pickedPoint, _, polyData = vis.pickProp(displayPoint, view)
-
-        linkName = model.getLinkNameForMesh(polyData)
-        if not linkName:
-            return False
-
-        fadeValue = 1.0 if linkName == self.selectedLink else 0.05
-
-        for name in model.getLinkNames():
-            linkColor = model.getLinkColor(name)
-            linkColor.setAlphaF(fadeValue)
-            model.setLinkColor(name, linkColor)
-
-        if linkName == self.selectedLink:
-            self.selectedLink = None
-            vis.hideCaptionWidget()
-            om.removeFromObjectModel(om.findObjectByName('selected link frame'))
-
-        else:
-            self.selectedLink = linkName
-            linkColor = model.getLinkColor(self.selectedLink)
-            linkColor.setAlphaF(1.0)
-            model.setLinkColor(self.selectedLink, linkColor)
-            vis.showCaptionWidget(robotModel.getLinkFrame(self.selectedLink).GetPosition(), self.selectedLink, view=view)
-            vis.updateFrame(robotModel.getLinkFrame(self.selectedLink), 'selected link frame', scale=0.2, parent=robotModel)
-
-        return True
 
 
 def newWalkingGoal(displayPoint, view):
@@ -601,12 +544,12 @@ class RobotViewEventFilter(ViewEventFilter):
             if not picker.enabled:
                 continue
 
-            picker.onMouseMove(vis.mapMousePosition(self.view, event), event.modifiers())
+            picker.onMouseMove(self.getMousePositionInView(event), event.modifiers())
             self.consumeEvent()
 
     def onLeftMousePress(self, event):
         if event.modifiers() == QtCore.Qt.ControlModifier:
-            displayPoint = vis.mapMousePosition(self.view, event)
+            displayPoint = self.getMousePositionInView(event)
             if footstepsDriver:
                 newWalkingGoal(displayPoint, self.view)
                 self.consumeEvent()
@@ -618,12 +561,12 @@ class RobotViewEventFilter(ViewEventFilter):
             if not picker.enabled:
                 continue
 
-            picker.onMousePress(vis.mapMousePosition(self.view, event), event.modifiers())
+            picker.onMousePress(self.getMousePositionInView(event), event.modifiers())
             self.consumeEvent()
 
     def onLeftDoubleClick(self, event):
 
-        displayPoint = vis.mapMousePosition(self.view, event)
+        displayPoint = self.getMousePositionInView(event)
 
         useHorizontalWidget =  (event.modifiers() == QtCore.Qt.ShiftModifier)
         if toggleFootstepWidget(displayPoint, self.view, useHorizontalWidget):

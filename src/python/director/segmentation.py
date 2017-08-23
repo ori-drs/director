@@ -180,6 +180,9 @@ class DisparityPointCloudItem(vis.PolyDataItem):
         self.imageManager = imageManager
         self.cameraName = cameraName
         self.setProperty('Visible', False)
+        self.addProperty('Remove Stale Data', False)
+        self.addProperty('Stale Data Timeout', 5.0, attributes=om.PropertyAttributes(decimals=1, minimum=0.1, maximum=30.0, singleStep=0.1))
+        self.lastDataReceivedTime = time.time()
 
     def _onPropertyChanged(self, propertySet, propertyName):
         vis.PolyDataItem._onPropertyChanged(self, propertySet, propertyName)
@@ -199,12 +202,14 @@ class DisparityPointCloudItem(vis.PolyDataItem):
         self.timer.stop()
 
     def update(self):
-
         utime = self.imageManager.queue.getCurrentImageTime(self.cameraName)
         if utime == self.lastUtime:
+            if self.getProperty('Remove Stale Data') and ((time.time()-self.lastDataReceivedTime) > self.getProperty('Stale Data Timeout')):
+                if self.polyData.GetNumberOfPoints() > 0:
+                    self.setPolyData(vtk.vtkPolyData())
             return
 
-        if (utime < self.lastUtime ):
+        if (utime < self.lastUtime):
             temp=0 # dummy
         elif (utime - self.lastUtime < 1E6/self.getProperty('Target FPS')):
             return
@@ -216,6 +221,7 @@ class DisparityPointCloudItem(vis.PolyDataItem):
                                           removeOutliers=False, removeSize=removeSize, rangeThreshold = rangeThreshold)
 
         self.setPolyData(polyData)
+        self.lastDataReceivedTime = time.time()
 
         if polyData.GetNumberOfPoints() > 0 and not self.lastUtime:
             self.setProperty('Color By', 'rgb_colors')
@@ -224,9 +230,12 @@ class DisparityPointCloudItem(vis.PolyDataItem):
         self.lastUtime = utime
 
 
-def extractLargestCluster(polyData, minClusterSize=100):
-
-    polyData = applyEuclideanClustering(polyData, minClusterSize=minClusterSize)
+def extractLargestCluster(polyData, **kwargs):
+    '''
+    Calls applyEuclideanClustering and then extracts the first (largest) cluster.
+    The given keyword arguments are passed into the applyEuclideanClustering function.
+    '''
+    polyData = applyEuclideanClustering(polyData, **kwargs)
     return thresholdPoints(polyData, 'cluster_labels', [1, 1])
 
 
@@ -472,7 +481,7 @@ def applyPlaneFit(polyData, distanceThreshold=0.02, expectedNormal=None, perpend
 
     # perform plane segmentation
     f = planeSegmentationFilter()
-    f.SetInput(fitInput)
+    f.SetInputData(fitInput)
     f.SetDistanceThreshold(distanceThreshold)
     if perpendicularAxis is not None:
         f.SetPerpendicularConstraintEnabled(True)
@@ -508,9 +517,9 @@ def normalEstimation(dataObj, searchCloud=None, searchRadius=0.05, useVoxelGrid=
 
     f = vtk.vtkPCLNormalEstimation()
     f.SetSearchRadius(searchRadius)
-    f.SetInput(dataObj)
+    f.SetInputData(dataObj)
     if searchCloud:
-        f.SetInput(1, searchCloud)
+        f.SetInputData(1, searchCloud)
     elif useVoxelGrid:
         f.SetInput(1, applyVoxelGrid(dataObj, voxelGridLeafSize))
     f.Update()
@@ -1756,8 +1765,8 @@ def applyArrowGlyphs(polyData, computeNormals=True, voxelGridLeafSize=0.03, norm
 
     glyph = vtk.vtkGlyph3D()
     glyph.SetScaleFactor(arrowSize)
-    glyph.SetSource(arrow.GetOutput())
-    glyph.SetInput(polyData)
+    glyph.SetSourceData(arrow.GetOutput())
+    glyph.SetInputData(polyData)
     glyph.SetVectorModeToUseNormal()
     glyph.Update()
 
@@ -2341,17 +2350,20 @@ def makePolyDataFields(pd):
     axes = [edge / np.linalg.norm(edge) for edge in edges]
 
 
-    # Use upward axis for z direction
-    zaxis = [0, 0, 1]
-    dot_products = [  np.dot(axe, zaxis)  for axe in axes  ]
-    axes = [ axes[i] for i in np.argsort( dot_products ) ]
-    edgeLengths = [ edgeLengths[i] for i in np.argsort( dot_products ) ]
+    # find axis nearest to the +/- up vector
+    upVector = [0, 0, 1]
+    dotProducts = [np.abs(np.dot(axe, upVector)) for axe in axes]
+    zAxisIndex = np.argmax(dotProducts)
 
-#    zEdgeIndex = 2
-#    if np.dot(axes[2], [0,0,1]) < 0:
-#        print 'flipping z axis'
-#        axes[1] = -axes[1]
-#        axes[2] = -axes[2]
+    # re-index axes and edge lengths so that the found axis is the z axis
+    axesInds = [(zAxisIndex+1)%3, (zAxisIndex+2)%3, zAxisIndex]
+    axes = [axes[i] for i in axesInds]
+    edgeLengths = [edgeLengths[i] for i in axesInds]
+
+    # flip if necessary so that z axis points toward up
+    if np.dot(axes[2], upVector) < 0:
+        axes[1] = -axes[1]
+        axes[2] = -axes[2]
 
     boxCenter = computeCentroid(wireframe)
 
@@ -2956,9 +2968,9 @@ def computeSignedAngleBetweenVectors(v1, v2, perpendicularVector):
     Computes the signed angle between two vectors in 3d, given a perpendicular vector
     to determine sign.  Result returned is radians.
     '''
-    v1 = np.array(v1)
-    v2 = np.array(v2)
-    perpendicularVector = np.array(perpendicularVector)
+    v1 = np.array(v1, dtype=float)
+    v2 = np.array(v2, dtype=float)
+    perpendicularVector = np.array(perpendicularVector, dtype=float)
     v1 /= np.linalg.norm(v1)
     v2 /= np.linalg.norm(v2)
     perpendicularVector /= np.linalg.norm(perpendicularVector)
@@ -3305,7 +3317,8 @@ class PointPicker(TimerCallback):
             self.finish()
             return
 
-        self.hoverPos = pickPoint(self.lastMovePos, getSegmentationView(), obj='pointcloud snapshot')
+        pickedPointFields = pickPoint(self.lastMovePos, getSegmentationView(), obj='pointcloud snapshot')
+        self.hoverPos = pickedPointFields.pickedPoint
         self.draw()
 
 
@@ -3504,7 +3517,7 @@ def showObbs(polyData):
 
     f = vtk.vtkAnnotateOBBs()
     f.SetInputArrayToProcess(0,0,0, vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS, labelsArrayName)
-    f.SetInput(polyData)
+    f.SetInputData(polyData)
     f.Update()
     showPolyData(f.GetOutput(), 'bboxes')
 
@@ -3523,7 +3536,7 @@ def getOrientedBoundingBox(polyData):
 
     f = vtk.vtkAnnotateOBBs()
     f.SetInputArrayToProcess(0,0,0, vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS, labelsArrayName)
-    f.SetInput(polyData)
+    f.SetInputData(polyData)
     f.Update()
 
     assert f.GetNumberOfBoundingBoxes() == 1
@@ -4553,7 +4566,8 @@ def orthoZ():
 
 def zoomToDisplayPoint(displayPoint, boundsRadius=0.5, view=None):
 
-    pickedPoint = pickPoint(displayPoint, getSegmentationView(), obj='pointcloud snapshot')
+    pickedPointFields = pickPoint(displayPoint, getSegmentationView(), obj='pointcloud snapshot')
+    pickedPoint = pickedPointFields.pickedPoint
     if pickedPoint is None:
         return
 
