@@ -26,7 +26,7 @@ def clipRange(dataObj, arrayName, thresholdRange):
     dataObj.GetPointData().SetScalars(dataObj.GetPointData().GetArray(arrayName))
 
     f = vtk.vtkClipPolyData()
-    f.SetInput(dataObj)
+    f.SetInputData(dataObj)
     f.SetValue(thresholdRange[0])
     f.SetInputArrayToProcess(0, 0, 0, vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS, arrayName)
 
