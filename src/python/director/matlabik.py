@@ -241,8 +241,14 @@ class AsyncIKCommunicator():
             timeSamples += np.linspace(timeSamples[0], timeSamples[-1], ikParameters.numberOfAddedKnots + 2).tolist()
             timeSamples = np.unique(timeSamples).tolist()
 
-        assert ikParameters.rrtHand in ('left', 'right')
-        collisionEndEffectorName = ( self.handModels[0].handLinkName if ikParameters.rrtHand == 'left' else self.handModels[1].handLinkName )
+        #assert ikParameters.rrtHand in ('left', 'right')
+        #collisionEndEffectorName = ( self.handModels[0].handLinkName if ikParameters.rrtHand == 'left' else self.handModels[1].handLinkName )
+        #collisionEndEffectorNameLeft = self.handModels[0].handLinkName
+
+        # hack to remove the collisionEndEffectorName variable for now: mfallon may 2017
+        # for hyq without arms, TODO: more fully remove support for RRT planning
+        collisionEndEffectorName = 'none'
+        collisionEndEffectorNameLeft = 'none'
 
         commands = []
         commands.append('\n%-------- runIkTraj --------\n')
@@ -251,7 +257,7 @@ class AsyncIKCommunicator():
         commands.append('{0} = [{0}; zeros(r.getNumPositions()-numel({0}),1)];'.format(nominalPose))
         commands.append('excluded_collision_groups = struct(\'name\',{},\'tspan\',{});\n')
         commands.append("end_effector_name = '%s';" % collisionEndEffectorName)
-        commands.append("end_effector_name_left = '%s';" % self.handModels[0].handLinkName)
+        commands.append("end_effector_name_left = '%s';" % collisionEndEffectorNameLeft)
         if (len(self.handModels) > 1):
             commands.append("end_effector_name_right = '%s';" % self.handModels[1].handLinkName)
         commands.append("end_effector_pt = [];")

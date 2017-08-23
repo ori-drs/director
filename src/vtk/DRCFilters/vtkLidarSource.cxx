@@ -488,14 +488,18 @@ protected:
 
     Eigen::Isometry3d scanToLocalStart;
     Eigen::Isometry3d scanToLocalEnd;
-    Eigen::Isometry3d bodyToLocalStart;
 
+    // Assumes frame is same as channel name. TODO: look up channel from botconfig
+    get_trans_with_utime(this->channelName, "local", msg->utime, scanToLocalStart);
+    get_trans_with_utime(this->channelName, "local", msg->utime +  1e6*3/(40*4), scanToLocalEnd);
 
     // Assumes frame is same as channel name. TODO: look up channel from botconfig
     get_trans_with_utime(this->coordinateFrame, "local", msg->utime, scanToLocalStart);
     get_trans_with_utime(this->coordinateFrame, "local", msg->utime +  1e6*3/(40*4), scanToLocalEnd);
     
     get_trans_with_utime("body", "local", msg->utime, bodyToLocalStart);
+
+    //get_trans_with_utime("MULTISENSE_SCAN", "PRE_SPINDLE", msg->utime, scanToLocal);
 
     Eigen::Isometry3d spindleRotation;
     get_trans_with_utime("PRE_SPINDLE", "POST_SPINDLE", msg->utime, spindleRotation);
@@ -533,7 +537,6 @@ protected:
     scanLine.ScanLineId = this->CurrentScanLine++;
     scanLine.ScanToLocalStart = scanToLocalStart;
     scanLine.ScanToLocalEnd = scanToLocalEnd;
-    scanLine.BodyToLocalStart = bodyToLocalStart;
     scanLine.SpindleAngle = spindleAngle;
     scanLine.Revolution = this->CurrentRevolution;
     scanLine.msg = *msg;

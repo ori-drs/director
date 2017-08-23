@@ -129,12 +129,14 @@ endif()
 
 if (USE_DRC_MAPS)
   find_package(Maps REQUIRED)
+  find_package(MapsLcm REQUIRED)
   find_package(PCL REQUIRED)
 
   list(APPEND sources vtkMapServerSource.cxx)
   include_directories(${PCL_INCLUDE_DIRS})
-  include_directories(${MAPS_INCLUDE_DIRS})
-  list(APPEND deps ${MAPS_LIBRARIES} ${PCL_LIBRARIES})
+  include_directories(${MAPS_INCLUDE_DIRS})# ${MAPSLCM_INCLUDE_DIRS})
+  list(APPEND deps ${MAPS_LIBRARIES} ${MAPSLCM_LIBRARIES} ${PCL_LIBRARIES})
+  use_cpp11()
 endif()
 
 if (USE_DRC_PLANE_SEG)
