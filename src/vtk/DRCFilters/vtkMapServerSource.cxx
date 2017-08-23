@@ -560,14 +560,15 @@ protected:
     int width = depthImage->getWidth();
     int height = depthImage->getHeight();
 
+    // this wasnt fixed during the upgrade/ mfallon:
     vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
-// fixe me mfallon:    image->SetWholeExtent(0, width-1, 0, height-1, 0, 0);
+    image->SetWholeExtent(0, width-1, 0, height-1, 0, 0);
     image->SetSpacing(1.0, 1.0, 1.0);
     image->SetOrigin(0.0, 0.0, 0.0);
-// fix me mfallon:    image->SetExtent(image->GetWholeExtent());
-// fix me mfallon:    image->SetNumberOfScalarComponents(1);
-// fix me mfallon:    image->SetScalarType(VTK_FLOAT);
-// fix me mfallon:    image->AllocateScalars();
+    image->SetExtent(image->GetWholeExtent());
+    image->SetNumberOfScalarComponents(1);
+    image->SetScalarType(VTK_FLOAT);
+    image->AllocateScalars();
 
     std::vector<float> imageData = depthImage->getData(maps::DepthImage::TypeDepth);
 
@@ -920,14 +921,12 @@ int vtkMapServerSource::RequestData(
 
   int timestep = 0;
 
-// fixme mfallon
-/*
+  // fixme mfallon
   if (info->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS()))
     {
     double timeRequest = info->Get(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS())[0];
     timestep = static_cast<int>(floor(timeRequest+0.5));
     }
-*/
 
   this->Internal->Listener->SetDistanceRange(this->DistanceRange);
   this->Internal->Listener->SetHeightRange(this->HeightRange);
