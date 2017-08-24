@@ -1,4 +1,26 @@
+find_package(PythonQt REQUIRED)
+find_package(CTKPythonConsole REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(QtPropertyBrowser REQUIRED)
+if(DD_QT_VERSION EQUAL 4)
+  include(${QT_USE_FILE})
+else()
+  include_directories(${Qt5Core_INCLUDE_DIRS})
+endif()
 
+find_package(VTK REQUIRED COMPONENTS
+  vtkWrappingPythonCore
+  vtkGUISupportQt
+  vtkInteractionWidgets
+  vtkRenderingAnnotation
+  vtkRenderingFreeType
+  vtkInteractionStyle
+  vtkIOXML
+  vtkIOImage
+  vtkIOGeometry
+  )
+include(${VTK_USE_FILE})
+check_vtk_qt_version()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
@@ -141,7 +163,7 @@ endif()
 
 if(USE_OCTOMAP)
 
-  setup_qt4()
+  #setup_qt4()
 
   find_library(OCTOVIS_LIBRARY octovis)
   list(APPEND sources vtkOctomap.cxx)
@@ -183,6 +205,8 @@ if(NOT VTK_WRAP_PYTHON)
     "VTK_WRAP_PYTHON is OFF. You must use a version of VTK with Python. "
     "VTK_DIR is: ${VTK_DIR}")
 endif()
+
+set(VTK_LIBRARIES)
 
 include_directories(${PYTHON_INCLUDE_DIR})
 include(${CMAKE_SOURCE_DIR}/cmake/wrap-python.cmake)

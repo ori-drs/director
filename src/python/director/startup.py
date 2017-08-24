@@ -103,7 +103,7 @@ from director.tasks.descriptions import loadTaskDescriptions
 import drc as lcmdrc
 import bot_core as lcmbotcore
 import maps as lcmmaps
-import atlas
+#import atlas
 
 from collections import OrderedDict
 import functools
@@ -209,11 +209,11 @@ if useIk:
     startIkServer()
 
 
-if useAtlasDriver:
-    atlasdriver.systemStatus.outputConsole = app.getOutputConsole()
-    atlasdriverpanel.init(atlasDriver)
-else:
-    app.removeToolbarMacro('ActionAtlasDriverPanel')
+#if useAtlasDriver:
+#    atlasdriver.systemStatus.outputConsole = app.getOutputConsole()
+#    atlasdriverpanel.init(atlasDriver)
+#else:
+#    app.removeToolbarMacro('ActionAtlasDriverPanel')
 
 
 if usePerception:
@@ -276,9 +276,9 @@ if useLCMGL:
     lcmglManager = lcmgl.init(view)
     app.MenuActionToggleHelper('Tools', 'Renderer - LCM GL', lcmglManager.isEnabled, lcmglManager.setEnabled)
 
-if useOctomap:
-    octomapManager = lcmoctomap.init(view)
-    app.MenuActionToggleHelper('Tools', 'Renderer - Octomap', octomapManager.isEnabled, octomapManager.setEnabled)
+#if useOctomap:
+#    octomapManager = lcmoctomap.init(view)
+#    app.MenuActionToggleHelper('Tools', 'Renderer - Octomap', #octomapManager.isEnabled, octomapManager.setEnabled)
 
 if useCollections:
     collectionsManager = lcmcollections.init(view)
@@ -447,6 +447,7 @@ if usePlanning:
 
     taskPanels = OrderedDict()
 
+    useHumanoidDRCDemos = False
     if useHumanoidDRCDemos:
         debrisDemo = debrisdemo.DebrisPlannerDemo(robotStateModel, robotStateJointController, playbackRobotModel,
                         ikPlanner, manipPlanner, atlasdriver.driver, lHandDriver,
@@ -530,7 +531,7 @@ if useLoggingWidget:
 
 
 
-
+useControllerRate = False
 if useControllerRate:
 
     class ControllerRateLabel(object):

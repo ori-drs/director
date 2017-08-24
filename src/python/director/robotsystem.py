@@ -17,7 +17,7 @@ class RobotSystemFactory(object):
             'Footsteps' : ['RobotState'],
             'RaycastDriver' : ['Footsteps'],
             'IRISDriver' : ['RobotState', 'Footsteps'],
-            'AtlasDriver' : [],
+            #'AtlasDriver' : [],
             'Planning' : ['RobotState'],
             'Playback' : ['Planning'],
             'Teleop' : ['Planning', 'Playback', 'Affordances'],

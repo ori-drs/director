@@ -2,7 +2,7 @@ from __future__ import division
 
 import numpy as np
 import drc as lcmdrc
-from director import irisUtils
+#from director import irisUtils
 from director import applogic as app
 from director import objectmodel as om
 from director import transformUtils
