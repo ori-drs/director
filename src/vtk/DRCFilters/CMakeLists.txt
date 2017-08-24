@@ -206,6 +206,8 @@ if(NOT VTK_WRAP_PYTHON)
     "VTK_DIR is: ${VTK_DIR}")
 endif()
 
+set(VTK_LIBRARIES)
+
 include_directories(${PYTHON_INCLUDE_DIR})
 include(${CMAKE_SOURCE_DIR}/cmake/wrap-python.cmake)
 wrap_python(${library_name} "${sources}")

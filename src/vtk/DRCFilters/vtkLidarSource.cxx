@@ -495,7 +495,7 @@ protected:
     get_trans_with_utime(this->coordinateFrame, "local", msg->utime, scanToLocalStart);
     get_trans_with_utime(this->coordinateFrame, "local", msg->utime +  1e6*3/(40*4), scanToLocalEnd);
     
-    get_trans_with_utime("body", "local", msg->utime, bodyToLocalStart);
+    // get_trans_with_utime("body", "local", msg->utime, bodyToLocalStart);
 
     Eigen::Isometry3d spindleRotation;
     get_trans_with_utime("PRE_SPINDLE", "POST_SPINDLE", msg->utime, spindleRotation);

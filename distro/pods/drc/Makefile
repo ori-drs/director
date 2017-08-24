@@ -48,7 +48,7 @@ configure:
 		   -DUSE_LIBBOT:BOOL=ON \
 		   -DUSE_DRAKE:BOOL=ON \
 		   -DUSE_DRC:BOOL=ON \
-		   -DUSE_DRC_MAPS:BOOL=OFF \
+		   -DUSE_DRC_MAPS:BOOL=ON \
 		   -DUSE_DRC_PLANE_SEG:BOOL=OFF \
 		   ../../../../
 
