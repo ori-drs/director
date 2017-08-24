@@ -497,7 +497,7 @@ protected:
     get_trans_with_utime(this->coordinateFrame, "local", msg->utime, scanToLocalStart);
     get_trans_with_utime(this->coordinateFrame, "local", msg->utime +  1e6*3/(40*4), scanToLocalEnd);
     
-    get_trans_with_utime("body", "local", msg->utime, bodyToLocalStart);
+    // get_trans_with_utime("body", "local", msg->utime, bodyToLocalStart);
 
     //get_trans_with_utime("MULTISENSE_SCAN", "PRE_SPINDLE", msg->utime, scanToLocal);
 
