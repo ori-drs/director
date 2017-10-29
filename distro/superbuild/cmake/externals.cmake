@@ -1,18 +1,21 @@
 option(USE_PCL "Build with PCL." OFF)
-option(USE_LCM "Build with lcm." OFF)
+option(USE_LCM "Build with lcm." ON)
 option(USE_LCMGL "Build with lcm-gl." OFF)
 option(USE_OCTOMAP "Build with octomap." OFF)
 option(USE_APRILTAGS "Build with apriltags lcm driver." OFF)
 option(USE_KINECT "Build with kinect lcm driver." OFF)
-option(USE_COLLECTIONS "Build with collections." OFF)
+option(USE_COLLECTIONS "Build with collections." ON)
 option(USE_LIBBOT "Build with libbot." OFF)
-option(USE_DRAKE "Build with drake." OFF)
+option(USE_DRAKE "Build with drake." ON)
 option(USE_STANDALONE_LCMGL "Build with standalone bot-lcmgl." OFF)
-option(USE_PERCEPTION "Build director features that require OpenCV, PCL, cv-utils, and libbot as dependencies." OFF)
+option(USE_PERCEPTION "Build director features that require OpenCV, PCL, cv-utils, and libbot as dependencies." ON)
+
+
+option(USE_DRC "Build with DRC." ON)
 
 option(USE_SYSTEM_EIGEN "Use system version of eigen.  If off, eigen will be built." OFF)
-option(USE_SYSTEM_LCM "Use system version of lcm.  If off, lcm will be built." OFF)
-option(USE_SYSTEM_LIBBOT "Use system version of libbot.  If off, libbot will be built." OFF)
+option(USE_SYSTEM_LCM "Use system version of lcm.  If off, lcm will be built." ON)
+option(USE_SYSTEM_LIBBOT "Use system version of libbot.  If off, libbot will be built." ON)
 option(USE_SYSTEM_PCL "Use system version of pcl.  If off, pcl will be built." OFF)
 option(USE_SYSTEM_VTK "Use system version of VTK.  If off, VTK will be built." OFF)
 if(NOT USE_SYSTEM_VTK AND NOT APPLE)
@@ -582,6 +585,10 @@ if(USE_APRILTAGS)
 endif()
 
 
+message(STATUS "extenrals $USE_DRC " ${USE_DRC})
+message(STATUS "extenrals $USE_COLLECTIONS " ${USE_COLLECTIONS})
+
+
 ###############################################################################
 # director
 
@@ -593,6 +600,7 @@ ExternalProject_Add(director
     -DUSE_LCM:BOOL=${USE_LCM}
     -DUSE_LCMGL:BOOL=${USE_LCMGL}
     -DUSE_OCTOMAP:BOOL=${USE_OCTOMAP}
+    -DUSE_DRC:BOOL=${USE_DRC}
     -DUSE_COLLECTIONS:BOOL=${USE_COLLECTIONS}
     -DUSE_LIBBOT:BOOL=${USE_LIBBOT}
     -DUSE_DRAKE:BOOL=${USE_DRAKE}

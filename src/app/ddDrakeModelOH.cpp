@@ -318,7 +318,7 @@ vtkSmartPointer<vtkTexture> getTextureForMesh(vtkSmartPointer<vtkPolyData> polyD
   }
 
   vtkSmartPointer<vtkTexture> texture = vtkSmartPointer<vtkTexture>::New();
-  texture->SetInput(image);
+  texture->SetInputData(image);
   texture->EdgeClampOn();
   texture->RepeatOn();
   TextureMap[textureFileName] = texture;
@@ -1135,25 +1135,6 @@ QList<QString> ddDrakeModel::getLinkNames()
 int ddDrakeModel::findLinkID(const QString& linkName) const
 {
   return this->Internal->Model->findLinkId(linkName.toLocal8Bit().data(), -1);
-}
-
-//-----------------------------------------------------------------------------
-int ddDrakeModel::findFrameID(const QString& frameName) const
-{
-  return this->Internal->Model->findFrame(frameName.toAscii().data())->frame_index;
-}
-
-//-----------------------------------------------------------------------------
-int ddDrakeModel::findJointID(const QString& jointName) const
-{
-  return this->Internal->Model->findJointId(jointName.toAscii().data(), -1);
-}
-
-//-----------------------------------------------------------------------------
-QString ddDrakeModel::findNameOfChildBodyOfJoint(const QString &jointName) const
-{
-  std::string body_name = this->Internal->Model->findJoint(jointName.toAscii().data())->linkname;
-  return body_name.c_str();
 }
 
 //-----------------------------------------------------------------------------

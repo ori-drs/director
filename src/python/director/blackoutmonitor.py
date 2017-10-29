@@ -6,7 +6,7 @@ from director import applogic as app
 from director.utime import getUtime
 from director.timercallback import TimerCallback
 from director import visualization as vis
-import multisense as lcmmultisense
+#import multisense as lcmmultisense
 import numpy as np
 import math
 from time import time

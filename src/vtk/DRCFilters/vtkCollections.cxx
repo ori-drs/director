@@ -26,14 +26,16 @@ PURPOSE.  See the above copyright notice for more information.
 
 #include <vtkOpenGL.h>
 
+#include <map>
+
+
 #include "lcmtypes/visualization.h"
 #include <sstream>
 
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
 
-#include <QString>
-#include <QFileInfo>
+#include <GL/glut.h>
 
 using namespace std;
 using namespace Eigen;
@@ -168,6 +170,9 @@ public:
   vtkInternal()
     {
       this->msg.nobjects = 0;
+
+      // same as in python. TODO: ensure params as synched at launch
+      this->param_normal_width = 1;
     }
 
   vs_object_collection_t msg;
@@ -185,6 +190,7 @@ public:
   double param_alpha_points;
   double param_point_width;
   double param_pose_width;
+  double param_normal_width;
   bool param_color_time;
   bool param_z_up;
 
@@ -313,6 +319,9 @@ void vtkCollections::setPointWidth(double pointWidth){
 }
 void vtkCollections::setPoseWidth(double poseWidth){
   this->Internal->param_pose_width = poseWidth;
+}
+void vtkCollections::setNormalWidth(double normalWidth){
+  this->Internal->param_normal_width = normalWidth;
 }
 void vtkCollections::setColorPoses(bool colorPoses){
   this->Internal->param_color_axes = colorPoses;
@@ -753,6 +762,42 @@ static void draw_square(vtkCollections *self, double x, double y, double z, doub
 }
 
 
+static void draw_arrow(vtkCollections *self, double x, double y, double z, 
+  double yaw, double pitch, double roll, double r, double g, double b) {
+  // based off of draw_camera
+  //if (!self->viewer) return;
+
+  glPushMatrix();
+  glTranslatef(x, y, z);
+  glColor3f(r,g,b);
+  //glColor3f(0.1,0.7,0.1);
+  glRotatef(bot_to_degrees(yaw),  0., 0., 1.);
+  glRotatef(bot_to_degrees(pitch),0., 1., 0.);
+  glRotatef(bot_to_degrees(roll), 1., 0., 0.);
+
+  int slides = 6; // segments
+  int stacks = 1; // rows
+  double scale = self->Internal->param_normal_width;
+
+  glPushAttrib(GL_ENABLE_BIT);
+  glEnable(GL_DEPTH_TEST);
+  glPushMatrix();
+  glTranslatef(0, 0, 0);
+  GLUquadricObj *q = gluNewQuadric();
+  gluCylinder(q, 0.005*scale, 0.005*scale, 0.15*scale, slides, stacks); // base
+  glPopMatrix();
+  glPushMatrix();
+  glTranslatef(0, 0, 0.15*scale);
+  GLUquadricObj *q2 = gluNewQuadric();
+  gluCylinder(q2, 0.013*scale, 0.0, 0.05*scale, slides, stacks); // tip
+  glPopMatrix();
+  gluDeleteQuadric(q);
+  gluDeleteQuadric(q2);
+  glPopAttrib();
+
+  glPopMatrix();
+}
+
 class ObjCollection : public Collection {
 public:
   typedef vs_object_collection_t my_vs_collection_t;
@@ -1071,6 +1116,7 @@ public:
       my_vs_t & element = it->second;
       float* entries = it->second.entries;
       float* colors = it->second.colors;
+      float* normals = it->second.normals;
 
       if (colors) {
         glEnableClientState(GL_COLOR_ARRAY);
@@ -1090,6 +1136,32 @@ public:
         if (obj_it != objs.end()) {
           vs_object_t& obj = obj_it->second;
           if (obj.id>=range_start && obj.id<=range_end) {
+
+            if (normals){
+              for (int i=1; i< element.npoints;i++){
+                  double normal[3];
+                  normal[0] = normals[i*3];
+                  normal[1] = normals[i*3+1];
+                  normal[2] = normals[i*3+2];
+                  double dist = sqrt(normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2]);
+                  normal[0] = normal[0]/dist;
+                  normal[1] = normal[1]/dist;
+                  normal[2] = normal[2]/dist;
+                  double pitch = asin(- normal[1] );
+                  double yaw = atan2( normal[0]  , normal[2] );
+                  if (colors){
+                    draw_arrow(self, entries[i*3], entries[i*3+1], entries[i*3+2],   
+                           0, yaw, pitch,
+                           colors[i*4], colors[i*4+1], colors[i*4+2]);
+                  }else{
+                    draw_arrow(self, entries[i*3], entries[i*3+1], entries[i*3+2],   
+                           0, yaw, pitch,
+                           255, 0, 0);
+                  }
+
+              }
+            }
+
             glPushMatrix();
             double z = time_elevation_collection(self, obj.id, obj.z, collection_it->first);
             float* rgb = &::colors[3*(id%num_colors)];

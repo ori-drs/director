@@ -24,17 +24,17 @@ from director import cameracontrol
 from director import cameracontrolpanel
 from director import bihandeddemo
 from director import debrisdemo
-from director import doordemo
-from director import drilldemo
-from director import valvedemo
-from director import drivingplanner
-from director import egressplanner
-from director import polarisplatformplanner
-from director import surprisetask
-from director import continuouswalkingdemo
-from director import sitstandplanner
-from director import walkingtestdemo
-from director import terraintask
+#from director import doordemo
+#from director import drilldemo
+#from director import valvedemo
+#from director import drivingplanner
+#from director import egressplanner
+#from director import polarisplatformplanner
+#from director import surprisetask
+#from director import continuouswalkingdemo
+#from director import sitstandplanner
+#from director import walkingtestdemo
+#from director import terraintask
 from director import ikplanner
 from director import objectmodel as om
 from director import spreadsheet
@@ -103,7 +103,6 @@ from director.tasks.descriptions import loadTaskDescriptions
 import drc as lcmdrc
 import bot_core as lcmbotcore
 import maps as lcmmaps
-import atlas
 
 from collections import OrderedDict
 import functools
@@ -167,6 +166,7 @@ useCOPMonitor = True
 useCourseModel = False
 useLimitJointsSentToPlanner = False
 useFeetlessRobot = False
+useCOMMonitor = True
 
 # Sensor Flags
 useKinect = False
@@ -209,11 +209,11 @@ if useIk:
     startIkServer()
 
 
-if useAtlasDriver:
-    atlasdriver.systemStatus.outputConsole = app.getOutputConsole()
-    atlasdriverpanel.init(atlasDriver)
-else:
-    app.removeToolbarMacro('ActionAtlasDriverPanel')
+#if useAtlasDriver:
+#    atlasdriver.systemStatus.outputConsole = app.getOutputConsole()
+#    atlasdriverpanel.init(atlasDriver)
+#else:
+#    app.removeToolbarMacro('ActionAtlasDriverPanel')
 
 
 if usePerception:
@@ -260,6 +260,7 @@ viewBackgroundLightHandler = viewcolors.ViewBackgroundLightHandler(viewOptions, 
 if not useLightColorScheme:
     viewBackgroundLightHandler.action.trigger()
 
+
 if useHands:
     handcontrolpanel.init(lHandDriver, rHandDriver, robotStateModel, robotStateJointController, view)
 else:
@@ -272,13 +273,14 @@ else:
     app.removeToolbarMacro('ActionFootstepPanel')
 
 
+
 if useLCMGL:
     lcmglManager = lcmgl.init(view)
     app.MenuActionToggleHelper('Tools', 'Renderer - LCM GL', lcmglManager.isEnabled, lcmglManager.setEnabled)
 
-if useOctomap:
-    octomapManager = lcmoctomap.init(view)
-    app.MenuActionToggleHelper('Tools', 'Renderer - Octomap', octomapManager.isEnabled, octomapManager.setEnabled)
+#if useOctomap:
+#    octomapManager = lcmoctomap.init(view)
+#    app.MenuActionToggleHelper('Tools', 'Renderer - Octomap', #octomapManager.isEnabled, octomapManager.setEnabled)
 
 if useCollections:
     collectionsManager = lcmcollections.init(view)
@@ -329,6 +331,11 @@ if usePlanning:
     def planHomeNominal():
         ''' Move the robot back to a safe posture, 1m above its feet, w/o moving the hands '''
         ikPlanner.computeHomeNominalPlan(robotStateJointController.q, footstepsDriver.getFeetMidPoint(robotStateModel), 1.0167)
+
+    def planHomeNominalHyq():
+        ''' Move the robot back to a safe posture, 0.627m above its feet '''
+        ikPlanner.computeHomeNominalPlanHyq(robotStateJointController.q, footstepsDriver.getFeetMidPoint(robotStateModel), 0.627)
+
 
     if useMultisense:
         def fitDrillMultisense():
@@ -447,6 +454,7 @@ if usePlanning:
 
     taskPanels = OrderedDict()
 
+    useHumanoidDRCDemos = False
     if useHumanoidDRCDemos:
         debrisDemo = debrisdemo.DebrisPlannerDemo(robotStateModel, robotStateJointController, playbackRobotModel,
                         ikPlanner, manipPlanner, atlasdriver.driver, lHandDriver,
@@ -530,7 +538,7 @@ if useLoggingWidget:
 
 
 
-
+useControllerRate = False
 if useControllerRate:
 
     class ControllerRateLabel(object):
@@ -964,13 +972,13 @@ def drawCenterOfMass(model):
     d.addSphere(com, radius=0.015)
     obj = vis.updatePolyData(d.getPolyData(), 'COM %s' % model.getProperty('Name'), color=[1,0,0], visible=False, parent=model)
 
-def initCenterOfMassVisulization():
+def initCenterOfMassVisualization():
     for model in [robotStateModel, teleopRobotModel, playbackRobotModel]:
         model.connectModelChanged(drawCenterOfMass)
         drawCenterOfMass(model)
 
-if not ikPlanner.fixedBaseArm:
-    initCenterOfMassVisulization()
+if useCOMMonitor:
+    initCenterOfMassVisualization()
 
 
 class RobotMoverWidget(object):
@@ -997,19 +1005,25 @@ class RobotGridUpdater(object):
         self.robotModel = robotModel
         self.jointController = jointController
         self.robotModel.connectModelChanged(self.updateGrid)
+        self.z_offset = 0.627 # for Husky # 0.85 for Atlas
+
+    def setZOffset(self, z_offset):
+        self.z_offset = z_offset
+        self.updateGrid(None)
 
     def updateGrid(self, model):
         pos = self.jointController.q[:3]
 
         x = int(np.round(pos[0])) / 10
         y = int(np.round(pos[1])) / 10
-        z = int(np.round(pos[2] - 0.85)) / 1
+        z = np.round( (pos[2]-self.z_offset)*10.0 ) / 10.0
+
 
         t = vtk.vtkTransform()
         t.Translate((x*10,y*10,z))
         self.gridFrame.copyFrame(t)
 
-#gridUpdater = RobotGridUpdater(grid.getChildFrame(), robotStateModel, robotStateJointController)
+gridUpdater = RobotGridUpdater(grid.getChildFrame(), robotStateModel, robotStateJointController)
 
 
 class IgnoreOldStateMessagesSelector(object):

@@ -135,7 +135,7 @@ class ImageManager(object):
 
     def writeImage(self, imageName, outFile):
         writer = vtk.vtkPNGWriter()
-        writer.SetInputData(self.images[imageName])
+        writer.SetInput(self.images[imageName])
         writer.SetFileName(outFile)
         writer.Write()
 

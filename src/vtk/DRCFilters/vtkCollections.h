@@ -28,12 +28,6 @@ PURPOSE.  See the above copyright notice for more information.
 
 #include <vtkDRCFiltersModule.h>
 
-#include <octomap/AbstractOcTree.h>
-#include <octomap/OcTreeBase.h>
-#include <octomap/octomap_types.h>
-#include <octomap/ColorOcTree.h>
-#include <octovis/ColorOcTreeDrawer.h>
-#include <octovis/OcTreeRecord.h>
 #include <iostream>
 #include <sstream>
 
@@ -84,6 +78,7 @@ public:
 
   void setPointWidth(double pointWidth);
   void setPoseWidth(double poseWidth);
+  void setNormalWidth(double normalWidth);
   void setColorPoses(bool colorPoses);
 
   void setColorByTime(bool colorByTime);

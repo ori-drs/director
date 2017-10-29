@@ -791,7 +791,7 @@ class ViewOptionsItem(om.ObjectModelItem):
 def getVisibleActors(view):
     actors = view.renderer().GetActors()
     return [actors.GetItemAsObject(i) for i in range(actors.GetNumberOfItems())
-                if actors.GetItemAsObject(i).GetVisibility()]
+                if actor.GetVisibility()]
 
 
 def computeViewBoundsNoGrid(view, gridObj):

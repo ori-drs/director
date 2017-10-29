@@ -37,10 +37,10 @@ DRILL_TRIANGLE_TOP_LEFT = 'top left'
 DRILL_TRIANGLE_TOP_RIGHT = 'top right'
 
 # prefer drc plane segmentation instead of PCL
-try:
-    planeSegmentationFilter = vtk.vtkPlaneSegmentation
-except AttributeError:
-    planeSegmentationFilter = vtk.vtkPCLSACSegmentationPlane
+#try:
+#planeSegmentationFilter = vtk.vtkPlaneSegmentation
+#except AttributeError:
+#    planeSegmentationFilter = vtk.vtkPCLSACSegmentationPlane
 
 
 _defaultSegmentationView = None

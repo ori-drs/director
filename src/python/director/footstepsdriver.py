@@ -33,6 +33,10 @@ _modelName = "valkyrie" # either atlas_v3/v4/v5 or valkyrie
 _pelvisLink = '' # pelvis
 _leftFootLink = '' # l_foot
 _rightFootLink = '' # r_foot
+
+_leftHandLink = ''
+_rightHandLink = ''
+_quadruped = False
 with open(drcargs.args().directorConfigFile) as directorConfigFile:
     directorConfig = json.load(directorConfigFile)
 
@@ -53,6 +57,16 @@ with open(drcargs.args().directorConfigFile) as directorConfigFile:
     if 'leftFootLink' in directorConfig:
         _leftFootLink = directorConfig['leftFootLink']
         _rightFootLink = directorConfig['rightFootLink']
+
+
+    if 'quadruped' in drcargs.getDirectorConfig():
+        _quadruped = True
+        # Using 'hands' to signify quadruped front feet, for now:
+        # Note: there has not been the use of leftHandLink for previous bipeds
+        if 'leftHandLink' in drcargs.getDirectorConfig():
+            _leftHandLink =  drcargs.getDirectorConfig()['leftHandLink']
+            _rightHandLink = drcargs.getDirectorConfig()['rightHandLink']
+
 
 DEFAULT_PARAM_SET = 'Drake Nominal'
 DEFAULT_STEP_PARAMS = {'BDI': {'Min Num Steps': 0,
@@ -616,6 +630,46 @@ class FootstepsDriver(object):
             else:
                 raise ValueError("Unrecognized support contact group: {:d}".format(support_contact_groups))
 
+        elif (_modelName == "hyq"):  #hyq fake
+            if support_contact_groups == lcmdrc.footstep_params_t.SUPPORT_GROUPS_HEEL_TOE:
+                contact_pts_left[0,:] = [-0.038,  0.055, -0.09]
+                contact_pts_left[1,:] = [-0.038, -0.055, -0.09]
+                contact_pts_left[2,:] = [0.172,   0.055, -0.09]
+                contact_pts_left[3,:] = [0.172,  -0.055, -0.09]
+            elif support_contact_groups == lcmdrc.footstep_params_t.SUPPORT_GROUPS_MIDFOOT_TOE:
+                contact_pts_left[0,:] = [0.032,  0.055, -0.09]
+                contact_pts_left[1,:] = [0.032, -0.055, -0.09]
+                contact_pts_left[2,:] = [0.172,   0.055, -0.09]
+                contact_pts_left[3,:] = [0.172,  -0.055, -0.09]
+            elif support_contact_groups == lcmdrc.footstep_params_t.SUPPORT_GROUPS_HEEL_MIDFOOT:
+                contact_pts_left[0,:] = [-0.038,  0.055, -0.09]
+                contact_pts_left[1,:] = [-0.038, -0.055, -0.09]
+                contact_pts_left[2,:] = [0.102,   0.055, -0.09]
+                contact_pts_left[3,:] = [0.102,  -0.055, -0.09]
+            else:
+                raise ValueError("Unrecognized support contact group: {:d}".format(support_contact_groups))
+
+            contact_pts_right = contact_pts_left.copy()
+
+        elif (_modelName == "anymal"):  #anymal fake
+            if support_contact_groups == lcmdrc.footstep_params_t.SUPPORT_GROUPS_HEEL_TOE:
+                contact_pts_left[0,:] = [-0.038,  0.055, -0.09]
+                contact_pts_left[1,:] = [-0.038, -0.055, -0.09]
+                contact_pts_left[2,:] = [0.172,   0.055, -0.09]
+                contact_pts_left[3,:] = [0.172,  -0.055, -0.09]
+            elif support_contact_groups == lcmdrc.footstep_params_t.SUPPORT_GROUPS_MIDFOOT_TOE:
+                contact_pts_left[0,:] = [0.032,  0.055, -0.09]
+                contact_pts_left[1,:] = [0.032, -0.055, -0.09]
+                contact_pts_left[2,:] = [0.172,   0.055, -0.09]
+                contact_pts_left[3,:] = [0.172,  -0.055, -0.09]
+            elif support_contact_groups == lcmdrc.footstep_params_t.SUPPORT_GROUPS_HEEL_MIDFOOT:
+                contact_pts_left[0,:] = [-0.038,  0.055, -0.09]
+                contact_pts_left[1,:] = [-0.038, -0.055, -0.09]
+                contact_pts_left[2,:] = [0.102,   0.055, -0.09]
+                contact_pts_left[3,:] = [0.102,  -0.055, -0.09]
+            else:
+                raise ValueError("Unrecognized support contact group: {:d}".format(support_contact_groups))
+
             contact_pts_right = contact_pts_left.copy()
 
         else:
@@ -632,6 +686,17 @@ class FootstepsDriver(object):
         left and right foot yaw in world frame, and Z axis aligned with world Z.
         The foot reference point is the average of the foot contact points in the foot frame.
         '''
+        if (_quadruped):
+            t_lf = np.array( model.getLinkFrame(_leftHandLink).GetPosition() )
+            t_rf = np.array( model.getLinkFrame(_rightHandLink).GetPosition() )
+            t_lh = np.array( model.getLinkFrame(_leftFootLink).GetPosition() )
+            t_rh = np.array( model.getLinkFrame(_rightFootLink).GetPosition() )
+            mid = (t_lf + t_rf + t_lh + t_rh)/4
+            # this is not optimal, correct approach should use contact points to
+            # determine desired orientation, not the current orientation
+            rpy = [0.0, 0.0, model.getLinkFrame(_pelvisLink).GetOrientation()[2]]
+            return transformUtils.frameFromPositionAndRPY(mid, rpy)
+
         contact_pts_left, contact_pts_right = FootstepsDriver.getContactPts()
 
         contact_pts_mid_left = np.mean(contact_pts_left, axis=0) # mid point on foot relative to foot frame
@@ -648,6 +713,10 @@ class FootstepsDriver(object):
         if "atlas" in _modelName: # atlas_v3/v4/v5
             t_feet_mid = transformUtils.frameInterpolate(t_lf_mid, t_rf_mid, 0.5)
         elif (_modelName == "valkyrie"): # valkyrie
+            t_feet_mid = transformUtils.frameInterpolate(t_lf_mid, t_rf_mid, 0.5)
+        elif (_modelName == "hyq"): # hyq (not used)
+            t_feet_mid = transformUtils.frameInterpolate(t_lf_mid, t_rf_mid, 0.5)
+        elif (_modelName == "anymal"): # anymal (not used)
             t_feet_mid = transformUtils.frameInterpolate(t_lf_mid, t_rf_mid, 0.5)
         else:
             raise ValueError("Model Name not recognised")
