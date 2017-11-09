@@ -18,7 +18,11 @@ import numpy as np
 
 import drc as lcmdrc
 import bot_core as lcmbotcore
-#import multisense as lcmmultisense
+
+try:
+    import multisense as lcmmultisense
+except:
+    print "Failed to import multisense message types. Sending commands won't work"
 import maps as lcmmaps
 import lcmUtils
 
