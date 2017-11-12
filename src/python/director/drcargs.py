@@ -41,7 +41,7 @@ class DRCArgParser(object):
 
 
     def getDefaultBotConfigFile(self):
-        return os.path.join(director.getDRCBaseDir(), 'software/config/val/robot.cfg')
+        return os.path.join(director.getDRCBaseDir(), 'externals/config/anymal/robot.cfg')
 
     def getDefaultDirectorConfigFile(self):
         return self.getDefaultValkyrieDirectorConfigFile();
@@ -72,7 +72,7 @@ class DRCArgParser(object):
 
     def getDefaultAnymalDirectorConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'software/models/anymal_description/director_config.json')
+                            'externals/models/anymal_description/director_config.json')
 
     def getDefaultKukaLWRConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
