@@ -98,6 +98,8 @@ set(python_files
   director/propertyanimation.py
   director/propertyset.py
   director/pydrakeik.py
+  director/quadrupedtask.py
+  director/quadrupedplanner.py
   director/qtutils.py
   director/raycastdriver.py
   director/robotlinkselector.py

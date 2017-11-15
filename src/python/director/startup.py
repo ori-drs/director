@@ -34,6 +34,7 @@ from director import surprisetask
 from director import continuouswalkingdemo
 from director import sitstandplanner
 from director import walkingtestdemo
+from director import quadrupedtask
 from director import terraintask
 from director import ikplanner
 from director import objectmodel as om
@@ -144,6 +145,7 @@ useFootsteps = True
 useHands = True
 usePlanning = True
 useHumanoidDRCDemos = True
+useQuadrupedDemos = True
 useAtlasDriver = True
 useLCMGL = True
 useOctomap = True
@@ -511,6 +513,19 @@ if usePlanning:
         taskPanels['Surprise'] = surpriseTaskPanel.widget
         taskPanels['Terrain'] = terrainTaskPanel.widget
         taskPanels['Continuous Walking'] = continuousWalkingTaskPanel.widget
+
+
+
+    if useQuadrupedDemos:
+        #surpriseTaskPanel = surprisetask.SurpriseTaskPanel(robotSystem)
+        #surpriseTask = surpriseTaskPanel.planner
+
+        quadrupedTaskPanel = quadrupedtask.QuadrupedTaskPanel(robotSystem)
+        quadrupedTask = quadrupedTaskPanel.planner
+
+        #taskPanels['Surprise'] = surpriseTaskPanel.widget
+        taskPanels['Quadruped'] = quadrupedTaskPanel.widget
+
 
     tasklaunchpanel.init(taskPanels)
 
