@@ -24,17 +24,17 @@ from director import cameracontrol
 from director import cameracontrolpanel
 from director import bihandeddemo
 from director import debrisdemo
-#from director import doordemo
-#from director import drilldemo
-#from director import valvedemo
-#from director import drivingplanner
-#from director import egressplanner
-#from director import polarisplatformplanner
-#from director import surprisetask
-#from director import continuouswalkingdemo
-#from director import sitstandplanner
-#from director import walkingtestdemo
-#from director import terraintask
+from director import doordemo
+from director import drilldemo
+from director import valvedemo
+from director import drivingplanner
+from director import egressplanner
+from director import polarisplatformplanner
+from director import surprisetask
+from director import continuouswalkingdemo
+from director import sitstandplanner
+from director import walkingtestdemo
+from director import terraintask
 from director import ikplanner
 from director import objectmodel as om
 from director import spreadsheet
@@ -209,11 +209,11 @@ if useIk:
     startIkServer()
 
 
-#if useAtlasDriver:
-#    atlasdriver.systemStatus.outputConsole = app.getOutputConsole()
-#    atlasdriverpanel.init(atlasDriver)
-#else:
-#    app.removeToolbarMacro('ActionAtlasDriverPanel')
+if useAtlasDriver:
+    #atlasdriver.systemStatus.outputConsole = app.getOutputConsole()
+    atlasdriverpanel.init(atlasDriver)
+else:
+    app.removeToolbarMacro('ActionAtlasDriverPanel')
 
 
 if usePerception:
@@ -454,7 +454,6 @@ if usePlanning:
 
     taskPanels = OrderedDict()
 
-    useHumanoidDRCDemos = False
     if useHumanoidDRCDemos:
         debrisDemo = debrisdemo.DebrisPlannerDemo(robotStateModel, robotStateJointController, playbackRobotModel,
                         ikPlanner, manipPlanner, atlasdriver.driver, lHandDriver,

@@ -1468,6 +1468,9 @@ class TerrainTaskPanel(TaskUserPanel):
 
         self.taskTree.removeAllTasks()
 
+        # mfallon: disabled
+        return
+
         isStairs = 'stairs' in self.terrainTask.terrainConfigList[self.params.properties.terrain_type]
 
         def addFit():

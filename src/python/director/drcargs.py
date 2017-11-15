@@ -48,11 +48,11 @@ class DRCArgParser(object):
 
     def getDefaultAtlasV3DirectorConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'software/models/atlas_v3/director_config.json')
+                            'externals/models/atlas_v3/director_config.json')
 
     def getDefaultAtlasV4DirectorConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'software/models/atlas_v4/director_config.json')
+                            'externals/models/atlas_v4/director_config.json')
 
     def getDefaultAtlasV5DirectorConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
@@ -64,11 +64,11 @@ class DRCArgParser(object):
 
     def getDefaultValkyrieSimpleDirectorConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'software/models/val_description/director_config_simple.json')
+                            'externals/models/val_description/director_config_simple.json')
 
     def getDefaultHyQDirectorConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'software/models/hyq_description/director_config.json')
+                            'externals/models/hyq_description/director_config.json')
 
     def getDefaultAnymalDirectorConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
@@ -76,11 +76,11 @@ class DRCArgParser(object):
 
     def getDefaultKukaLWRConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'software/models/lwr_defs/director_config.json')
+                            'externals/models/lwr_defs/director_config.json')
 
     def getDefaultHuskyConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'software/models/husky_description/director_config.json')
+                            'externals/models/husky_description/director_config.json')
 
     def getDefaultDualArmHuskyConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),

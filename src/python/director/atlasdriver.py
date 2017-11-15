@@ -47,7 +47,8 @@ class AtlasDriver(object):
         self.lastControllerRateMessage = None
         self.maxPressureHistory = deque([0.0], 10)
         self.averageRecentMaxPressure = 0.0
-        self._setupSubscriptions()
+        # disabled by mfallon. this is very atlas specific and now depreciated
+        #self._setupSubscriptions()
         self.timer = SimpleTimer()
 
         self.sentStandUtime = None

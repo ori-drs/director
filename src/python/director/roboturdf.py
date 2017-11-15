@@ -322,13 +322,17 @@ def getBuiltinPackagePaths():
         'externals/models/lwr_defs',
         'externals/models/husky_description',
         'externals/models/mit_gazebo_models/mit_robot',
-        'externals/models/common_components/multisense_sl',
         'externals/models/common_components/irobot_hand',
         'externals/models/common_components/handle_description',
         'externals/models/common_components/robotiq_hand_description',
         'externals/models/common_components/schunk_description',
         'externals/models/actuated_lidar_description',
         'externals/models/dynamixel_description',
+        'externals/models/husky_description_rpg',
+        'externals/models/flir_ptu_description',
+        'externals/models/multisense_sl',
+        'externals/models/sick_description',
+        'externals/models/hokuyo_description',
         'externals/models/otdf',
                   ]
 

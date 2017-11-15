@@ -21,6 +21,8 @@ from director.robotlinkselector import RobotLinkSelector
 from director.vieweventfilter import ViewEventFilter
 from director import viewbehaviors
 from director.utime import getUtime
+from director import drcargs
+
 import numpy as np
 import ioUtils
 import os
@@ -150,12 +152,11 @@ def onNewDrivingGoal(frame):
 
 def newDrivingGoal(displayPoint, view):
     # Places the driving goal on the plane of the root link current yaw
-    # for husky: the bottom of the wheels. for hyq: the midpoint of the trunk
+    # for husky: the bottom of the wheels.
+    # for hyq/anymal the midpoint of the trunk
     # TODO: read the link from the director config
-    # husky:
-    #footFrame = robotModel.getLinkFrame('base_link')
-    # anymal:
-    footFrame = robotModel.getLinkFrame('base')
+    mainLink = drcargs.getDirectorConfig()['pelvisLink']
+    footFrame = robotModel.getLinkFrame(mainLink)
 
     worldPt1, worldPt2 = vis.getRayFromDisplayPoint(view, displayPoint)
     groundOrigin = footFrame.GetPosition()
@@ -655,7 +656,7 @@ class RobotViewBehaviors(object):
         robotSystem = _robotSystem
         robotModel = robotSystem.robotStateModel
         handFactory = robotSystem.handFactory
-        #footstepsDriver = robotSystem.footstepsDriver
+        footstepsDriver = robotSystem.footstepsDriver
         neckDriver = robotSystem.neckDriver
         if app.getMainWindow() is not None:
             robotLinkSelector = RobotLinkSelector()

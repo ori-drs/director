@@ -1,6 +1,6 @@
 from director.componentgraph import ComponentFactory
 from director.fieldcontainer import FieldContainer
-
+from director import drcargs
 
 class RobotSystemFactory(object):
 
@@ -17,7 +17,7 @@ class RobotSystemFactory(object):
             'Footsteps' : ['RobotState'],
             'RaycastDriver' : ['Footsteps'],
             'IRISDriver' : ['RobotState', 'Footsteps'],
-            #'AtlasDriver' : [],
+            'AtlasDriver' : [],
             'Planning' : ['RobotState'],
             'Playback' : ['Planning'],
             'Teleop' : ['Planning', 'Playback', 'Affordances'],
@@ -35,8 +35,6 @@ class RobotSystemFactory(object):
         return components, disabledComponents
 
     def initDirectorConfig(self, robotSystem):
-
-        from director import drcargs
 
         directorConfig = drcargs.getDirectorConfig()
 
@@ -124,8 +122,12 @@ class RobotSystemFactory(object):
 
     def initFootsteps(self, robotSystem):
 
-        from director import footstepsdriver
-        footstepsDriver = footstepsdriver.FootstepsDriver(robotSystem.robotStateJointController)
+        if 'useFootsteps' in drcargs.getDirectorConfig()['disableComponents']:
+            footstepsDriver = None
+        else:
+            from director import footstepsdriver
+            footstepsDriver = footstepsdriver.FootstepsDriver(robotSystem.robotStateJointController)
+
         return FieldContainer(footstepsDriver=footstepsDriver)
 
     def initRaycastDriver(self, robotSystem):
@@ -137,8 +139,11 @@ class RobotSystemFactory(object):
     def initIRISDriver(self, robotSystem):
 
         from director import irisdriver
+        if 'useFootsteps' in drcargs.getDirectorConfig()['disableComponents']:
+            irisDriver = None
+        else:
+            irisDriver = irisdriver.IRISDriver(robotSystem.robotStateJointController, robotSystem.footstepsDriver.params)
 
-        irisDriver = irisdriver.IRISDriver(robotSystem.robotStateJointController, robotSystem.footstepsDriver.params)
         return FieldContainer(irisDriver=irisDriver)
 
     def initAtlasDriver(self, robotSystem):
@@ -246,7 +251,8 @@ class RobotSystemFactory(object):
             )
 
     def initFootstepsPlayback(self, robotSystem):
-        robotSystem.footstepsDriver.walkingPlanCallback = robotSystem.playbackPanel.setPlan
+        if 'useFootsteps' not in drcargs.getDirectorConfig()['disableComponents']:
+            robotSystem.footstepsDriver.walkingPlanCallback = robotSystem.playbackPanel.setPlan
 
     def initAffordances(self, robotSystem):
 
