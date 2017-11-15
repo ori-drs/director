@@ -40,7 +40,7 @@ class AsyncIKCommunicator():
         commands.append('\n%-------- startup --------\n')
         commands.append('format long e')
         commands.append('addpath_control')
-        commands.append("addpath([getenv('DRC_BASE'), '/software/director/src/matlab'])")
+        commands.append("addpath([getenv('DIRECTOR_BASE'), '/director/src/matlab'])")
         commands.append("robotURDF = [getenv('DRC_BASE'), '/%s'];" % os.path.relpath(self.robotURDF, director.getDRCBaseDir()))
         commands.append("fixed_point_file = [getenv('DRC_BASE'), '/%s'];" % os.path.relpath(self.fixedPointFile, director.getDRCBaseDir()))
         commands.append("left_foot_link = '%s';" % self.leftFootLink)

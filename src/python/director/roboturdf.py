@@ -311,23 +311,25 @@ def startModelPublisherListener(modelsToReload):
 def getBuiltinPackagePaths():
 
     searchPaths = [
-        'software/models/atlas_v3',
-        'software/models/atlas_v4',
-        'software/models/atlas_v5',
-        'software/models/dual_arm_husky_description',
-        'software/models/ur_description',
-        'software/models/val_description',
-        'software/models/hyq_description',
-        'software/models/anymal_description',
-        'software/models/lwr_defs',
-        'software/models/husky_description',
-        'software/models/mit_gazebo_models/mit_robot',
-        'software/models/common_components/multisense_sl',
-        'software/models/common_components/irobot_hand',
-        'software/models/common_components/handle_description',
-        'software/models/common_components/robotiq_hand_description',
-        'software/models/common_components/schunk_description',
-        'software/models/otdf',
+        'externals/models/atlas_v3',
+        'externals/models/atlas_v4',
+        'externals/models/atlas_v5',
+        'externals/models/dual_arm_husky_description',
+        'externals/models/ur_description',
+        'externals/models/val_description',
+        'externals/models/hyq_description',
+        'externals/models/anymal_description',
+        'externals/models/lwr_defs',
+        'externals/models/husky_description',
+        'externals/models/mit_gazebo_models/mit_robot',
+        'externals/models/common_components/multisense_sl',
+        'externals/models/common_components/irobot_hand',
+        'externals/models/common_components/handle_description',
+        'externals/models/common_components/robotiq_hand_description',
+        'externals/models/common_components/schunk_description',
+        'externals/models/actuated_lidar_description',
+        'externals/models/dynamixel_description',
+        'externals/models/otdf',
                   ]
 
     baseDir = getDRCBaseDir()
@@ -475,7 +477,7 @@ class HandLoader(object):
 
     def getHandUrdfFullPath(self):
         if director.getDRCBaseIsSet():
-            urdfBase = os.path.join(getDRCBaseDir(), 'software/models/common_components/hand_factory')
+            urdfBase = os.path.join(getDRCBaseDir(), 'externals/models/common_components/hand_factory')
         else:
             urdfBase = drcargs.DirectorConfig.getDefaultInstance().dirname
         return os.path.join(urdfBase, self.handUrdf)

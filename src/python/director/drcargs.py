@@ -56,11 +56,11 @@ class DRCArgParser(object):
 
     def getDefaultAtlasV5DirectorConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'software/models/atlas_v5/director_config.json')
+                            'externals/models/atlas_v5/director_config.json')
 
     def getDefaultValkyrieDirectorConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'software/models/val_description/director_config.json')
+                            'externals/models/val_description/director_config.json')
 
     def getDefaultValkyrieSimpleDirectorConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
