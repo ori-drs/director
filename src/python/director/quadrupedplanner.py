@@ -52,14 +52,14 @@ class QuadrupedPlanner(object):
         self.lockBaseForManip = True
         self.graspingHand = 'right'
 
-        #self.assignFrames()
+        self.assignFrames()
         self.plans = []
 
-    # def assignFrames(self):
+    def assignFrames(self):
 
-    #     # foot to box
-    #     self.footToBox = transformUtils.transformFromPose(np.array([-0.6436723 ,  0.18848073, -1.13987699]),
-    #                                          np.array([ 0.99576385,  0.        ,  0.        , -0.09194753]))
+        # foot to box
+        self.footToBox = transformUtils.transformFromPose(np.array([-0.6436723 ,  0.18848073, -0.7]),
+                                            np.array([ 1,  0.,  0., 0.]))
 
     #     # self.palmToBox = transformUtils.transformFromPose(np.array([-0.13628039, -0.12582009,  0.33638863]), np.array([-0.69866187,  0.07267815,  0.70683338,  0.08352274]))
 
@@ -82,7 +82,7 @@ class QuadrupedPlanner(object):
         pose = transformUtils.poseFromTransform(boxFrame)
         desc = dict(classname='BoxAffordanceItem', Name='Switch Box', Dimensions=dimensions, pose=pose, Color=[0,1,0])
         self.boxAffordance = segmentation.affordanceManager.newAffordanceFromDescription(desc)
-        self.updateReachFrame()
+        #self.updateReachFrame()
 
     def updateReachFrame(self):
         graspFrame = transformUtils.copyFrame(self.pinchToBox)
@@ -93,37 +93,61 @@ class QuadrupedPlanner(object):
         vis.updateFrame(graspFrame, 'pinch reach frame', scale=0.2)
 
 
-    def planArmsPrep1(self, startPose=None):
+
+    def planBodyLow(self, startPose=None):
+        pelvisHeightAboveFeet= 0.35
+        pelvisRelativeOrientation= np.array([0,0,20.0])
+        self.planBodyPose(pelvisHeightAboveFeet, pelvisRelativeOrientation)
+
+    def planLookUp(self, startPose=None):
+        pelvisHeightAboveFeet= 0.45
+        pelvisRelativeOrientation= np.array([0,-20.0,-20.0])
+        self.planBodyPose(pelvisHeightAboveFeet, pelvisRelativeOrientation)
+
+    def planHomeNominal(self, startPose=None):
+        pelvisHeightAboveFeet= 0.45
+        pelvisRelativeOrientation= np.array([0,0.0,0.0])
+        self.planBodyPose(pelvisHeightAboveFeet, pelvisRelativeOrientation)
+
+    def planBodyPose(self, pelvisHeightAboveFeet, pelvisRelativeOrientation):
+        # plan a motion to move the base/body of the robot to a specific pose
+        # relative to a point between the four feet
+        #pelvisHeightAboveFeet = 0.35
+
         ikPlanner = self.robotSystem.ikPlanner
+        print "pelvisHeightAboveFeet ", pelvisHeightAboveFeet
+        ikParameters = None
 
-        if startPose is None:
-            startPose = self.getPlanningStartPose()
-
-        startPoseName = 'q_arms_prep1_start'
-        self.robotSystem.ikPlanner.addPose(startPose, startPoseName)
-
-        endPose = ikPlanner.getMergedPostureFromDatabase(startPose, 'surprise:switch', 'arm_balance', side='left')
-        endPose = ikPlanner.getMergedPostureFromDatabase(endPose, 'surprise:switch', 'reach_up_2', side='right')
+        #if startPose is None:
+        startPose = self.getPlanningStartPose()
+        footReferenceFrame = self.getStanceFrame()
 
 
-        ikParameters = IkParameters(maxDegreesPerSecond=30)
-        plan = ikPlanner.computePostureGoal(startPose, endPose, feetOnGround=False, ikParameters=ikParameters)
+        nominalPoseName = 'q_nom'
+        startPoseName = 'stand_start'
+        ikPlanner.addPose(startPose, startPoseName)
+
+        constraints = []
+        constraints.append(ikPlanner.createQuasiStaticConstraintQuadruped())
+        constraints.extend(ikPlanner.createFixedFootConstraintsQuadruped(startPoseName))
+        vis.updateFrame(footReferenceFrame,'footReferenceFrame', visible=True)
+
+        pos = np.array(footReferenceFrame.GetPosition()) + np.array([0,0,pelvisHeightAboveFeet])
+        orientation = np.array([0,0, footReferenceFrame.GetOrientation()[2] ]) + pelvisRelativeOrientation
+        print orientation
+        tf = transformUtils.frameFromPositionAndRPY( pos, orientation)
+        vis.updateFrame(tf,'goal pelvis frame', visible=True)
+        p, q = ikPlanner.createPositionOrientationConstraint(ikPlanner.pelvisLink, tf, vtk.vtkTransform(), positionTolerance=0.0, angleToleranceInDegrees=0.0)
+        p.tspan = [1.0, 1.0]
+        q.tspan = [1.0, 1.0]
+        constraints.extend([p, q])
+
+        constraintSet = ikplanner.ConstraintSet(ikPlanner, constraints, '', startPoseName)
+        constraintSet.ikParameters = ikParameters
+        endPose, info = constraintSet.runIk()
+        plan = ikPlanner.computePostureGoal(startPose, endPose)
         self.addPlan(plan)
 
-    def planArmsPrep2(self, startPose=None):
-        ikPlanner = self.robotSystem.ikPlanner
-
-        if startPose is None:
-            startPose = self.getPlanningStartPose()
-
-        startPoseName = 'q_arms_prep2_start'
-        self.robotSystem.ikPlanner.addPose(startPose, startPoseName)
-
-        endPose = ikPlanner.getMergedPostureFromDatabase(startPose, 'surprise:switch', 'reach_up_1', side='right')
-
-        ikParameters = IkParameters(maxDegreesPerSecond=30)
-        plan = ikPlanner.computePostureGoal(startPose, endPose, feetOnGround=False, ikParameters=ikParameters)
-        self.addPlan(plan)
 
     def planReach(self):
         ikPlanner = self.robotSystem.ikPlanner
@@ -198,6 +222,17 @@ class QuadrupedPlanner(object):
 
     def spawnBoxAffordance(self):
         stanceFrame = self.getStanceFrame()
+        boxFrame = transformUtils.copyFrame(stanceFrame)
+        boxFrame.PreMultiply()
+        boxFrame.Concatenate(self.footToBox.GetLinearInverse())
+        self.spawnBoxAffordanceAtFrame(boxFrame)
+
+
+    def spawnBoxAffordanceAtDistance(self):
+        stanceFrame = self.getStanceFrame()
+        stanceFrame.PostMultiply()
+        stanceFrame.Translate([1.0,0,0])
+
         boxFrame = transformUtils.copyFrame(stanceFrame)
         boxFrame.PreMultiply()
         boxFrame.Concatenate(self.footToBox.GetLinearInverse())

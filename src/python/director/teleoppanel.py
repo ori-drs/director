@@ -448,40 +448,40 @@ class EndEffectorTeleopPanel(object):
             if self.getLFootConstraint() == 'fixed':
                 constraints.append(ikPlanner.createFixedLinkConstraintsQuadruped(startPoseName, ikPlanner.leftFootLink, tspan=[0.0, 1.0], lowerBound=-0.0001*np.ones(3), upperBound=0.0001*np.ones(3), angleToleranceInDegrees=0.1))
             elif self.getLFootConstraint() == 'constrained':
-                # hyq:
-                #constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.leftFootLink, pointInLink=[0.341,0,0], tspan=[1.0, 1.0]))
-                # anymal
-                constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.leftFootLink, pointInLink=[0.0, -0.016, -0.31], tspan=[1.0, 1.0]))
+                if drcargs.getDirectorConfig()['modelName'] == 'hyq':
+                    constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.leftFootLink, pointInLink=[0.341,0,0], tspan=[1.0, 1.0]))
+                else: # anymal
+                    constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.leftFootLink, pointInLink=[0.0, -0.016, -0.31], tspan=[1.0, 1.0]))
             elif self.getLFootConstraint() == 'sliding':
                 print 'sliding not supported'
 
             if self.getRFootConstraint() == 'fixed':
                 constraints.append(ikPlanner.createFixedLinkConstraintsQuadruped(startPoseName, ikPlanner.rightFootLink, tspan=[0.0, 1.0], lowerBound=-0.0001*np.ones(3), upperBound=0.0001*np.ones(3), angleToleranceInDegrees=0.1))
             elif self.getRFootConstraint() == 'constrained':
-                # hyq:
-                #constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.rightFootLink, pointInLink=[0.341,0,0], tspan=[1.0, 1.0]))
-                # anymal:
-                constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.rightFootLink, pointInLink=[0.0, 0.016, -0.31], tspan=[1.0, 1.0]))
+                if drcargs.getDirectorConfig()['modelName'] == 'hyq': # hyq:
+                    constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.rightFootLink, pointInLink=[0.341,0,0], tspan=[1.0, 1.0]))
+                else: # anymal
+                    constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.rightFootLink, pointInLink=[0.0, 0.016, -0.31], tspan=[1.0, 1.0]))
             elif self.getRFootConstraint() == 'sliding':
                 print 'sliding not supported'
 
             if self.getLHandConstraint() == 'arm fixed':
                 constraints.append(ikPlanner.createFixedLinkConstraintsQuadruped(startPoseName, ikPlanner.leftHandLink, tspan=[0.0, 1.0], lowerBound=-0.0001*np.ones(3), upperBound=0.0001*np.ones(3), angleToleranceInDegrees=0.1))
             elif self.getLHandConstraint() == 'position':
-                # hyq:
-                #constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.leftHandLink, pointInLink=[0.341,0,0], tspan=[1.0, 1.0]))
-                # anymal:
-                constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.leftHandLink, pointInLink=[0.0, -0.016, -0.31], tspan=[1.0, 1.0]))
+                if drcargs.getDirectorConfig()['modelName'] == 'hyq': # hyq:
+                    constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.leftHandLink, pointInLink=[0.341,0,0], tspan=[1.0, 1.0]))
+                else: # anymal:
+                    constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.leftHandLink, pointInLink=[0.0, -0.016, -0.31], tspan=[1.0, 1.0]))
             else:
                 print 'only arm fixed and position supported'
 
             if self.getRHandConstraint() == 'arm fixed':
                 constraints.append(ikPlanner.createFixedLinkConstraintsQuadruped(startPoseName, ikPlanner.rightHandLink, tspan=[0.0, 1.0], lowerBound=-0.0001*np.ones(3), upperBound=0.0001*np.ones(3), angleToleranceInDegrees=0.1))
             elif self.getRHandConstraint() == 'position':
-                # hyq:
-                #constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.rightHandLink, pointInLink=[0.341,0,0], tspan=[1.0, 1.0]))
-                # anymal
-                constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.rightHandLink, pointInLink=[0.0, 0.016, -0.31], tspan=[1.0, 1.0]))
+                if drcargs.getDirectorConfig()['modelName'] == 'hyq': # hyq:
+                    constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.rightHandLink, pointInLink=[0.341,0,0], tspan=[1.0, 1.0]))
+                else: # anymal
+                    constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.rightHandLink, pointInLink=[0.0, 0.016, -0.31], tspan=[1.0, 1.0]))
             else:
                 print 'only arm fixed and position supported'
 

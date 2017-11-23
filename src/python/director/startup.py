@@ -145,7 +145,6 @@ useFootsteps = True
 useHands = True
 usePlanning = True
 useHumanoidDRCDemos = True
-useQuadrupedDemos = True
 useAtlasDriver = True
 useLCMGL = True
 useOctomap = True
@@ -154,17 +153,19 @@ useLightColorScheme = True
 useLoggingWidget = True
 useDrakeVisualizer = True
 useNavigationPanel = True
-useFootContactVis = False
 useFallDetectorVis = True
 useCameraFrustumVisualizer = True
 useControllerRate = True
 useForceDisplay = True
-useSkybox = False
 useDataFiles = True
 useGamepad = True
-useBlackoutText = False
 useRandomWalk = True
 useCOPMonitor = True
+
+useQuadrupedDemos = False
+useSkybox = False
+useFootContactVis = False
+useBlackoutText = False
 useCourseModel = False
 useLimitJointsSentToPlanner = False
 useFeetlessRobot = False
@@ -336,8 +337,11 @@ if usePlanning:
 
     def planHomeNominalHyq():
         ''' Move the robot back to a safe posture, 0.627m above its feet '''
-        ikPlanner.computeHomeNominalPlanHyq(robotStateJointController.q, footstepsDriver.getFeetMidPoint(robotStateModel), 0.627)
+        ikPlanner.computeHomeNominalPlanQuadruped(robotStateJointController.q, footstepsDriver.getFeetMidPoint(robotStateModel), 0.627)
 
+    def planHomeNominalAnymal():
+        ''' Move the robot back to a safe posture, above the mid point of its 4 feet '''
+        ikPlanner.computeHomeNominalPlanQuadruped(robotStateJointController.q, footstepsDriver.getFeetMidPoint(robotStateModel), 0.5)
 
     if useMultisense:
         def fitDrillMultisense():
@@ -517,9 +521,6 @@ if usePlanning:
 
 
     if useQuadrupedDemos:
-        #surpriseTaskPanel = surprisetask.SurpriseTaskPanel(robotSystem)
-        #surpriseTask = surpriseTaskPanel.planner
-
         quadrupedTaskPanel = quadrupedtask.QuadrupedTaskPanel(robotSystem)
         quadrupedTask = quadrupedTaskPanel.planner
 

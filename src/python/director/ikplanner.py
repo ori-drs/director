@@ -1018,7 +1018,7 @@ class IKPlanner(object):
 
 
 
-    def computeHomeNominalPoseHyq(self, startPose, footReferenceFrame, pelvisHeightAboveFeet=0.627, ikParameters=None, moveArms=True):
+    def computeHomeNominalPoseQuadruped(self, startPose, footReferenceFrame, pelvisHeightAboveFeet=0.627, ikParameters=None, moveArms=True):
         ''' Compute a pose with the hyq's trunk above the mid point of the feet with zero roll and pitch.
             The default height is HyQ specific
         '''
@@ -1046,9 +1046,9 @@ class IKPlanner(object):
         return endPose, info
 
 
-    def computeHomeNominalPlanHyq(self, startPose, footReferenceFrame, pelvisHeightAboveFeet=0.627):
+    def computeHomeNominalPlanQuadruped(self, startPose, footReferenceFrame, pelvisHeightAboveFeet=0.627):
 
-        endPose, info = self.computeHomeNominalPoseHyq(startPose, footReferenceFrame, pelvisHeightAboveFeet, None)
+        endPose, info = self.computeHomeNominalPoseQuadruped(startPose, footReferenceFrame, pelvisHeightAboveFeet, None)
         print 'info:', info
 
         return self.computePostureGoal(startPose, endPose)

@@ -2,6 +2,7 @@ from director import robotstate
 import director.vtkAll as vtk
 from director.transformUtils import poseFromTransform
 from director.fieldcontainer import FieldContainer
+from director import drcargs
 import numpy as np
 import math
 
@@ -197,28 +198,29 @@ class FixedLinkFromRobotPoseConstraintQuadruped (ConstraintBase):
                           tolerance=repr(math.radians(self.angleToleranceInDegrees)))
                           #quaternionVarName=quaternionVarName,
 
-        # HARDCODED MAGIC NUMBER
-        # 0.341 is the distance down to the end of the foot on HyQ
-        #commands.append(
-        #    'point_in_link_frame = [0.341; 0; 0];\n'
-        #    'kinsol = {robotArg}.doKinematics({poseName});\n'
-        #    'xyz_quat = {robotArg}.forwardKin(kinsol, links.{linkName}, point_in_link_frame, 2);\n'
-        #    'lower_bounds = xyz_quat(1:3) + {lowerBound};\n'
-        #    'upper_bounds = xyz_quat(1:3) + {upperBound};\n'
-        #    '{positionVarName} = WorldPositionConstraint({robotArg}, links.{linkName}, '
-        #    'point_in_link_frame, lower_bounds, upper_bounds, {tspan});'
-        #    ''.format(**formatArgs))        
-
-        # magic numbers for anymal
-        commands.append(
-            'point_in_link_frame = [0.0; -0.016; -0.31];\n'
-            'kinsol = {robotArg}.doKinematics({poseName});\n'
-            'xyz_quat = {robotArg}.forwardKin(kinsol, links.{linkName}, point_in_link_frame, 2);\n'
-            'lower_bounds = xyz_quat(1:3) + {lowerBound};\n'
-            'upper_bounds = xyz_quat(1:3) + {upperBound};\n'
-            '{positionVarName} = WorldPositionConstraint({robotArg}, links.{linkName}, '
-            'point_in_link_frame, lower_bounds, upper_bounds, {tspan});'
-            ''.format(**formatArgs))        
+        # HARDCODED MAGIC NUMBERS
+        if drcargs.getDirectorConfig()['modelName'] == 'hyq':
+            # 0.341 is the distance down to the end of the foot on HyQ
+            commands.append(
+               'point_in_link_frame = [0.341; 0; 0];\n'
+               'kinsol = {robotArg}.doKinematics({poseName});\n'
+               'xyz_quat = {robotArg}.forwardKin(kinsol, links.{linkName}, point_in_link_frame, 2);\n'
+               'lower_bounds = xyz_quat(1:3) + {lowerBound};\n'
+               'upper_bounds = xyz_quat(1:3) + {upperBound};\n'
+               '{positionVarName} = WorldPositionConstraint({robotArg}, links.{linkName}, '
+               'point_in_link_frame, lower_bounds, upper_bounds, {tspan});'
+               ''.format(**formatArgs))
+        else:
+            # magic numbers for anymal
+            commands.append(
+                'point_in_link_frame = [0.0; -0.016; -0.31];\n'
+                'kinsol = {robotArg}.doKinematics({poseName});\n'
+                'xyz_quat = {robotArg}.forwardKin(kinsol, links.{linkName}, point_in_link_frame, 2);\n'
+                'lower_bounds = xyz_quat(1:3) + {lowerBound};\n'
+                'upper_bounds = xyz_quat(1:3) + {upperBound};\n'
+                '{positionVarName} = WorldPositionConstraint({robotArg}, links.{linkName}, '
+                'point_in_link_frame, lower_bounds, upper_bounds, {tspan});'
+                ''.format(**formatArgs))
 
 
 class PositionConstraint(ConstraintBase):

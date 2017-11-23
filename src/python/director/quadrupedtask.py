@@ -51,7 +51,6 @@ class QuadrupedTaskPlanner(object):
         self.ikPlanner = robotSystem.ikPlanner
         self.lockBackForManip = False
         self.lockBaseForManip = True
-        self.side = 'right'
 
 
 class ImageFitter(ImageBasedAffordanceFit):
@@ -117,7 +116,7 @@ class QuadrupedTaskPanel(TaskUserPanel):
 
         self.addDefaultProperties()
         self.addButtons()
-        self.addSwitchTasks()
+        self.addTasks()
 
 
     def test(self):
@@ -126,31 +125,21 @@ class QuadrupedTaskPanel(TaskUserPanel):
     def addButtons(self):
 
         self.addManualSpacer()
-        self.addManualButton('arms prep 1', self.quadrupedPlanner.planArmsPrep1)
-        self.addManualButton('arms prep 2', self.quadrupedPlanner.planArmsPrep2)
-        self.addManualButton('fit switch box', self.fitSwitchBox)
-        self.addManualButton('spawn switch box affordance', self.quadrupedPlanner.spawnBoxAffordance)
+        self.addManualButton('body low', self.quadrupedPlanner.planBodyLow)
+        self.addManualButton('look up', self.quadrupedPlanner.planLookUp)
+        self.addManualButton('body nominal', self.quadrupedPlanner.planHomeNominal)
+        self.addManualButton('spawn box affordance', self.quadrupedPlanner.spawnBoxAffordance)
+        self.addManualButton('spawn box (distant)', self.quadrupedPlanner.spawnBoxAffordanceAtDistance)
         self.addManualButton('spawn footstep frame', self.quadrupedPlanner.spawnFootstepFrame)
-        self.addManualButton('reset reach frame', self.quadrupedPlanner.updateReachFrame)
-        # self.addManualButton('plan reach to reach frame', self.quadrupedPlanner.planReach)
-        self.addManualButton('Reach to pinch reach frame', self.onPlanPinchReach)
-        self.addManualButton('Commit Manip Plan', self.quadrupedPlanner.commitManipPlan)
 
     def onPlanPinchReach(self):
         self.quadrupedPlanner.planPinchReach(maxDegreesPerSecond=self.maxDegreesPerSecond)
 
-    def getSide(self):
-        return self.params.getPropertyEnumValue('Hand').lower()
-
     def addDefaultProperties(self):
         self.params.addProperty('max degrees per second', 10, attributes=om.PropertyAttributes(singleStep=1, decimals=2))
-        self.params.addProperty('Hand', 0, attributes=om.PropertyAttributes(enumNames=['Left', 'Right']))
-        self.params.setProperty('Hand', self.planner.side.capitalize())
 
 
     def onPropertyChanged(self, propertySet, propertyName):
-        if propertyName == 'Hand':
-            self.planner.side = self.getSide()
 
         self.syncProperties()
 
@@ -185,91 +174,31 @@ class QuadrupedTaskPanel(TaskUserPanel):
                 addTask(rt.CheckPlanInfo(name='check manip plan info'))
             else:
                 addTask(rt.UserPromptTask(name='approve manip plan', message='Please approve manipulation plan.'))
-            addFunc('execute manip plan', self.drillDemo.commitManipPlan)
-            addTask(rt.WaitForManipulationPlanExecution(name='wait for manip execution'))
-            self.folder = prevFolder
-
-
-        self.taskTree.removeAllTasks()
-        side = self.getSide()
-
-        ###############
-        # add the tasks
-
-        # prep
-        # addFolder('Prep')
-        # addTask(rt.CloseHand(name='close left hand', side='Left'))
-        # addTask(rt.CloseHand(name='close right hand', side='Right'))
-        self.addSwitchTasks()
-
-    def addSwitchTasks(self):
-
-        # some helpers
-        self.folder = None
-        def addTask(task, parent=None):
-            parent = parent or self.folder
-            self.taskTree.onAddTask(task, copy=False, parent=parent)
-        def addFunc(name, func, parent=None):
-            addTask(rt.CallbackTask(callback=func, name=name), parent=parent)
-        def addFolder(name, parent=None):
-            self.folder = self.taskTree.addGroup(name, parent=parent)
-            return self.folder
-
-        def addManipTask(name, planFunc, userPrompt=False):
-
-            prevFolder = self.folder
-            addFolder(name, prevFolder)
-            addFunc('plan', planFunc)
-            if not userPrompt:
-                addTask(rt.CheckPlanInfo(name='check manip plan info'))
-            else:
-                addTask(rt.UserPromptTask(name='approve manip plan', message='Please approve manipulation plan.'))
             addFunc('execute manip plan', self.quadrupedPlanner.commitManipPlan)
             addTask(rt.WaitForManipulationPlanExecution(name='wait for manip execution'))
             self.folder = prevFolder
 
 
         self.taskTree.removeAllTasks()
-        side = self.getSide()
 
         addFolder('Fit Box Affordance')
-        addFunc('fit switch box affordance', self.fitSwitchBox)
-        addTask(rt.UserPromptTask(name='verify/adjust affordance', message='verify/adjust affordance.'))
+        addFunc('spawn affordance (distant)',self.quadrupedPlanner.spawnBoxAffordanceAtDistance)
+        #addFunc('fit switch box affordance', self.fitSwitchBox)
+        #addTask(rt.UserPromptTask(name='verify/adjust affordance', message='verify/adjust affordance.'))
 
         # walk to drill
-        addFolder('Walk')
+        addFolder('Walk to Target')
         addFunc('plan footstep frame', self.quadrupedPlanner.spawnFootstepFrame)
-        addTask(rt.RequestFootstepPlan(name='plan walk to drill', stanceFrameName='switch box stance frame'))
-        addTask(rt.UserPromptTask(name='approve footsteps', message='Please approve footstep plan.'))
-        addTask(rt.CommitFootstepPlan(name='walk to switch box', planName='switch box stance frame footstep plan'))
-        addTask(rt.WaitForWalkExecution(name='wait for walking'))
+        addTask(rt.RequestFootstepPlan(name='walk to drill', stanceFrameName='switch box stance frame'))
+        #addTask(rt.UserPromptTask(name='approve footsteps', message='Please approve footstep plan.'))
+        #addTask(rt.CommitFootstepPlan(name='walk to switch box', planName='switch box stance frame footstep plan'))
+        #addTask(rt.WaitForWalkExecution(name='wait for walking'))
 
-        armsUp = addFolder('Arms Up')
-        addManipTask('Arms Up 1', self.quadrupedPlanner.planArmsPrep1, userPrompt=True)
-        self.folder = armsUp
-        addManipTask('Arms Up 2', self.quadrupedPlanner.planArmsPrep2, userPrompt=True)
-        addTask(rt.CloseHand(side='Right', mode='Pinch', name='set finger pinch'))
-        reach = addFolder('Reach')
-
-        addFunc('set degrees per second 30', self.setParamsPreTeleop)
-        addFunc('update reach frame', self.quadrupedPlanner.updateReachFrame)
-        addTask(rt.UserPromptTask(name='adjust frame', message='adjust reach frame if necessary'))
-        addManipTask('reach above box', self.onPlanPinchReach, userPrompt=True)
-
-        teleop = addFolder('Teleop')
-        addFunc('set degrees per second 10', self.setParamsTeleop)
-        addTask(rt.UserPromptTask(name='wait for teleop', message='continue when finished with task.'))
-
-
-        armsDown = addFolder('Arms Down')
-        addTask(rt.UserPromptTask(name='check left hand free', message='check left hand free to close and move back'))
-        addTask(rt.CloseHand(name='close left hand', side='Right'))
-        addManipTask('Arms Down 1', self.quadrupedPlanner.planArmsPrep2, userPrompt=True)
-        self.folder = armsDown
-        self.folder = armsDown
-        addManipTask('Arms Down 2', self.quadrupedPlanner.planArmsPrep1, userPrompt=True)
-        self.folder = armsDown
-        addManipTask('plan nominal', self.quadrupedPlanner.planNominal, userPrompt=True)
+        twistAndShout = addFolder('Look at target')
+        self.folder = twistAndShout
+        #addFunc('plan body low', self.quadrupedPlanner.planBodyLow)
+        addFunc('plan look up', self.quadrupedPlanner.planLookUp)
+        addFunc('plan home nominal', self.quadrupedPlanner.planHomeNominal)
 
 
     def fitSwitchBox(self):
@@ -277,7 +206,3 @@ class QuadrupedTaskPanel(TaskUserPanel):
         self.fitter.imagePicker.numberOfPoints = 2
         self.fitter.pointCloudSource = 'lidar'
         self.fitter.fitFunc = self.fitter.fitSwitchBox
-
-
-
-
