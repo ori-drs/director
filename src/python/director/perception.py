@@ -418,29 +418,13 @@ class MultiSenseSource(TimerCallback):
 
     @staticmethod
     def setLidarRevolutionTime(secondsPerRevolution):
-
         assert secondsPerRevolution >= 1.0
-
-        m = lcmmultisense.command_t()
-        m.utime = getUtime()
-        m.fps = -1
-        m.gain = -1
-        m.agc = -1
-        m.rpm = 60.0 / (secondsPerRevolution)
-
-        lcmUtils.publish('MULTISENSE_COMMAND', m)
+        rpm = 60.0 / (secondsPerRevolution)
+        MultiSenseSource.sendMultisenseCommand(-1, -1, 0, -1, rpm, False, 0.0)
 
     @staticmethod
     def setLidarRpm(rpm):
-
-        m = lcmmultisense.command_t()
-        m.utime = getUtime()
-        m.fps = -1
-        m.gain = -1
-        m.agc = -1
-        m.rpm = rpm
-
-        lcmUtils.publish('MULTISENSE_COMMAND', m)
+        MultiSenseSource.sendMultisenseCommand(-1, -1, 0, -1, rpm, False, 0.0)
 
     @staticmethod
     def sendMultisenseCommand(fps, gain, exposure, agc, rpm, led_flash, led_duty):
@@ -454,8 +438,14 @@ class MultiSenseSource(TimerCallback):
         m.rpm = rpm
         m.leds_flash = led_flash
         m.leds_duty_cycle = led_duty
-
         lcmUtils.publish('MULTISENSE_COMMAND', m)
+
+        # Duplication to avoid needing multisense types dependency
+        m2 = lcmbotcore.double_array_t()
+        m2.utime = m.utime
+        m2.num_values = 1
+        m2.values = [rpm]
+        lcmUtils.publish('MULTISENSE_COMMAND_RPM', m2)
 
     @staticmethod
     def setNeckPitch(neckPitchDegrees):
