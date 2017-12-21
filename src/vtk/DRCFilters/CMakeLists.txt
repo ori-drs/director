@@ -114,12 +114,13 @@ endif()
 
 if (USE_DRC_MAPS)
   find_package(Maps REQUIRED)
+  find_package(MapsLcm REQUIRED)
   find_package(PCL REQUIRED)
 
   list(APPEND sources vtkMapServerSource.cxx)
   include_directories(${PCL_INCLUDE_DIRS})
   include_directories(${MAPS_INCLUDE_DIRS})
-  list(APPEND deps ${MAPS_LIBRARIES} ${PCL_LIBRARIES})
+  list(APPEND deps ${MAPS_LIBRARIES} ${PCL_LIBRARIES} ${MAPSLCM_LIBRARIES})
 endif()
 
 if (USE_DRC_PLANE_SEG)
@@ -193,6 +194,8 @@ if(NOT VTK_WRAP_PYTHON)
     "VTK_WRAP_PYTHON is OFF. You must use a version of VTK with Python. "
     "VTK_DIR is: ${VTK_DIR}")
 endif()
+
+set(VTK_LIBRARIES)
 
 include_directories(${PYTHON_INCLUDE_DIR})
 include(${CMAKE_SOURCE_DIR}/cmake/wrap-python.cmake)
