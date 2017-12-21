@@ -311,29 +311,29 @@ def startModelPublisherListener(modelsToReload):
 def getBuiltinPackagePaths():
 
     searchPaths = [
-        'externals/models/atlas_v3',
-        'externals/models/atlas_v4',
-        'externals/models/atlas_v5',
-        'externals/models/dual_arm_husky_description',
-        'externals/models/ur_description',
-        'externals/models/val_description',
-        'externals/models/hyq_description',
-        'externals/models/anymal_description',
-        'externals/models/lwr_defs',
-        'externals/models/husky_description',
-        'externals/models/mit_gazebo_models/mit_robot',
-        'externals/models/common_components/irobot_hand',
-        'externals/models/common_components/handle_description',
-        'externals/models/common_components/robotiq_hand_description',
-        'externals/models/common_components/schunk_description',
-        'externals/models/actuated_lidar_description',
-        'externals/models/dynamixel_description',
-        'externals/models/husky_description_rpg',
-        'externals/models/flir_ptu_description',
-        'externals/models/multisense_sl',
-        'externals/models/sick_description',
-        'externals/models/hokuyo_description',
-        'externals/models/otdf',
+        'params/models/atlas_v3',
+        'params/models/atlas_v4',
+        'params/models/atlas_v5',
+        'params/models/dual_arm_husky_description',
+        'params/models/ur_description',
+        'params/models/val_description',
+        'params/models/hyq_description',
+        'params/models/anymal_description',
+        'params/models/lwr_defs',
+        'params/models/husky_description',
+        'params/models/mit_gazebo_models/mit_robot',
+        'params/models/common_components/irobot_hand',
+        'params/models/common_components/handle_description',
+        'params/models/common_components/robotiq_hand_description',
+        'params/models/common_components/schunk_description',
+        'params/models/actuated_lidar_description',
+        'params/models/dynamixel_description',
+        'params/models/husky_description_rpg',
+        'params/models/flir_ptu_description',
+        'params/models/multisense_sl',
+        'params/models/sick_description',
+        'params/models/hokuyo_description',
+        'params/models/otdf',
                   ]
 
     baseDir = getDRCBaseDir()
@@ -481,7 +481,7 @@ class HandLoader(object):
 
     def getHandUrdfFullPath(self):
         if director.getDRCBaseIsSet():
-            urdfBase = os.path.join(getDRCBaseDir(), 'externals/models/common_components/hand_factory')
+            urdfBase = os.path.join(getDRCBaseDir(), 'params/models/common_components/hand_factory')
         else:
             urdfBase = drcargs.DirectorConfig.getDefaultInstance().dirname
         return os.path.join(urdfBase, self.handUrdf)
