@@ -19,7 +19,7 @@ import time
 import drc as lcmdrc
 import bot_core
 #import atlas
-from pronto.indexed_measurement_t import indexed_measurement_t
+#from pronto.indexed_measurement_t import indexed_measurement_t
 
 
 class SystemStatusListener(object):
@@ -389,6 +389,8 @@ class AtlasDriver(object):
 
 
     def sendInitMessage(self, pos, yaw):
+        print "init message is disabled at present"
+        return
         init = indexed_measurement_t()
         init.utime = getUtime()
         init.state_utime = init.utime

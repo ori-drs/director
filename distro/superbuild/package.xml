@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package format="2">
+    <name>director</name>
+    <version>1.0.0</version>
+    <description>Director visualisation tool</description>
+    <maintainer email="pat@marion.com">Pat Marion</maintainer>
+    <license>BSD</license>
+    <buildtool_depend>catkin</buildtool_depend>
+    <depend>java</depend>
+    <depend>lcm_catkin</depend>
+    <depend>bot_core_lcmtypes</depend>
+    <depend>drake</depend>
+    <depend>maps_lcmtypes</depend>
+</package>
+

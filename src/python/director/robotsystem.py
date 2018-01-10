@@ -76,6 +76,9 @@ class RobotSystemFactory(object):
 
     def initPerceptionDrivers(self, robotSystem):
 
+        # temp hack
+        return
+
         from director import perception
         from director import robotstate
 
@@ -276,6 +279,8 @@ class RobotSystemFactory(object):
         segmentation.affordanceManager = robotSystem.affordanceManager
 
     def initPlannerPublisher(self, robotSystem):
+        # temp hack
+        return
 
         from director import plannerPublisher
         from director import pydrakeik

@@ -1,8 +1,3 @@
-if (NOT COMMAND pods_use_pkg_config_packages)
-  include(cmake/pods.cmake)
-endif()
-
-
 message(STATUS "to $USE_DRC " ${USE_DRC})
 message(STATUS "to $USE_COLLECTIONS " ${USE_COLLECTIONS})
 
@@ -87,8 +82,8 @@ if (USE_DRC)
 
   # requires libbot, lcm, eigen, drc lcmtypes
 
-  # find_package(LibBot REQUIRED MODULE)
-  # include_directories(${LIBBOT_INCLUDE_DIRS})
+  find_package(LibBot REQUIRED MODULE)
+  include_directories(${LIBBOT_INCLUDE_DIRS})
 
   find_package(Eigen REQUIRED)
   include_directories(${EIGEN_INCLUDE_DIRS})
@@ -102,8 +97,8 @@ if (USE_DRC)
   )
 
   list(APPEND deps
-  #   ${LIBBOT_LIBRARIES}
-     ${LCM_LIBRARIES}
+    ${LIBBOT_LIBRARIES}
+    ${LCM_LIBRARIES}
   )
 
   list(APPEND pkg_deps
@@ -111,6 +106,9 @@ if (USE_DRC)
   )
 
 endif()
+
+message("======================= USE_DRC:")
+message(${USE_DRC_MAPS})
 
 if (USE_DRC_MAPS)
   find_package(Maps REQUIRED)
@@ -175,9 +173,6 @@ endif()
 set(library_name vtkDRCFilters)
 add_library(${library_name} ${sources} ${EXTRA_SRCS})
 target_link_libraries(${library_name} ${deps})
-
-pods_use_pkg_config_packages(${library_name} bot2-core bot2-frames visualization bot2-vis )
-
 
 if(pkg_deps)
   use_pkg(${library_name} ${pkg_deps})

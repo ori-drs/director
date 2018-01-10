@@ -657,6 +657,6 @@ class RobotViewBehaviors(object):
         robotModel = robotSystem.robotStateModel
         handFactory = robotSystem.handFactory
         footstepsDriver = robotSystem.footstepsDriver
-        neckDriver = robotSystem.neckDriver
+        #neckDriver = robotSystem.neckDriver
         if app.getMainWindow() is not None:
             robotLinkSelector = RobotLinkSelector()

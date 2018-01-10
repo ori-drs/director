@@ -5,17 +5,16 @@ option(USE_OCTOMAP "Build with octomap." OFF)
 option(USE_APRILTAGS "Build with apriltags lcm driver." OFF)
 option(USE_KINECT "Build with kinect lcm driver." OFF)
 option(USE_COLLECTIONS "Build with collections." ON)
-option(USE_LIBBOT "Build with libbot." OFF)
+option(USE_LIBBOT "Build with libbot." ON)
 option(USE_DRAKE "Build with drake." ON)
 option(USE_STANDALONE_LCMGL "Build with standalone bot-lcmgl." OFF)
-option(USE_PERCEPTION "Build director features that require OpenCV, PCL, cv-utils, and libbot as dependencies." ON)
+option(USE_PERCEPTION "Build director features that require OpenCV, PCL, cv-utils, and libbot as dependencies." OFF)
 
-
-option(USE_DRC "Build with DRC." ON)
+option(USE_DRC "Build with DRC - mfallon." ON)
 
 option(USE_SYSTEM_EIGEN "Use system version of eigen.  If off, eigen will be built." OFF)
 option(USE_SYSTEM_LCM "Use system version of lcm.  If off, lcm will be built." ON)
-option(USE_SYSTEM_LIBBOT "Use system version of libbot.  If off, libbot will be built." ON)
+option(USE_SYSTEM_LIBBOT "Use system version of libbot.  If off, libbot will be built." OFF)
 option(USE_SYSTEM_PCL "Use system version of pcl.  If off, pcl will be built." OFF)
 option(USE_SYSTEM_VTK "Use system version of VTK.  If off, VTK will be built." OFF)
 if(NOT USE_SYSTEM_VTK AND NOT APPLE)
@@ -133,8 +132,11 @@ endif()
 
 ###############################################################################
 # lcm
+message(STATUS "==============")
+message(STATUS "USE_LCM next" ${USE_LCM})
 
 if (USE_LCM AND NOT USE_SYSTEM_LCM)
+  message(STATUS "==============2")
 
 
   if(CMAKE_VERSION VERSION_LESS 3.1)
@@ -175,22 +177,22 @@ endif()
 
 if(USE_LIBBOT AND NOT USE_SYSTEM_LIBBOT)
 
-  if(NOT USE_LCM)
-    message(SEND_ERROR "Error, USE_LIBBOT is enabled but USE_LCM is OFF.")
-  endif()
+  #if(NOT USE_LCM)
+  #  message(SEND_ERROR "Error, USE_LIBBOT is enabled but USE_LCM is OFF.")
+  #endif()
 
-  ExternalProject_Add(libbot
-    GIT_REPOSITORY https://github.com/RobotLocomotion/libbot2.git
-    GIT_TAG 4835477
-    CMAKE_CACHE_ARGS
-      ${default_cmake_args}
-      -DWITH_BOT_VIS:BOOL=OFF
+  #ExternalProject_Add(libbot
+  #  GIT_REPOSITORY https://github.com/RobotLocomotion/libbot2.git
+  #  GIT_TAG 4835477
+  #  CMAKE_CACHE_ARGS
+  #    ${default_cmake_args}
+  #    -DWITH_BOT_VIS:BOOL=OFF
 
-    DEPENDS
-      ${lcm_depends}
-    )
+  #  DEPENDS
+  #    ${lcm_depends}
+  #  )
 
-  set(libbot_depends libbot)
+  #set(libbot_depends libbot)
 
 endif()
 
@@ -200,36 +202,37 @@ endif()
 
 if (USE_LCM AND NOT USE_SYSTEM_LIBBOT)
 
-  ExternalProject_Add(bot_core_lcmtypes
-    GIT_REPOSITORY https://github.com/openhumanoids/bot_core_lcmtypes
-    GIT_TAG 9967654
-    ${cmake3_args}
-    CMAKE_CACHE_ARGS
-      ${default_cmake_args}
-      ${python_args}
+  #ExternalProject_Add(bot_core_lcmtypes
+  #  GIT_REPOSITORY https://github.com/openhumanoids/bot_core_lcmtypes
+  #  GIT_TAG 9967654
+  #  ${cmake3_args}
+  #  CMAKE_CACHE_ARGS
+  #    ${default_cmake_args}
+  #    ${python_args}
 
-    DEPENDS
-      ${lcm_depends}
+  #  DEPENDS
+  #    ${lcm_depends}
 
       # build bot_core_lcmtypes after libbot, even though it is not a dependency.
       # see https://github.com/RobotLocomotion/libbot/issues/20
-      ${libbot_depends}
-    )
+  #    ${libbot_depends}
+  #  )
 
-  ExternalProject_Add(robotlocomotion-lcmtypes
-    GIT_REPOSITORY https://github.com/robotlocomotion/lcmtypes.git
-    GIT_TAG 821ff4b
-    ${cmake3_args}
-    CMAKE_CACHE_ARGS
-      ${default_cmake_args}
-      ${python_args}
+  #ExternalProject_Add(robotlocomotion-lcmtypes
+  #  GIT_REPOSITORY https://github.com/robotlocomotion/lcmtypes.git
+  #  GIT_TAG 821ff4b
+  #  ${cmake3_args}
+  #  CMAKE_CACHE_ARGS
+  #    ${default_cmake_args}
+  #    ${python_args}
 
-    DEPENDS
-      ${lcm_depends}
-      bot_core_lcmtypes
-    )
+  #  DEPENDS
+  #    ${lcm_depends}
+  #    bot_core_lcmtypes
+  #  )
 
-    list(APPEND lcm_depends bot_core_lcmtypes robotlocomotion-lcmtypes)
+#    list(APPEND lcm_depends bot_core_lcmtypes)
+#    list(APPEND lcm_depends bot_core_lcmtypes robotlocomotion-lcmtypes)
 
 endif()
 
@@ -347,20 +350,41 @@ elseif(USE_PRECOMPILED_VTK)
   set(url_base "http://patmarion.com/bottles")
 
   find_program(LSB_RELEASE lsb_release)
+  message("++++++++++++++++++++++++XX")
+  message(${LSB_RELEASE})
+  message("||||||||||||||||||||||||XX")
   mark_as_advanced(LSB_RELEASE)
+  message("++++++++++++++++++++++++0")
+  message(${LSB_RELEASE})
+  message("||||||||||||||||||||||||0")
   set(ubuntu_version)
+  message("++++++++++++++++++++++++1")
+  message(${LSB_RELEASE})
+  message("||||||||||||||||||||||||1")
+  message(STATUS ${ubuntu_version})
+  message("++++++++++++++++++++++++1")
   if(LSB_RELEASE)
+    message("a")
     execute_process(COMMAND ${LSB_RELEASE} -is
         OUTPUT_VARIABLE osname
         OUTPUT_STRIP_TRAILING_WHITESPACE)
+    message("b")
+    message(STATUS ${osname})
     if(osname STREQUAL Ubuntu)
       execute_process(COMMAND ${LSB_RELEASE} -rs
           OUTPUT_VARIABLE ubuntu_version
           OUTPUT_STRIP_TRAILING_WHITESPACE)
+      message(${ubuntu_version})
     endif()
   endif()
 
-  if (ubuntu_version EQUAL 14.04)
+  message("++++++++++++++++++++++++2")
+  message(${LSB_RELEASE})
+  message("||||||||||||||||||||||||2")
+  message(STATUS ${ubuntu_version})
+  message("++++++++++++++++++++++++2")
+
+  if (LSB_RELEASE EQUAL 14.04)
     if(DD_QT_VERSION EQUAL 4)
       set(vtk_package_url ${url_base}/vtk7.1-qt4.8-python2.7-ubuntu14.04.tar.gz)
       set(vtk_package_md5 fe5c16f427a497b5713c52a68ecf564d)
@@ -368,7 +392,7 @@ elseif(USE_PRECOMPILED_VTK)
       message(FATAL_ERROR "Compiling director with Qt5 is not supported on Ubuntu 14.04. "
                "Please set DD_QT_VERSION to 4.")
     endif()
-  elseif(ubuntu_version EQUAL 16.04)
+  elseif(LSB_RELEASE EQUAL 16.04)
     if(DD_QT_VERSION EQUAL 4)
       set(vtk_package_url ${url_base}/vtk7.1-qt4.8-python2.7-ubuntu16.04.tar.gz)
       set(vtk_package_md5 1291e072405a3982b559ec011c3cf2a1)

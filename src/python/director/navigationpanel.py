@@ -28,7 +28,7 @@ from director import segmentation
 
 # lcmtypes:
 import drc as lcmdrc
-from pronto.indexed_measurement_t import indexed_measurement_t
+#from pronto.indexed_measurement_t import indexed_measurement_t
 
 
 
@@ -181,6 +181,8 @@ class NavigationPanel(object):
 
 
     def sendInitMessage(self, pos, yaw):
+        print "init message is disabled at present"
+        return
         init = indexed_measurement_t()
         init.utime = getUtime()
         init.state_utime = init.utime

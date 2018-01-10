@@ -1,9 +1,3 @@
-if (NOT COMMAND pods_use_pkg_config_packages)
-  include(cmake/pods.cmake)
-endif()
-
-
-
 find_package(PythonQt REQUIRED)
 find_package(CTKPythonConsole REQUIRED)
 find_package(OpenGL REQUIRED)
@@ -140,9 +134,24 @@ set(pkg_deps)
 
 
 #####
-message("USE_DRAKE is " ${USE_DRAKE})
+message("QQQQQQQQQQQQQQQQQQQQQQQ")
+message("QQQQQQQQQQQQQQQQQQQQQQQ")
+message(STATUS "USE_DRAKE " ${USE_DRAKE})
+message(STATUS "USE_DRC " ${USE_DRC})
+
+
 
 if (USE_DRAKE)
+
+  message(STATUS "AAAAAAAAAAAAAAAAAAAAA")
+  message(STATUS "AAAAAAAAAAAAAAAAAAAAA")
+  find_package(catkin  REQUIRED COMPONENTS lcm_catkin bot_core_lcmtypes drake maps_lcmtypes)
+  message(STATUS "AAAAAAAAAAAAAAAAAAAAA")
+  message(STATUS "AAAAAAAAAAAAAAAAAAAAA")
+  message(STATUS ${catkin_INCLUDE_DIRS})
+
+  message(STATUS "inside USE_DRAKE " ${USE_DRAKE})
+  message(STATUS "xxx " ${catkin_INCLUDE_DIRS})
 
   find_package(Drake REQUIRED MODULE)
   find_package(Eigen REQUIRED)
@@ -150,6 +159,7 @@ if (USE_DRAKE)
   include_directories(
     ${EIGEN_INCLUDE_DIRS}
     ${DRAKE_INCLUDE_DIRS}
+    ${catkin_INCLUDE_DIRS}
   )
 
   set(moc_srcs)
@@ -180,7 +190,8 @@ if (USE_DRAKE)
   )
 
   list(APPEND deps
-    ${DRAKE_LIBRARIES}
+    ${catkin_LIBRARIES}
+#    ${DRAKE_LIBRARIES}
   )
 
 endif()
@@ -219,27 +230,25 @@ endif()
 message("Use perception is " ${USE_PERCEPTION})
 if (USE_PERCEPTION)
 
-  #find_package(LibBot REQUIRED MODULE)
-  #include_directories(${LIBBOT_INCLUDE_DIRS})
+  find_package(LibBot REQUIRED MODULE)
+  include_directories(${LIBBOT_INCLUDE_DIRS})
 
   find_package(PCL REQUIRED)
   include_directories(${PCL_INCLUDE_DIRS})
 
-  #find_package(OpenCV REQUIRED)
-  #include_directories(${OpenCV_INCLUDE_DIRS})
+  find_package(OpenCV REQUIRED)
+  include_directories(${OpenCV_INCLUDE_DIRS})
 
   find_package(ZLIB REQUIRED)
 
-  #find_package(bot2-core-lcmtypes REQUIRED)
+  find_package(bot2-core-lcmtypes REQUIRED)
 
-  #find_library(CVUTILS_LIBRARY cv-utils DOC "The cv-utils library")
-  #find_path(CVUTILS_INCLUDE_DIR image_utils/jpeg.h PATH_SUFFIXES cv-utils DOC "Path to the cv-utils include directory")
+  find_library(CVUTILS_LIBRARY cv-utils DOC "The cv-utils library")
+  find_path(CVUTILS_INCLUDE_DIR image_utils/jpeg.h PATH_SUFFIXES cv-utils DOC "Path to the cv-utils include directory")
 
-  #set(CVUTILS_INCLUDE_DIRS ${CVUTILS_INCLUDE_DIR})
-  #set(CVUTILS_LIBRARIES ${CVUTILS_LIBRARY})
-  #include_directories(${CVUTILS_INCLUDE_DIRS})
-
-
+  set(CVUTILS_INCLUDE_DIRS ${CVUTILS_INCLUDE_DIR})
+  set(CVUTILS_LIBRARIES ${CVUTILS_LIBRARY})
+  include_directories(${CVUTILS_INCLUDE_DIRS})
 
   set(moc_srcs)
   qt_wrap_cpp(moc_srcs
@@ -265,7 +274,7 @@ if (USE_PERCEPTION)
     ${OpenCV_LIBS}
     ${CVUTILS_LIBRARIES}
     ${ZLIB_LIBRARIES}
-#    ${bot2-core-lcmtypes_LIBRARIES}
+    ${bot2-core-lcmtypes_LIBRARIES}
   )
 
 endif()
@@ -276,15 +285,11 @@ message(STATUS "about to $USE_DRC " ${USE_DRC})
 
 
 add_library(ddApp SHARED ${srcs})
-
-
-target_link_libraries(ddApp ${deps})
+target_link_libraries(ddApp ${deps} )
 
 if(pkg_deps)
   use_pkg(ddApp ${pkg_deps})
 endif()
-
-pods_use_pkg_config_packages(ddApp lcmtypes_bot2-core bot2-core bot2-param-client bot2-frames multisense_utils)
 
 set(_install_targets ddApp directorPython drake-visualizer)
 
