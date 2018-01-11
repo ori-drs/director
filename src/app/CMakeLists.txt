@@ -145,7 +145,8 @@ if (USE_DRAKE)
 
   message(STATUS "AAAAAAAAAAAAAAAAAAAAA")
   message(STATUS "AAAAAAAAAAAAAAAAAAAAA")
-  find_package(catkin  REQUIRED COMPONENTS lcm_catkin bot_core_lcmtypes drake maps_lcmtypes)
+  find_package(catkin  REQUIRED COMPONENTS lcm_catkin bot_core_lcmtypes drake 
+    maps_lcmtypes robotlocomotion_lcmtypes)
   message(STATUS "AAAAAAAAAAAAAAAAAAAAA")
   message(STATUS "AAAAAAAAAAAAAAAAAAAAA")
   message(STATUS ${catkin_INCLUDE_DIRS})

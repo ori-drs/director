@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 2.8.5)
 project(Superbuild)
 
-find_package(catkin  REQUIRED COMPONENTS lcm_catkin bot_core_lcmtypes drake maps_lcmtypes)
+find_package(catkin  REQUIRED COMPONENTS lcm_catkin bot_core_lcmtypes drake maps_lcmtypes
+	robotlocomotion_lcmtypes)
 
 message(STATUS "EEEEEEEEEEEEEEEEEEEEE")
 message(STATUS "EEEEEEEEEEEEEEEEEEEEE")

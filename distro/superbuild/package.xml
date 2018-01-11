@@ -8,8 +8,9 @@
     <buildtool_depend>catkin</buildtool_depend>
     <depend>java</depend>
     <depend>lcm_catkin</depend>
-    <depend>bot_core_lcmtypes</depend>
     <depend>drake</depend>
+    <depend>bot_core_lcmtypes</depend>
     <depend>maps_lcmtypes</depend>
+    <depend>robotlocomotion_lcmtypes</depend>
 </package>
 

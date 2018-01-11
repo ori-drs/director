@@ -183,7 +183,6 @@ useIk = False
 usePlanning = False
 useOpenniDepthImage = False
 useCollections = False # temp hack
-useDrakeVisualizer = False # temp hack
 
 poseCollection = PythonQt.dd.ddSignalMap()
 costCollection = PythonQt.dd.ddSignalMap()
