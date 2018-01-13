@@ -5,7 +5,7 @@ endmacro()
 
 
 macro(setup_qt)
-  set(DD_QT_VERSION 4 CACHE STRING "Selected Qt version")
+  set(DD_QT_VERSION 5 CACHE STRING "Selected Qt version")
   set_property(CACHE DD_QT_VERSION PROPERTY STRINGS 4 5)
 
   if(NOT (DD_QT_VERSION VERSION_EQUAL 4 OR DD_QT_VERSION VERSION_EQUAL 5))

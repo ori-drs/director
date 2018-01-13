@@ -7,6 +7,7 @@
 #include <vtkNew.h>
 
 #include <multisense_utils/multisense_utils.hpp>
+#include <image_utils/jpeg.h>
 #include <vector>
 
 
@@ -570,7 +571,7 @@ vtkSmartPointer<vtkPolyData> PolyDataFromPointCloud(pcl::PointCloud<pcl::PointXY
     float point[3] = {cloud->points[i].x, cloud->points[i].y, cloud->points[i].z};
     unsigned char color[3] = {cloud->points[i].r, cloud->points[i].g, cloud->points[i].b};
     points->SetPoint(j, point);
-    rgbArray->SetTypedTuple(j, color);
+    rgbArray->SetTupleValue(j, color);
     j++;
   }
   nr_points = j;

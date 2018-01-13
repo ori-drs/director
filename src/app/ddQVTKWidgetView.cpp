@@ -101,14 +101,15 @@ ddQVTKWidgetView::ddQVTKWidgetView(QWidget* parent) : ddViewBase(parent)
   this->Internal->VTKWidget = new QVTKOpenGLWidget;
   layout->addWidget(this->Internal->VTKWidget);
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
-  this->Internal->RenderWindow =
-    vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-#else
+//#if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+//std::cout << "ddQVTKWidgetView 1 3a\n";
+//  this->Internal->RenderWindow =
+//    vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+//#else
   this->Internal->VTKWidget->SetUseTDx(true);
   this->Internal->RenderWindow = vtkSmartPointer<vtkRenderWindow>::New();
-  this->Internal->VTKWidget->SetRenderWindow(this->Internal->RenderWindow);
-#endif
+//  this->Internal->VTKWidget->SetRenderWindow(this->Internal->RenderWindow);
+//#endif
   this->Internal->VTKWidget->SetRenderWindow(this->Internal->RenderWindow);
   this->Internal->RenderWindow->SetMultiSamples(8);
   this->Internal->RenderWindow->StereoCapableWindowOn();

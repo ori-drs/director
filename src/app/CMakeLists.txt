@@ -140,13 +140,13 @@ message(STATUS "USE_DRAKE " ${USE_DRAKE})
 message(STATUS "USE_DRC " ${USE_DRC})
 
 
+find_package(catkin  REQUIRED COMPONENTS lcm_catkin bot_core_lcmtypes drake 
+    maps_lcmtypes robotlocomotion_lcmtypes multisense_utils image_utils)
 
 if (USE_DRAKE)
 
   message(STATUS "AAAAAAAAAAAAAAAAAAAAA")
   message(STATUS "AAAAAAAAAAAAAAAAAAAAA")
-  find_package(catkin  REQUIRED COMPONENTS lcm_catkin bot_core_lcmtypes drake 
-    maps_lcmtypes robotlocomotion_lcmtypes)
   message(STATUS "AAAAAAAAAAAAAAAAAAAAA")
   message(STATUS "AAAAAAAAAAAAAAAAAAAAA")
   message(STATUS ${catkin_INCLUDE_DIRS})
@@ -197,7 +197,6 @@ if (USE_DRAKE)
 
 endif()
 
-message("USE_LCM is " ${USE_LCM})
 if (USE_LCM)
 
   find_package(LCM REQUIRED)
@@ -228,7 +227,6 @@ if (USE_LCM)
 
 endif()
 
-message("Use perception is " ${USE_PERCEPTION})
 if (USE_PERCEPTION)
 
   find_package(LibBot REQUIRED MODULE)
@@ -247,9 +245,9 @@ if (USE_PERCEPTION)
   find_library(CVUTILS_LIBRARY cv-utils DOC "The cv-utils library")
   find_path(CVUTILS_INCLUDE_DIR image_utils/jpeg.h PATH_SUFFIXES cv-utils DOC "Path to the cv-utils include directory")
 
-  #set(CVUTILS_INCLUDE_DIRS ${CVUTILS_INCLUDE_DIR})
-  #set(CVUTILS_LIBRARIES ${CVUTILS_LIBRARY})
-  #include_directories(${CVUTILS_INCLUDE_DIRS})
+  set(CVUTILS_INCLUDE_DIRS ${CVUTILS_INCLUDE_DIR})
+  set(CVUTILS_LIBRARIES ${CVUTILS_LIBRARY})
+  include_directories(${CVUTILS_INCLUDE_DIRS})
 
   set(moc_srcs)
   qt_wrap_cpp(moc_srcs
@@ -273,9 +271,8 @@ if (USE_PERCEPTION)
     ${LIBBOT_LIBRARIES}
     ${PCL_LIBRARIES}
     ${OpenCV_LIBS}
-    ${CVUTILS_LIBRARIES}
+#    ${CVUTILS_LIBRARIES}
     ${ZLIB_LIBRARIES}
-    ${bot2-core-lcmtypes_LIBRARIES}
   )
 
 endif()

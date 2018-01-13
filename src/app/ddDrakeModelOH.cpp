@@ -1270,15 +1270,15 @@ void ddDrakeModel::getLinkModelMesh(const QString& linkName, vtkPolyData* polyDa
     return;
   }
 
-  std::string linkNameString = linkName.toAscii().data();
+  std::string linkNameString = linkName.toLocal8Bit().data();
   if (this->Internal->Model->findLink(linkNameString, -1) == nullptr)
   {
     std::cout << "couldn't find link " << linkNameString << " in ddDrakeModel::getLinkModelMesh, returning" << std::endl;
     return;
   }
 
-  int linkId = this->findLinkID(linkName.toAscii().data());
-  std::vector<ddMeshVisual::Ptr> visuals = this->Internal->Model->linkMeshVisuals(linkName.toAscii().data());
+  int linkId = this->findLinkID(linkName.toLocal8Bit().data());
+  std::vector<ddMeshVisual::Ptr> visuals = this->Internal->Model->linkMeshVisuals(linkName.toLocal8Bit().data());
   vtkSmartPointer<vtkAppendPolyData> appendFilter = vtkSmartPointer<vtkAppendPolyData>::New();
 
   for (size_t i = 0; i < visuals.size(); ++i)

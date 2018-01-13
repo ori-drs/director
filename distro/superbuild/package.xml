@@ -12,5 +12,7 @@
     <depend>bot_core_lcmtypes</depend>
     <depend>maps_lcmtypes</depend>
     <depend>robotlocomotion_lcmtypes</depend>
+    <depend>multisense_utils</depend>
+    <depend>image_utils</depend>
 </package>
 

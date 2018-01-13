@@ -60,6 +60,7 @@ endforeach(file)
 #####
 
 set(VTK_LIBRARIES
+  vtkRenderingFreeTypeFontConfig
   vtkInteractionWidgets
   vtkInteractionStyle
   vtkRenderingFreeType

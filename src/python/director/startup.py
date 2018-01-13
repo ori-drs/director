@@ -177,13 +177,6 @@ useMultisense = True
 useOpenniDepthImage = False
 
 
-# temp - during fixing
-usePerception = False
-useIk = False
-usePlanning = False
-useOpenniDepthImage = False
-useCollections = False # temp hack
-
 poseCollection = PythonQt.dd.ddSignalMap()
 costCollection = PythonQt.dd.ddSignalMap()
 
@@ -251,10 +244,10 @@ if usePerception:
         return trackers.PointerTracker(robotStateModel, disparityPointCloud)
 
 
-#if useOpenniDepthImage:
-#    openniDepthPointCloud = segmentation.DisparityPointCloudItem('openni point cloud', 'OPENNI_FRAME', 'OPENNI_FRAME_LEFT', cameraview.imageManager)
-#    openniDepthPointCloud.addToView(view)
-#    om.addToObjectModel(openniDepthPointCloud, parentObj=om.findObjectByName('sensors'))
+if useOpenniDepthImage:
+    openniDepthPointCloud = segmentation.DisparityPointCloudItem('openni point cloud', 'OPENNI_FRAME', 'OPENNI_FRAME_LEFT', cameraview.imageManager)
+    openniDepthPointCloud.addToView(view)
+    om.addToObjectModel(openniDepthPointCloud, parentObj=om.findObjectByName('sensors'))
 
 
 if useGrid:
@@ -708,9 +701,8 @@ if useDataFiles:
     for filename in drcargs.args().data_files:
         actionhandlers.onOpenFile(filename)
 
-# temp hack
-#if useCameraFrustumVisualizer and cameraview.CameraFrustumVisualizer.isCompatibleWithConfig():
-#    cameraFrustumVisualizer = cameraview.CameraFrustumVisualizer(robotStateModel, cameraview.imageManager, 'MULTISENSE_CAMERA_LEFT')
+if useCameraFrustumVisualizer and cameraview.CameraFrustumVisualizer.isCompatibleWithConfig():
+    cameraFrustumVisualizer = cameraview.CameraFrustumVisualizer(robotStateModel, cameraview.imageManager, 'MULTISENSE_CAMERA_LEFT')
 
 class ImageOverlayManager(object):
 
@@ -781,15 +773,15 @@ class ToggleImageViewHandler(object):
             self.manager.hide()
 
 
-#imageOverlayManager = ImageOverlayManager()
-#imageWidget = cameraview.ImageWidget(cameraview.imageManager, 'MULTISENSE_CAMERA_LEFT', view, visible=False)
-#imageViewHandler = ToggleImageViewHandler(imageWidget)
-#setImageWidgetSource = imageWidget.setImageName
+imageOverlayManager = ImageOverlayManager()
+imageWidget = cameraview.ImageWidget(cameraview.imageManager, 'MULTISENSE_CAMERA_LEFT', view, visible=False)
+imageViewHandler = ToggleImageViewHandler(imageWidget)
+setImageWidgetSource = imageWidget.setImageName
 
-#screengrabberpanel.init(view)
-#framevisualization.init(view)
-#affordancePanel = affordancepanel.init(view, affordanceManager, robotStateJointController, raycastDriver)
-#camerabookmarks.init(view)
+screengrabberpanel.init(view)
+framevisualization.init(view)
+affordancePanel = affordancepanel.init(view, affordanceManager, robotStateJointController, raycastDriver)
+camerabookmarks.init(view)
 
 cameraControlPanel = cameracontrolpanel.CameraControlPanel(view)
 app.addWidgetToDock(cameraControlPanel.widget, action=None).hide()
