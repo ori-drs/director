@@ -134,25 +134,12 @@ set(pkg_deps)
 
 
 #####
-message("QQQQQQQQQQQQQQQQQQQQQQQ")
-message("QQQQQQQQQQQQQQQQQQQQQQQ")
-message(STATUS "USE_DRAKE " ${USE_DRAKE})
-message(STATUS "USE_DRC " ${USE_DRC})
 
 
 find_package(catkin  REQUIRED COMPONENTS lcm_catkin bot_core_lcmtypes drake 
     maps_lcmtypes robotlocomotion_lcmtypes multisense_utils image_utils)
 
 if (USE_DRAKE)
-
-  message(STATUS "AAAAAAAAAAAAAAAAAAAAA")
-  message(STATUS "AAAAAAAAAAAAAAAAAAAAA")
-  message(STATUS "AAAAAAAAAAAAAAAAAAAAA")
-  message(STATUS "AAAAAAAAAAAAAAAAAAAAA")
-  message(STATUS ${catkin_INCLUDE_DIRS})
-
-  message(STATUS "inside USE_DRAKE " ${USE_DRAKE})
-  message(STATUS "xxx " ${catkin_INCLUDE_DIRS})
 
   find_package(Drake REQUIRED MODULE)
   find_package(Eigen REQUIRED)
@@ -279,9 +266,6 @@ endif()
 
 #####
 
-message(STATUS "about to $USE_DRC " ${USE_DRC})
-
-
 add_library(ddApp SHARED ${srcs})
 target_link_libraries(ddApp ${deps} )
 
@@ -295,7 +279,6 @@ add_executable(drake-visualizer drakeVisualizerApp.cpp)
 target_link_libraries(drake-visualizer ddApp)
 
 if(USE_DRC)
-  message(STATUS "doing $USE_DRC" $USE_DRC)
   add_executable(director main.cpp)
   target_link_libraries(director ddApp)
   list(APPEND _install_targets director)
