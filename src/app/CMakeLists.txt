@@ -242,14 +242,14 @@ if (USE_PERCEPTION)
 
   find_package(ZLIB REQUIRED)
 
-  find_package(bot2-core-lcmtypes REQUIRED)
+  #find_package(bot2-core-lcmtypes REQUIRED)
 
   find_library(CVUTILS_LIBRARY cv-utils DOC "The cv-utils library")
   find_path(CVUTILS_INCLUDE_DIR image_utils/jpeg.h PATH_SUFFIXES cv-utils DOC "Path to the cv-utils include directory")
 
-  set(CVUTILS_INCLUDE_DIRS ${CVUTILS_INCLUDE_DIR})
-  set(CVUTILS_LIBRARIES ${CVUTILS_LIBRARY})
-  include_directories(${CVUTILS_INCLUDE_DIRS})
+  #set(CVUTILS_INCLUDE_DIRS ${CVUTILS_INCLUDE_DIR})
+  #set(CVUTILS_LIBRARIES ${CVUTILS_LIBRARY})
+  #include_directories(${CVUTILS_INCLUDE_DIRS})
 
   set(moc_srcs)
   qt_wrap_cpp(moc_srcs
