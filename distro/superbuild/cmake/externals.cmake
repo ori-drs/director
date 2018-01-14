@@ -11,6 +11,7 @@ option(USE_STANDALONE_LCMGL "Build with standalone bot-lcmgl." OFF)
 option(USE_PERCEPTION "Build director features that require OpenCV, PCL, cv-utils, and libbot as dependencies." ON)
 
 option(USE_DRC "Build with DRC." ON)
+option(USE_DRC_MAPS "Build with DRC Maps." ON)
 
 option(USE_SYSTEM_EIGEN "Use system version of eigen.  If off, eigen will be built." OFF)
 option(USE_SYSTEM_LCM "Use system version of lcm.  If off, lcm will be built." ON)

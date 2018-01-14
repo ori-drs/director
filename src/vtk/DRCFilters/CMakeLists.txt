@@ -79,7 +79,8 @@ set(deps
 
 set(pkg_deps)
 
-find_package(catkin  REQUIRED COMPONENTS vs_lcmtypes bot_frames)
+find_package(catkin  REQUIRED COMPONENTS vs_lcmtypes bot_frames maps_server
+  maps_lcmtypes)
 
 list(APPEND deps
   ${catkin_LIBRARIES}
@@ -116,18 +117,15 @@ if (USE_DRC)
 
 endif()
 
-message("======================= USE_DRC:")
-message(${USE_DRC_MAPS})
-
 if (USE_DRC_MAPS)
-  find_package(Maps REQUIRED)
-  find_package(MapsLcm REQUIRED)
+  #find_package(Maps REQUIRED)
+  #find_package(MapsLcm REQUIRED)
   find_package(PCL REQUIRED)
 
   list(APPEND sources vtkMapServerSource.cxx)
   include_directories(${PCL_INCLUDE_DIRS})
-  include_directories(${MAPS_INCLUDE_DIRS})
-  list(APPEND deps ${MAPS_LIBRARIES} ${PCL_LIBRARIES} ${MAPSLCM_LIBRARIES})
+  #include_directories(${MAPS_INCLUDE_DIRS})
+  list(APPEND deps ${PCL_LIBRARIES})#${MAPS_LIBRARIES}  ${MAPSLCM_LIBRARIES})
 endif()
 
 if (USE_DRC_PLANE_SEG)

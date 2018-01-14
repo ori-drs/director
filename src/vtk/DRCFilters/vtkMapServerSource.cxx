@@ -43,12 +43,12 @@
 #include <lcmtypes/maps/scans_t.hpp>
 #include <lcmtypes/maps/data_request_t.hpp>
 
-#include <maps_lcm/LcmTranslator.hpp>
-#include <maps/DepthImageView.hpp>
-#include <maps/DepthImage.hpp>
-#include <maps/PointCloudView.hpp>
-#include <maps/OctreeView.hpp>
-#include <maps/ScanBundleView.hpp>
+#include <maps_server_lcm/LcmTranslator.hpp>
+#include <maps_server/DepthImageView.hpp>
+#include <maps_server/DepthImage.hpp>
+#include <maps_server/PointCloudView.hpp>
+#include <maps_server/OctreeView.hpp>
+#include <maps_server/ScanBundleView.hpp>
 
 #include <sys/select.h>
 #include <map>
