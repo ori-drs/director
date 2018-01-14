@@ -29,7 +29,7 @@ PURPOSE.  See the above copyright notice for more information.
 #include <map>
 
 
-#include "lcmtypes/visualization.h"
+#include "lcmtypes/vs.h"
 #include <sstream>
 
 #include <Eigen/Core>

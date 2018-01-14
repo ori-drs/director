@@ -79,12 +79,20 @@ set(deps
 
 set(pkg_deps)
 
+find_package(catkin  REQUIRED COMPONENTS vs_lcmtypes bot_frames)
+
+list(APPEND deps
+  ${catkin_LIBRARIES}
+)
+
+include_directories(${catkin_INCLUDE_DIRS})
+
 if (USE_DRC)
 
   # requires libbot, lcm, eigen, drc lcmtypes
 
-  find_package(LibBot REQUIRED MODULE)
-  include_directories(${LIBBOT_INCLUDE_DIRS})
+  #find_package(LibBot REQUIRED MODULE)
+  #include_directories(${LIBBOT_INCLUDE_DIRS})
 
   find_package(Eigen REQUIRED)
   include_directories(${EIGEN_INCLUDE_DIRS})
@@ -98,13 +106,13 @@ if (USE_DRC)
   )
 
   list(APPEND deps
-    ${LIBBOT_LIBRARIES}
+  #  ${LIBBOT_LIBRARIES}
     ${LCM_LIBRARIES}
   )
 
-  list(APPEND pkg_deps
-     drc-lcmtypes lcmtypes_maps
-  )
+  #list(APPEND pkg_deps
+  #   drc-lcmtypes lcmtypes_maps
+  #)
 
 endif()
 
@@ -165,9 +173,9 @@ if (USE_COLLECTIONS)
   list(APPEND sources vtkCollections.cxx)
   list(APPEND deps ${OPENGL_LIBRARIES})
 
-  list(APPEND pkg_deps
-    lcmtypes_visualization
-  )
+  #list(APPEND pkg_deps
+  #  lcmtypes_visualization
+  #)
 endif()
 
 

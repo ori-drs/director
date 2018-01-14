@@ -3,8 +3,9 @@ project(Superbuild)
 
 # I don't know if this function is used. Another call to find catkin
 # is used elsewhere
-find_package(catkin  REQUIRED COMPONENTS lcm_catkin bot_core_lcmtypes drake
-    maps_lcmtypes robotlocomotion_lcmtypes multisense_utils image_utils)
+find_package(catkin  REQUIRED COMPONENTS bot_core_lcmtypes drake
+    maps_lcmtypes robotlocomotion_lcmtypes multisense_utils image_utils bot_frames
+    vs_lcmtypes)
 
 # set a default build type if none was specified
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)

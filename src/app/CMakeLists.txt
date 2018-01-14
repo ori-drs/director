@@ -135,8 +135,9 @@ set(pkg_deps)
 
 #####
 
-
-find_package(catkin  REQUIRED COMPONENTS lcm_catkin bot_core_lcmtypes drake 
+# project name needed to avoid lcm_catkin clash
+project(ddApp)
+find_package(catkin  REQUIRED COMPONENTS bot_core_lcmtypes drake 
     maps_lcmtypes robotlocomotion_lcmtypes multisense_utils image_utils)
 
 if (USE_DRAKE)
@@ -216,8 +217,8 @@ endif()
 
 if (USE_PERCEPTION)
 
-  find_package(LibBot REQUIRED MODULE)
-  include_directories(${LIBBOT_INCLUDE_DIRS})
+  #find_package(LibBot REQUIRED MODULE)
+  #include_directories(${LIBBOT_INCLUDE_DIRS})
 
   find_package(PCL REQUIRED)
   include_directories(${PCL_INCLUDE_DIRS})
@@ -232,9 +233,13 @@ if (USE_PERCEPTION)
   find_library(CVUTILS_LIBRARY cv-utils DOC "The cv-utils library")
   find_path(CVUTILS_INCLUDE_DIR image_utils/jpeg.h PATH_SUFFIXES cv-utils DOC "Path to the cv-utils include directory")
 
-  set(CVUTILS_INCLUDE_DIRS ${CVUTILS_INCLUDE_DIR})
-  set(CVUTILS_LIBRARIES ${CVUTILS_LIBRARY})
-  include_directories(${CVUTILS_INCLUDE_DIRS})
+#  set(CVUTILS_INCLUDE_DIRS ${CVUTILS_INCLUDE_DIR})
+#  set(CVUTILS_LIBRARIES ${CVUTILS_LIBRARY})
+#  include_directories(${CVUTILS_INCLUDE_DIRS})
+#  find_package(catkin  REQUIRED COMPONENTS bot_core_lcmtypes
+#    bot_core bot_param bot_frames image_utils drake multisense_utils)
+
+  include_directories(${catkin_INCLUDE_DIRS})
 
   set(moc_srcs)
   qt_wrap_cpp(moc_srcs
@@ -255,7 +260,7 @@ if (USE_PERCEPTION)
   )
 
   list (APPEND deps
-    ${LIBBOT_LIBRARIES}
+#    ${LIBBOT_LIBRARIES}
     ${PCL_LIBRARIES}
     ${OpenCV_LIBS}
 #    ${CVUTILS_LIBRARIES}
