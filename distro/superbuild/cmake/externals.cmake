@@ -14,7 +14,7 @@ option(USE_DRC "Build with DRC." ON)
 
 option(USE_SYSTEM_EIGEN "Use system version of eigen.  If off, eigen will be built." OFF)
 option(USE_SYSTEM_LCM "Use system version of lcm.  If off, lcm will be built." ON)
-option(USE_SYSTEM_LIBBOT "Use system version of libbot.  If off, libbot will be built." OFF)
+option(USE_SYSTEM_LIBBOT "Use system version of libbot.  If off, libbot will be built." ON)
 option(USE_SYSTEM_PCL "Use system version of pcl.  If off, pcl will be built." OFF)
 option(USE_SYSTEM_VTK "Use system version of VTK.  If off, VTK will be built." ON)
 if(NOT USE_SYSTEM_VTK AND NOT APPLE)
@@ -132,11 +132,8 @@ endif()
 
 ###############################################################################
 # lcm
-message(STATUS "==============")
-message(STATUS "USE_LCM next" ${USE_LCM})
 
 if (USE_LCM AND NOT USE_SYSTEM_LCM)
-  message(STATUS "==============2")
 
 
   if(CMAKE_VERSION VERSION_LESS 3.1)
@@ -202,37 +199,37 @@ endif()
 
 if (USE_LCM AND NOT USE_SYSTEM_LIBBOT)
 
-  #ExternalProject_Add(bot_core_lcmtypes
-  #  GIT_REPOSITORY https://github.com/openhumanoids/bot_core_lcmtypes
-  #  GIT_TAG 9967654
-  #  ${cmake3_args}
-  #  CMAKE_CACHE_ARGS
-  #    ${default_cmake_args}
-  #    ${python_args}
+  ExternalProject_Add(bot_core_lcmtypes
+    GIT_REPOSITORY https://github.com/openhumanoids/bot_core_lcmtypes
+    GIT_TAG 9967654
+    ${cmake3_args}
+    CMAKE_CACHE_ARGS
+      ${default_cmake_args}
+      ${python_args}
 
-  #  DEPENDS
-  #    ${lcm_depends}
+    DEPENDS
+      ${lcm_depends}
 
       # build bot_core_lcmtypes after libbot, even though it is not a dependency.
       # see https://github.com/RobotLocomotion/libbot/issues/20
-  #    ${libbot_depends}
-  #  )
+      ${libbot_depends}
+    )
 
-  #ExternalProject_Add(robotlocomotion-lcmtypes
-  #  GIT_REPOSITORY https://github.com/robotlocomotion/lcmtypes.git
-  #  GIT_TAG 821ff4b
-  #  ${cmake3_args}
-  #  CMAKE_CACHE_ARGS
-  #    ${default_cmake_args}
-  #    ${python_args}
+  ExternalProject_Add(robotlocomotion-lcmtypes
+    GIT_REPOSITORY https://github.com/robotlocomotion/lcmtypes.git
+    GIT_TAG 821ff4b
+    ${cmake3_args}
+    CMAKE_CACHE_ARGS
+      ${default_cmake_args}
+      ${python_args}
 
-  #  DEPENDS
-  #    ${lcm_depends}
-  #    bot_core_lcmtypes
-  #  )
+    DEPENDS
+      ${lcm_depends}
+      bot_core_lcmtypes
+    )
 
-#    list(APPEND lcm_depends bot_core_lcmtypes)
-#    list(APPEND lcm_depends bot_core_lcmtypes robotlocomotion-lcmtypes)
+    list(APPEND lcm_depends bot_core_lcmtypes)
+    list(APPEND lcm_depends bot_core_lcmtypes robotlocomotion-lcmtypes)
 
 endif()
 

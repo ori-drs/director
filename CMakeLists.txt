@@ -44,15 +44,6 @@ option(USE_OCTOMAP "Build director with octomap dependency." OFF)
 option(USE_COLLECTIONS "Build director with collections dependency." OFF)
 option(USE_PERCEPTION "Build director features that require OpenCV, PCL, cv-utils, and libbot as dependencies." OFF)
 
-message("++++++++++++++++++++++++")
-message("++++++++++++++++++++++++")
-message("++++++++++++++++++++++++")
-message("++++++++++++++++++++++++")
-message("++++++++++++++++++++++++")
-message("++++++++++++++++++++++++")
-message("++++++++++++++++++++++++")
-
-
 use_cpp11()
 setup_qt()
 setup_python()
