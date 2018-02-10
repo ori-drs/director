@@ -168,6 +168,8 @@ public:
     }
 
     this->LCMHandle->subscribe("MULTISENSE_SCAN", &LCMListener::lidarHandler, this);
+
+    lastDirections = std::deque<int>(5,1);
   }
 
 
@@ -473,9 +475,39 @@ protected:
     double offsetSpindleAngle = spindleAngle - this->SplitAngle;
     offsetSpindleAngle = MyClamp(offsetSpindleAngle, this->SplitRange);
 
+    //printf("LastOffsetSpindleAng: %f\n", this->LastOffsetSpindleAngle);
     //printf("offset spindle angle: %f --> %f\n", spindleAngle, offsetSpindleAngle);
 
-    if (offsetSpindleAngle < this->LastOffsetSpindleAngle)
+    // Infer the direction of rotation by looking at the recent changes in joint angle
+    // Split the lidar sweep depending on the direction. This can support the direction
+    // changing mid experiment
+    if (this->LastOffsetSpindleAngle > offsetSpindleAngle) // anti clockwise
+      lastDirections.push_back(1);
+    else
+      lastDirections.push_back(-1); // clockwise
+    lastDirections.pop_front();
+
+    int directionsCount = 0;
+    for (size_t i=0;i< lastDirections.size(); i++)
+      directionsCount = directionsCount + lastDirections[i];
+
+    bool splitRevolution = false;
+    if (directionsCount > 0){ // Anticlockwise
+      if (offsetSpindleAngle > this->LastOffsetSpindleAngle){
+        // If the angle jumps up by 360 when rotating ACW
+        //std::cout << "Anticlockwise -----------------------------------------\n";
+        splitRevolution = true;
+      }
+    }else{ // Clockwise
+      if (offsetSpindleAngle < this->LastOffsetSpindleAngle){
+        // If the angle jumps down by 360 when rotating CW
+        //std::cout << "Clockwise +++++++++++++++++++++++++++++++++++++++++++++\n";
+        splitRevolution = true;
+      }
+    }
+
+
+    if (splitRevolution)
     {
       //printf("---> splitting revolution %d at angle %f, total scan lines: %d\n", this->CurrentRevolution, spindleAngle, this->ScanLines.size());
       this->CurrentRevolution++;
@@ -524,6 +556,8 @@ protected:
   std::deque<ScanLineData> ScanLines;
 
   std::shared_ptr<lcm::LCM> LCMHandle;
+
+  std::deque<int> lastDirections;
 
   std::shared_ptr<std::thread> Thread;
   std::shared_ptr<std::thread> SweepThread;
