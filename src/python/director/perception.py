@@ -429,23 +429,27 @@ class MultiSenseSource(TimerCallback):
     @staticmethod
     def sendMultisenseCommand(fps, gain, exposure, agc, rpm, led_flash, led_duty):
 
-        m = lcmmultisense.command_t()
-        m.utime = getUtime()
-        m.fps = fps
-        m.gain = gain
-        m.exposure_us = exposure
-        m.agc = agc
-        m.rpm = rpm
-        m.leds_flash = led_flash
-        m.leds_duty_cycle = led_duty
-        lcmUtils.publish('MULTISENSE_COMMAND', m)
-
         # Duplication to avoid needing multisense types dependency
         m2 = lcmbotcore.double_array_t()
-        m2.utime = m.utime
+        m2.utime = getUtime()
         m2.num_values = 1
         m2.values = [rpm]
         lcmUtils.publish('MULTISENSE_COMMAND_RPM', m2)
+
+        try:
+            m = lcmmultisense.command_t()
+            m.utime = m2.utime
+            m.fps = fps
+            m.gain = gain
+            m.exposure_us = exposure
+            m.agc = agc
+            m.rpm = rpm
+            m.leds_flash = led_flash
+            m.leds_duty_cycle = led_duty
+            lcmUtils.publish('MULTISENSE_COMMAND', m)
+        except:
+            print "Failed send full MULTISENSE_COMMAND message without LCM types"
+
 
     @staticmethod
     def setNeckPitch(neckPitchDegrees):
