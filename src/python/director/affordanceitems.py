@@ -262,6 +262,8 @@ class MeshAffordanceItem(AffordanceItem):
             t = transformUtils.copyFrame(childFrame.transform)
         else:
             t = vtk.vtkTransform()
+            # to keep the point cloud centered on the origin comment out these
+            # 4 lines:
             t.PostMultiply()
             t.Translate(filterUtils.computeCentroid(polyData))
             polyData = filterUtils.transformPolyData(polyData, t.GetLinearInverse())
