@@ -24,7 +24,8 @@ def setVisProperties(obj, colorModeEnabled):
 
 
 def colorizePoints(polyData):
-    cameras = ['CAMERACHEST_RIGHT', 'CAMERACHEST_LEFT', 'CAMERA_LEFT']
+    #cameras = ['CAMERACHEST_RIGHT', 'CAMERACHEST_LEFT', 'MULTISENSE_CAMERA_LEFT']
+    cameras = ['MULTISENSE_CAMERA_LEFT']
     for camera in cameras:
         cameraview.colorizePoints(polyData, camera)
 
