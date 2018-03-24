@@ -18,5 +18,7 @@
     <depend>robotlocomotion_lcmtypes</depend>
     <depend>multisense_utils</depend>
     <depend>image_utils</depend>
+    <depend>pcl_ros</depend>    
+    <depend>pcl_plugin</depend>    
 </package>
 
