@@ -37,10 +37,10 @@ DRILL_TRIANGLE_TOP_LEFT = 'top left'
 DRILL_TRIANGLE_TOP_RIGHT = 'top right'
 
 # prefer drc plane segmentation instead of PCL
-#try:
-#planeSegmentationFilter = vtk.vtkPlaneSegmentation
-#except AttributeError:
-#    planeSegmentationFilter = vtk.vtkPCLSACSegmentationPlane
+try:
+    planeSegmentationFilter = vtk.vtkPlaneSegmentation
+except AttributeError:
+    planeSegmentationFilter = vtk.vtkPCLSACSegmentationPlane
 
 
 _defaultSegmentationView = None
@@ -481,7 +481,7 @@ def applyPlaneFit(polyData, distanceThreshold=0.02, expectedNormal=None, perpend
 
     # perform plane segmentation
     f = planeSegmentationFilter()
-    f.SetInput(fitInput)
+    f.SetInputData(fitInput) #regression: vtk6->5. was SetInput
     f.SetDistanceThreshold(distanceThreshold)
     if perpendicularAxis is not None:
         f.SetPerpendicularConstraintEnabled(True)
@@ -517,11 +517,11 @@ def normalEstimation(dataObj, searchCloud=None, searchRadius=0.05, useVoxelGrid=
 
     f = vtk.vtkPCLNormalEstimation()
     f.SetSearchRadius(searchRadius)
-    f.SetInput(dataObj)
+    f.SetInputData(dataObj) #regression: vtk6->5. was SetInput
     if searchCloud:
-        f.SetInput(1, searchCloud)
+        f.SetInputData(1, searchCloud) #regression: vtk6->5. was SetInput
     elif useVoxelGrid:
-        f.SetInput(1, applyVoxelGrid(dataObj, voxelGridLeafSize))
+        f.SetInputData(1, applyVoxelGrid(dataObj, voxelGridLeafSize)) #regression: vtk6->5. was SetInput
     f.Update()
     dataObj = shallowCopy(f.GetOutput())
     dataObj.GetPointData().SetNormals(dataObj.GetPointData().GetArray('normals'))
@@ -1725,7 +1725,7 @@ def applyDiskGlyphs(polyData, computeNormals=True):
     else:
         pd = polyData
 
-    assert polyData.GetPointData().GetNormals()
+    assert pd.GetPointData().GetNormals()
 
     disk = vtk.vtkDiskSource()
     disk.SetOuterRadius(diskRadius)
@@ -1741,8 +1741,8 @@ def applyDiskGlyphs(polyData, computeNormals=True):
     glyph = vtk.vtkGlyph3D()
     glyph.ScalingOff()
     glyph.OrientOn()
-    glyph.SetSource(disk)
-    glyph.SetInput(pd)
+    glyph.SetSourceData(disk) #regression: vtk6->5. was SetSource
+    glyph.SetInputData(pd) #regression: vtk6->5. was SetInput
     glyph.SetVectorModeToUseNormal()
     glyph.Update()
 
@@ -1765,8 +1765,8 @@ def applyArrowGlyphs(polyData, computeNormals=True, voxelGridLeafSize=0.03, norm
 
     glyph = vtk.vtkGlyph3D()
     glyph.SetScaleFactor(arrowSize)
-    glyph.SetSource(arrow.GetOutput())
-    glyph.SetInput(polyData)
+    glyph.SetSourceData(arrow.GetOutput()) #regression: vtk6->5. was SetSource
+    glyph.SetInputData(polyData) #regression: vtk6->5. was SetInput
     glyph.SetVectorModeToUseNormal()
     glyph.Update()
 
@@ -3536,7 +3536,7 @@ def getOrientedBoundingBox(polyData):
 
     f = vtk.vtkAnnotateOBBs()
     f.SetInputArrayToProcess(0,0,0, vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS, labelsArrayName)
-    f.SetInput(polyData)
+    f.SetInputData(polyData) #regression: vtk6->5. was SetInput
     f.Update()
 
     assert f.GetNumberOfBoundingBoxes() == 1
