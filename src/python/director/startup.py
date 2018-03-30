@@ -529,7 +529,7 @@ if usePlanning:
         taskPanels['Quadruped'] = quadrupedTaskPanel.widget
 
 
-    tasklaunchpanel.init(taskPanels)
+    #tasklaunchpanel.init(taskPanels)
 
     splinewidget.init(view, handFactory, robotStateModel)
 
