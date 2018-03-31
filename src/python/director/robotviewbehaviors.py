@@ -46,7 +46,7 @@ lastRandomColor = 0.0
 
 
 def resetCameraToRobot(view):
-    t = robotModel.getLinkFrame('pelvis')
+    t = robotModel.getLinkFrame(drcargs.getDirectorConfig()['pelvisLink'] )
     if t is None:
         t = vtk.vtkTransform()
 
@@ -60,8 +60,9 @@ def resetCameraToRobot(view):
 
 def resetCameraToHeadView(view):
 
-    head = robotModel.getLinkFrame('head')
-    pelvis = robotModel.getLinkFrame('pelvis')
+
+    head = robotModel.getLinkFrame(drcargs.getDirectorConfig()['headLink'] )
+    pelvis = robotModel.getLinkFrame(drcargs.getDirectorConfig()['pelvisLink'] )
 
     viewDirection = np.array([1.0, 0.0, 0.0])
     pelvis.TransformVector(viewDirection, viewDirection)
