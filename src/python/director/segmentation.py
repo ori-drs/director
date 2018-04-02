@@ -100,7 +100,7 @@ icp.GetLandmarkTransform().SetModeToRigidBody()
 icp.Update()
 
 t = filtersGeneral.vtkTransformPolyDataFilter()
-t.SetInput(points.VTKObject)
+t.SetInputData(points.VTKObject)
 t.SetTransform(icp)
 t.Update()
 
@@ -330,7 +330,7 @@ def applyLocalPlaneFit(polyData, searchPoint, searchRadius, searchRadiusEnd=None
 
     f = vtk.vtkPCLNormalEstimation()
     f.SetSearchRadius(normalEstimationSearchRadius)
-    f.SetInput(polyData)
+    f.SetInputData(polyData)
     f.Update()
     scenePoints = shallowCopy(f.GetOutput())
 
@@ -393,7 +393,7 @@ def getMajorPlanes(polyData, useVoxelGrid=True):
     while len(polyDataList) < 25:
 
         f = planeSegmentationFilter()
-        f.SetInput(polyData)
+        f.SetInputData(polyData)
         f.SetDistanceThreshold(distanceToPlaneThreshold)
         f.Update()
         polyData = shallowCopy(f.GetOutput())
@@ -665,7 +665,7 @@ def extractCircle(polyData, distanceThreshold=0.04, radiusLimit=None):
 
     circleFit = vtk.vtkPCLSACSegmentationCircle()
     circleFit.SetDistanceThreshold(distanceThreshold)
-    circleFit.SetInput(polyData)
+    circleFit.SetInputData(polyData)
     if radiusLimit is not None:
         circleFit.SetRadiusLimit(radiusLimit)
         circleFit.SetRadiusConstraintEnabled(True)
@@ -679,7 +679,7 @@ def removeMajorPlane(polyData, distanceThreshold=0.02):
 
     # perform plane segmentation
     f = planeSegmentationFilter()
-    f.SetInput(polyData)
+    f.SetInputData(polyData)
     f.SetDistanceThreshold(distanceThreshold)
     f.Update()
 
@@ -2719,8 +2719,8 @@ def findHorizontalSurfaces(polyData, removeGroundFirst=False, normalEstimationSe
 
     f = vtk.vtkPCLNormalEstimation()
     f.SetSearchRadius(normalEstimationSearchRadius)
-    f.SetInput(scenePoints)
-    f.SetInput(1, applyVoxelGrid(scenePoints, voxelGridLeafSize))
+    f.SetInputData(scenePoints) #regression: vtk6->5. was SetInput
+    f.SetInputData(1, applyVoxelGrid(scenePoints, voxelGridLeafSize))
 
     # Duration 0.2 sec for V1 log:
     f.Update()
@@ -2859,7 +2859,7 @@ def findAndFitDrillBarrel(polyData=None):
 
     f = vtk.vtkPCLNormalEstimation()
     f.SetSearchRadius(normalEstimationSearchRadius)
-    f.SetInput(scenePoints)
+    f.SetInputData(scenePoints)
     f.Update()
     scenePoints = shallowCopy(f.GetOutput())
 
@@ -3511,13 +3511,16 @@ def binByScalar(lidarData, scalarArrayName, binWidth, binLabelsArrayName='bin_la
 
 
 def showObbs(polyData):
+    '''
+    This function seems to be entirely unused. Remove?
+    '''
 
     labelsArrayName = 'cluster_labels'
     assert polyData.GetPointData().GetArray(labelsArrayName)
 
     f = vtk.vtkAnnotateOBBs()
     f.SetInputArrayToProcess(0,0,0, vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS, labelsArrayName)
-    f.SetInput(polyData)
+    f.SetInputData(polyData)
     f.Update()
     showPolyData(f.GetOutput(), 'bboxes')
 

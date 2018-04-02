@@ -169,7 +169,7 @@ def getDebugFolder():
 def applyLineFit(dataObj, distanceThreshold=0.02):
 
     f = vtk.vtkPCLSACSegmentationLine()
-    f.SetInput(dataObj)
+    f.SetInputData(dataObj)
     f.SetDistanceThreshold(distanceThreshold)
     f.Update()
     origin = np.array(f.GetLineOrigin())
