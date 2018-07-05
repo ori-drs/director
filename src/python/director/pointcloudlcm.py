@@ -81,11 +81,12 @@ class PointCloudSource(TimerCallback):
         
         self.p = vtk.vtkPolyData()
         utime = PointCloudQueue.getPointCloudFromPointCloud(self.p)
-        self.polyDataObj = vis.PolyDataItem('pointcloud source', shallowCopy(self.p), view)
+        self.polyDataObj = vis.PolyDataItem('PointCloud source', shallowCopy(self.p), view)
         self.polyDataObj.actor.SetPickable(1)
         self.polyDataObj.initialized = False
 
-        om.addToObjectModel(self.polyDataObj)
+        sensorsFolder = om.getOrCreateContainer('sensors')
+        om.addToObjectModel(self.polyDataObj, sensorsFolder)
 
         self.queue = PythonQt.dd.ddBotImageQueue(lcmUtils.getGlobalLCMThread())
         self.queue.init(lcmUtils.getGlobalLCMThread(), drcargs.args().config_file)
@@ -138,14 +139,3 @@ def init(view):
 
     _pointcloudItem = PointCloudItem(_pointcloudSource)
     om.addToObjectModel(_pointcloudItem, sensorsFolder)
-    
-
-def startButton():
-    view = app.getCurrentRenderView()
-    init(view)
-    _pointcloudSource.start()
-
-try:
-    app.addToolbarMacro('start live pointcloud', startButton)
-except AttributeError:
-    pass
