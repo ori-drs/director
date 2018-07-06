@@ -169,9 +169,9 @@ class DisparityPointCloudItem(vis.PolyDataItem):
         self.addProperty('Channel', imagesChannel)
         self.addProperty('Camera name', cameraName)
 
-        self.addProperty('Decimation', 0, attributes=om.PropertyAttributes(enumNames=['1', '2', '4', '8', '16']))
+        self.addProperty('Decimation', 2, attributes=om.PropertyAttributes(enumNames=['1', '2', '4', '8', '16']))
         self.addProperty('Remove Size', 1000, attributes=om.PropertyAttributes(decimals=0, minimum=0, maximum=100000.0, singleStep=1000))
-        self.addProperty('Target FPS', 1.0, attributes=om.PropertyAttributes(decimals=1, minimum=0.1, maximum=30.0, singleStep=0.1))
+        self.addProperty('Target FPS', 5.0, attributes=om.PropertyAttributes(decimals=1, minimum=0.1, maximum=30.0, singleStep=0.1))
         self.addProperty('Max Range', 2.0,  attributes=om.PropertyAttributes(decimals=2, minimum=0., maximum=30.0, singleStep=0.25))
 
         self.timer = TimerCallback()
@@ -179,7 +179,7 @@ class DisparityPointCloudItem(vis.PolyDataItem):
         self.lastUtime = 0
         self.imageManager = imageManager
         self.cameraName = cameraName
-        self.setProperty('Visible', False)
+        self.setProperty('Visible', True)
         self.addProperty('Remove Stale Data', False)
         self.addProperty('Stale Data Timeout', 5.0, attributes=om.PropertyAttributes(decimals=1, minimum=0.1, maximum=30.0, singleStep=0.1))
         self.lastDataReceivedTime = time.time()
