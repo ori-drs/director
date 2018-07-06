@@ -319,6 +319,7 @@ def getBuiltinPackagePaths():
         'params/models/val_description',
         'params/models/hyq_description',
         'params/models/anymal_description',
+        'params/models/anymal_b_description',
         'params/models/lwr_defs',
         'params/models/husky_description',
         'params/models/mit_gazebo_models/mit_robot',
