@@ -211,10 +211,7 @@ class CameraView(object):
         self.updateUtimes = {}
         self.robotModel = None
         self.sphereObjects = {}
-        self.sphereImages = [
-                'MULTISENSE_CAMERA_LEFT',
-                'CAMERACHEST_RIGHT',
-                'CAMERACHEST_LEFT']
+        self.sphereImages = drcargs.getDirectorConfig()['monoCameras']
 
         for name in self.sphereImages:
             imageManager.addImage(name)
@@ -273,15 +270,6 @@ class CameraView(object):
         self.eventFilter.addFilteredEventType(QtCore.QEvent.KeyPress)
         self.eventFilter.connect('handleEvent(QObject*, QEvent*)', self.filterEvent)
 
-    def initImageRotations(self, robotModel):
-        self.robotModel = robotModel
-        # Rotate Multisense image/MULTISENSE_CAMERA_LEFT if the camera frame is rotated (e.g. for Valkyrie)
-        if robotModel.getHeadLink():
-            tf = robotModel.getLinkFrame(robotModel.getHeadLink())
-            roll = transformUtils.rollPitchYawFromTransform(tf)[0]
-            if np.isclose(np.abs(roll), np.pi, atol=1e-1):
-                self.imageManager.setImageRotation180('MULTISENSE_CAMERA_LEFT')
-
     def initView(self, view):
 
         self.view = view or app.getViewManager().createView('Camera View', 'VTK View')
@@ -305,8 +293,8 @@ class CameraView(object):
 
     def resetCamera(self):
         self.view.camera().SetViewAngle(90)
-        self.view.camera().SetPosition(-7.5, 0.0, 5.0)
-        self.view.camera().SetFocalPoint(0.0, 0.0, 0.0)
+        self.view.camera().SetPosition(2.1, 0.75, -1.0)
+        self.view.camera().SetFocalPoint(11.0, 0.76, -3.9)
         self.view.camera().SetViewUp(0.0, 0.0, 1.0)
         self.view.render()
 
@@ -320,13 +308,9 @@ class CameraView(object):
             return None
 
         sphereResolution = 50
-        sphereRadii = {
-                'MULTISENSE_CAMERA_LEFT' : 20,
-                'CAMERACHEST_LEFT' : 20,
-                'CAMERACHEST_RIGHT' : 20
-                }
+        sphereRadii = 20
 
-        geometry = makeSphere(sphereRadii[imageName], sphereResolution)
+        geometry = makeSphere(sphereRadii, sphereResolution)
         self.imageManager.queue.computeTextureCoords(imageName, geometry)
 
         tcoordsArrayName = 'tcoords_%s' % imageName
@@ -558,8 +542,8 @@ class CameraImageView(object):
     def initView(self, view):
         self.view = view or app.getViewManager().createView(self.viewName, 'VTK View')
         self.view.installImageInteractor()
-        self.interactorStyle = self.view.renderWindow().GetInteractor().GetInteractorStyle()
-        self.interactorStyle.AddObserver('SelectionChangedEvent', self.onRubberBandPick)
+        #self.interactorStyle = self.view.renderWindow().GetInteractor().GetInteractorStyle()
+        #self.interactorStyle.AddObserver('SelectionChangedEvent', self.onRubberBandPick)
 
         self.imageActor = vtk.vtkImageActor()
         self.imageActor.SetInputData(self.getImage())
@@ -750,15 +734,13 @@ def addCameraView(channel, viewName=None, cameraName=None, imageType=-1):
         warnings.warn(cameraName + " is not defined in the bot config")
 
     imageManager.queue.addCameraStream(channel, cameraName, imageType)
-    if cameraName == "MULTISENSE_CAMERA_LEFT":
-        import bot_core as lcmbotcore
-        imageManager.queue.addCameraStream(
-            "MULTISENSE_CAMERA", "MULTISENSE_CAMERA_LEFT", lcmbotcore.images_t.LEFT)
 
-    if cameraName == "OPENNI_FRAME_LEFT":
+    depthCameras = drcargs.getDirectorConfig()['depthCameras']
+    if (cameraName.find('_LEFT') > -1): # found
+        imagesChannel = cameraName.replace('_LEFT','')
         import bot_core as lcmbotcore
         imageManager.queue.addCameraStream(
-            "OPENNI_FRAME", "OPENNI_FRAME_LEFT", lcmbotcore.images_t.LEFT)
+            imagesChannel, cameraName, lcmbotcore.images_t.LEFT)
 
     imageManager.addImage(cameraName)
     view = CameraImageView(imageManager, cameraName, viewName)
@@ -904,23 +886,15 @@ def init():
         _modelName = drcargs.getDirectorConfig()['modelName']
         cameraNames = imageManager.queue.getCameraNames()
 
-        if "MULTISENSE_CAMERA_LEFT" in cameraNames:
-            addCameraView('MULTISENSE_CAMERA_LEFT', 'Head camera')
+        monoCameras = drcargs.getDirectorConfig()['monoCameras']
+        monoCamerasShortName = drcargs.getDirectorConfig()['monoCamerasShortName']
 
-        if "OPENNI_FRAME_LEFT" in cameraNames:
-            addCameraView('OPENNI_FRAME_LEFT', 'OpenNI')
+        for i in range( len(monoCameras)):
+            monoCamera = monoCameras[i]
+            monoCameraShortName = monoCamerasShortName[i]
+            if monoCamera in cameraNames:
+                addCameraView(monoCamera, monoCameraShortName)
 
         #import bot_core as lcmbotcore
         #addCameraView('MULTISENSE_CAMERA', 'Head camera right', 'MULTISENSE_CAMERA_RIGHT', lcmbotcore.images_t.RIGHT)
         #addCameraView('MULTISENSE_CAMERA', 'Head camera depth', 'MULTISENSE_CAMERA_DISPARITY', lcmbotcore.images_t.DISPARITY_ZIPPED)
-
-        if "atlas" in _modelName or "valkyrie" in _modelName:
-            addCameraView('CAMERACHEST_LEFT', 'Chest left')
-            addCameraView('CAMERACHEST_RIGHT', 'Chest right')
-
-        if "atlas" in drcargs.getDirectorConfig()['modelName']:
-            addCameraView('CAMERALHAND', 'Hand left')
-            addCameraView('CAMERARHAND', 'Hand right')
-
-        if "KINECT_RGB" in cameraNames:
-            addCameraView('KINECT_RGB', 'Kinect RGB')

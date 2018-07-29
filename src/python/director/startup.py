@@ -227,7 +227,6 @@ if usePerception:
     cameraview.init()
     colorize.init()
 
-    cameraview.cameraView.initImageRotations(robotStateModel)
     cameraview.cameraView.rayCallback = segmentation.extractPointsAlongClickRay
 
     if useMultisense:
@@ -240,13 +239,24 @@ if usePerception:
 
     sensordatarequestpanel.init()
 
-    # for kintinuous, use 'CAMERA_FUSED', 'CAMERA_TSDF'
-    disparityPointCloud = segmentation.DisparityPointCloudItem('stereo point cloud', 'MULTISENSE_CAMERA', 'MULTISENSE_CAMERA_LEFT', cameraview.imageManager)
-    disparityPointCloud.addToView(view)
-    om.addToObjectModel(disparityPointCloud, parentObj=om.findObjectByName('sensors'))
+    depthCameras = drcargs.getDirectorConfig()['depthCameras']
+    depthCamerasShortName = drcargs.getDirectorConfig()['depthCamerasShortName']
+
+
+    mainDisparityPointCloud = None
+    for i in range( len(depthCameras)):
+        depthCamera = depthCameras[i]
+        depthCameraShortName = depthCamerasShortName[i]
+        disparityPointCloud = segmentation.DisparityPointCloudItem(depthCameraShortName, depthCamera, str(depthCamera + '_LEFT'), cameraview.imageManager)
+        disparityPointCloud.addToView(view)
+        om.addToObjectModel(disparityPointCloud, parentObj=om.findObjectByName('sensors'))
+
+        if (i==0):
+            mainDisparityPointCloud = disparityPointCloud
+
 
     def createPointerTracker():
-        return trackers.PointerTracker(robotStateModel, disparityPointCloud)
+        return trackers.PointerTracker(robotStateModel, mainDisparityPointCloud)
 
 
 if useOpenniDepthImage:
@@ -707,12 +717,14 @@ if useDataFiles:
         actionhandlers.onOpenFile(filename)
 
 if useCameraFrustumVisualizer and cameraview.CameraFrustumVisualizer.isCompatibleWithConfig():
-    cameraFrustumVisualizer = cameraview.CameraFrustumVisualizer(robotStateModel, cameraview.imageManager, 'MULTISENSE_CAMERA_LEFT')
+    depthCameras = drcargs.getDirectorConfig()['depthCameras']
+    cameraFrustumVisualizer = cameraview.CameraFrustumVisualizer(robotStateModel, cameraview.imageManager, str(depthCameras[0] + '_LEFT') )
 
 class ImageOverlayManager(object):
 
     def __init__(self):
-        self.viewName = 'MULTISENSE_CAMERA_LEFT'
+        monoCameras = drcargs.getDirectorConfig()['monoCameras']
+        self.viewName = monoCameras[0]
         self.desiredWidth = 400
         self.position = [0, 0]
         self.usePicker = False
@@ -778,8 +790,9 @@ class ToggleImageViewHandler(object):
             self.manager.hide()
 
 
+monoCameras = drcargs.getDirectorConfig()['monoCameras']
 imageOverlayManager = ImageOverlayManager()
-imageWidget = cameraview.ImageWidget(cameraview.imageManager, 'MULTISENSE_CAMERA_LEFT', view, visible=False)
+imageWidget = cameraview.ImageWidget(cameraview.imageManager, monoCameras[0], view, visible=False)
 imageViewHandler = ToggleImageViewHandler(imageWidget)
 setImageWidgetSource = imageWidget.setImageName
 
