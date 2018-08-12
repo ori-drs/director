@@ -2732,8 +2732,8 @@ def findHorizontalSurfaces(polyData, removeGroundFirst=False, normalEstimationSe
     vtkNumpy.addNumpyToVtk(scenePoints, normalsDotUp, 'normals_dot_up')
     surfaces = thresholdPoints(scenePoints, 'normals_dot_up', normalsDotUpRange)
 
-    updatePolyData(scenePoints, 'scene points', parent=getDebugFolder(), colorByName='normals_dot_up', visible=verboseFlag)
-    updatePolyData(surfaces, 'surfaces points', parent=getDebugFolder(), colorByName='normals_dot_up', visible=verboseFlag)
+    updatePolyData(scenePoints, 'scene points', parent=getDebugFolder(), visible=verboseFlag)
+    updatePolyData(surfaces, 'surfaces points', parent=getDebugFolder(), visible=verboseFlag)
 
     clusters = extractClusters(surfaces, clusterTolerance=clusterTolerance, minClusterSize=minClusterSize)
     planeClusters = []
@@ -2750,13 +2750,6 @@ def findHorizontalSurfaces(polyData, removeGroundFirst=False, normalEstimationSe
 
         if planePoints.GetNumberOfPoints() > minClusterSize:
             clustersLarge.append(cluster)
-            obj = makePolyDataFields(planePoints)
-            if obj is not None:
-                planeClusters.append(obj)
-
-    folder = om.getOrCreateContainer('surface objects', parentObj=getDebugFolder())
-    if showClusters:
-        vis.showClusterObjects(planeClusters, parent=folder)
 
     return clustersLarge
 
