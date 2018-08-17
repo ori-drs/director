@@ -548,6 +548,17 @@ def addCoordArraysToPolyData(polyData):
     return polyData
 
 
+def addCoordArraysToPolyDataXYZ(polyData):
+    '''Only add these coordinates to keep file sizes smaller'''
+    polyData = shallowCopy(polyData)
+    points = vtkNumpy.getNumpyFromVtk(polyData, 'Points')
+    vtkNumpy.addNumpyToVtk(polyData, points[:,0].copy(), 'x')
+    vtkNumpy.addNumpyToVtk(polyData, points[:,1].copy(), 'y')
+    vtkNumpy.addNumpyToVtk(polyData, points[:,2].copy(), 'z')
+
+    return polyData
+
+
 def getDebugRevolutionData():
     #dataDir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../drc-data'))
     #filename = os.path.join(dataDir, 'valve_wall.vtp')
