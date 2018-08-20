@@ -3238,6 +3238,7 @@ class PointPicker(TimerCallback):
         self.numberOfPoints = numberOfPoints
         self.annotationObj = None
         self.drawLines = True
+        self.view = getSegmentationView()
         self.clear()
 
     def clear(self):
@@ -3314,7 +3315,7 @@ class PointPicker(TimerCallback):
             self.finish()
             return
 
-        pickedPointFields = pickPoint(self.lastMovePos, getSegmentationView(), obj='pointcloud snapshot')
+        pickedPointFields = pickPoint(self.lastMovePos, self.view, obj='pointcloud snapshot')
         self.hoverPos = pickedPointFields.pickedPoint
         self.draw()
 
