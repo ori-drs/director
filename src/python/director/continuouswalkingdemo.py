@@ -40,6 +40,7 @@ class BlockTop():
         self.rectDepth = rectDepth # length of face away from robot
         self.rectWidth = rectWidth # length of face perpendicular to robot's toes
         self.rectArea = rectArea
+        print "Stop using this BlockTop class. Depreciated in favour of segmentation_drs"
 
     def getCorners(self):
         '''
@@ -193,9 +194,16 @@ class ContinousWalkingDemo(object):
         # get the rectangles from the clusters:
         blocks = []
         for i, cluster in enumerate(clusters):
-                cornerTransform, rectDepth, rectWidth, rectArea = segmentation.findMinimumBoundingRectangle( cluster, linkFrame )
+                blockTransform, rectDepth, rectWidth, rectArea = segmentation.findMinimumBoundingRectangle( cluster, linkFrame )
                 #print 'min bounding rect:', rectDepth, rectWidth, rectArea, cornerTransform.GetPosition()
 
+                blockCenterOffset = transformUtils.frameFromPositionAndRPY([rectDepth/2,-rectWidth/2,0.0], [0,0,0])
+                cornerTransform = transformUtils.copyFrame(blockTransform)
+                cornerTransform.PreMultiply()
+                cornerTransform.Concatenate(blockCenterOffset)
+
+                # BlockTop in this file uses the odd convention of storing the cornerTransform
+                # This is depreciated, used segmentation_drs's BlockTop class instead
                 block = BlockTop(cornerTransform, rectDepth, rectWidth, rectArea)
                 blocks.append(block)
 

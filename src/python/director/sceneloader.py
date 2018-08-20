@@ -117,7 +117,7 @@ class SceneLoader(object):
         
                     
     def generateSDFfromAffordances(self):
-        filename= os.environ['DRC_BASE'] + '/software/models/worlds/directorAffordances.sdf'
+        filename= os.environ['HOME'] + '/directorAffordances.sdf'
         sdfFile = open(filename, 'w')
         am = segmentation.affordanceManager
         affordances = am.getAffordances()

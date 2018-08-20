@@ -2543,20 +2543,13 @@ def segmentTableAndFrame(polyData, searchPoint):
     robotYaw = math.atan2( viewDirection[1], viewDirection[0] )*180.0/np.pi
     linkFrame = transformUtils.frameFromPositionAndRPY( viewFrame.GetPosition() , [0,0, robotYaw ] )    
 
-    # Function returns corner point that is far right from the robot
-    cornerTransform, rectDepth, rectWidth, _ = findMinimumBoundingRectangle(tablePoints, linkFrame)
+    # Function returns mid point of table, facing away from robot
+    tableTransform, rectDepth, rectWidth, _ = findMinimumBoundingRectangle(tablePoints, linkFrame)
     rectHeight = 0.02 # arbitrary table width
-   
-    # recover mid point
-    t = transformUtils.copyFrame(cornerTransform)
-    t.PreMultiply()
-    table_center = [-rectDepth/2, rectWidth/2, 0]
-    t3 = transformUtils.frameFromPositionAndRPY(table_center,[0,0,0])
-    t.Concatenate(t3)
 
     # Create required outputs
     edgeLengths = [rectDepth, rectWidth, rectHeight]
-    tableXAxis, tableYAxis, tableZAxis = transformUtils.getAxesFromTransform(t)
+    tableXAxis, tableYAxis, tableZAxis = transformUtils.getAxesFromTransform(tableTransform)
     axes = tableXAxis, tableYAxis, tableZAxis
     wf = vtk.vtkOutlineSource()
     wf.SetBounds([-rectDepth/2,rectDepth/2, -rectWidth/2,rectWidth/2, -rectHeight/2,rectHeight/2])
@@ -2565,11 +2558,11 @@ def segmentTableAndFrame(polyData, searchPoint):
     #wf.SetCorners(cube)
     wireframe = wf.GetOutput()
 
-    tablePoints = transformPolyData(tablePoints, t.GetLinearInverse())
+    tablePoints = transformPolyData(tablePoints, tableTransform.GetLinearInverse())
     #wireframe = transformPolyData(wireframe, t.GetLinearInverse())
-    tableMesh = transformPolyData(tableMesh, t.GetLinearInverse())
+    tableMesh = transformPolyData(tableMesh, tableTransform.GetLinearInverse())
 
-    return FieldContainer(points=tablePoints, box=wireframe, mesh=tableMesh, frame=t, dims=edgeLengths, axes=axes), polyData
+    return FieldContainer(points=tablePoints, box=wireframe, mesh=tableMesh, frame=tableTransform, dims=edgeLengths, axes=axes), polyData
 
 
 def segmentDrillAuto(point1, polyData=None):
@@ -4748,7 +4741,8 @@ def findMinimumBoundingRectangle(polyData, linkFrame):
     '''
     Find minimum bounding rectangle of a rectangular point cloud
     The input is assumed to be a rectangular point cloud e.g. the top of a block or table
-    Returns transform of far right corner (pointing away from robot)
+    Returns transform of center of rectangle (pointing away from robot)
+    Previously returned the cornerTransform
     '''
 
     # Originally From: https://github.com/dbworth/minimum-area-bounding-rectangle
@@ -4810,9 +4804,16 @@ def findMinimumBoundingRectangle(polyData, linkFrame):
 
     vis.showFrame(cornerTransform, "cornerTransform", parent=getDebugFolder(), visible=False)
 
+    blockCenterOffset = transformUtils.frameFromPositionAndRPY([-rectDepth/2,rectWidth/2,0.0], [0,0,0])
+    blockTransform = transformUtils.copyFrame(cornerTransform)
+    blockTransform.PreMultiply()
+    blockTransform.Concatenate(blockCenterOffset)
+
+    vis.showFrame(blockTransform, "blockTransform", parent=getDebugFolder(), visible=False)
+
     #print "Minimum area bounding box:"
     #print "Rotation angle:", rot_angle, "rad  (", rot_angle*(180/math.pi), "deg )"
     #print "rectDepth:", rectDepth, " rectWidth:", rectWidth, "  Area:", rectArea
     #print "Center point: \n", center_point # numpy array
     #print "Corner points: \n", cornerPoints, "\n"  # numpy array
-    return cornerTransform, rectDepth, rectWidth, rectArea
+    return blockTransform, rectDepth, rectWidth, rectArea

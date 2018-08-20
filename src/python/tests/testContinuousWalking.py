@@ -30,6 +30,8 @@ def processSingleBlock(robotStateModel, whichFile=0):
     else:
         polyData = ioUtils.readPolyData(os.path.join(dataDir, 'terrain/block_top.vtp'))
 
+    vis.updatePolyData( polyData, 'input polydata', parent='continuous')
+
     standingFootName = cwdemo.ikPlanner.leftFootLink
     standingFootFrame = robotStateModel.getLinkFrame(standingFootName)
     segmentation.findMinimumBoundingRectangle(polyData, standingFootFrame)
