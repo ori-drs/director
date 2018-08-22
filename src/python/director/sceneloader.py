@@ -35,10 +35,10 @@ class SceneLoader(object):
                 t.PreMultiply()
                 t.Concatenate(t3)
                 p = transformUtils.poseFromTransform(t)
-                name = model.name
+                name = "" # model.name
                 color = col.color[0:3] if col.color is not None else [0.8,0.8,0.8]
-                if len(link.name)>0 and link.name != model.name:
-                    name+='-'+link.name
+                if len(link.name)>0: # and link.name != model.name:
+                    name+=link.name
                 if len(col.name)>0 and len(link.collisions)>1:
                     name+='-'+col.name
                 if col.geometry_type=='mesh':
@@ -78,10 +78,6 @@ class SceneLoader(object):
         link.find('visual/geometry/box').append(etree.Element('size'))
         link.find('visual/geometry/box/size').text = ' '.join(map(str, dimensions))
         link.find('visual').append(etree.Element('material'))
-        link.find('visual/material').append(etree.Element('diffuse'))
-        link.find('visual/material/diffuse').text = '{:s} {:.1f}'.format(' '.join(map(str, aff.getDescription()['Color'])), aff.getDescription()['Alpha'])
-        link.find('visual/material').append(etree.Element('ambient'))
-        link.find('visual/material/ambient').text = '0 0 0 1'
         
         return link
     
@@ -108,10 +104,6 @@ class SceneLoader(object):
         link.find('visual/geometry/cylinder').append(etree.Element('length'))
         link.find('visual/geometry/cylinder/length').text = '{:.4f}'.format(aff.getDescription()['Length'])
         link.find('visual').append(etree.Element('material'))
-        link.find('visual/material').append(etree.Element('diffuse'))
-        link.find('visual/material/diffuse').text = '{:s} {:.1f}'.format(' '.join(map(str, aff.getDescription()['Color'])), aff.getDescription()['Alpha'])
-        link.find('visual/material').append(etree.Element('ambient'))
-        link.find('visual/material/ambient').text = '0 0 0 1'
         
         return link
         
@@ -124,22 +116,22 @@ class SceneLoader(object):
         
         root = etree.Element('sdf', {'version': '1.4'})
         tree = etree.ElementTree(root)
-        world = etree.Element('world', {'name': 'directorAffordances'})
+        world = etree.Element('model', {'name': 'model'})
         root.append(world)
+
+        world.append(etree.Element('pose'))
+        world.find('pose').text = '0 0 0 0 0 0'
+
+        world.append(etree.Element('static'))
+        world.find('static').text = 'true'
         
         for aff in affordances:
             if aff.getDescription()['classname'] in ['BoxAffordanceItem', 'CylinderAffordanceItem']:
                 
-                model = etree.Element('model', {'name': aff.getDescription()['Name']})
-                world.append(model)
-                
-                model.append(etree.Element('pose'))
-                model.find('pose').text = '0 0 0 0 0 0'
-                
                 if aff.getDescription()['classname'] == 'BoxAffordanceItem':
-                    model.append(self.generateBoxLinkNode(aff))
+                    world.append(self.generateBoxLinkNode(aff))
                 elif aff.getDescription()['classname'] == 'CylinderAffordanceItem':
-                    model.append(self.generateCylinderLinkNode(aff))
+                    world.append(self.generateCylinderLinkNode(aff))
             else:
                 print '{:s} is unsupported skipping {:s} affordance!'.format(aff.getDescription()['classname'], aff.getDescription()['Name'])
         
