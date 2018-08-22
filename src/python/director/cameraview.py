@@ -766,6 +766,12 @@ def getStereoPointCloud(decimation=4, imagesChannel='MULTISENSE_CAMERA', cameraN
       q.getTransform(cameraName, 'local', utime, cameraToLocal)
       p = filterUtils.transformPolyData(p, cameraToLocal)
 
+    # add x,y,z labels
+    points = vtkNumpy.getNumpyFromVtk(p, 'Points')
+    vtkNumpy.addNumpyToVtk(p, points[:,0].copy(), 'x')
+    vtkNumpy.addNumpyToVtk(p, points[:,1].copy(), 'y')
+    vtkNumpy.addNumpyToVtk(p, points[:,2].copy(), 'z')
+
     return p
 
 

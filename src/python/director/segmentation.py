@@ -220,12 +220,14 @@ class DisparityPointCloudItem(vis.PolyDataItem):
         polyData = getDisparityPointCloud(decimation, imagesChannel=self.getProperty('Channel'), cameraName=self.getProperty('Camera name'),
                                           removeOutliers=False, removeSize=removeSize, rangeThreshold = rangeThreshold)
 
+        bodyToLocal = vtk.vtkTransform()
+        self.imageManager.queue.getTransform('body', 'local', utime, bodyToLocal)
+        bodyHeight = bodyToLocal.GetPosition()[2]
+        self.setRangeMap('z',[bodyHeight-0.5, bodyHeight+0.5])
+        self._updateColorBy()
+
         self.setPolyData(polyData)
         self.lastDataReceivedTime = time.time()
-
-        if polyData.GetNumberOfPoints() > 0 and not self.lastUtime:
-            self.setProperty('Color By', 'rgb_colors')
-           
 
         self.lastUtime = utime
 

@@ -121,6 +121,17 @@ class PointCloudSource(TimerCallback):
         sensorToLocalFused = vtk.vtkTransform()
         self.queue.getTransform('VELODYNE', 'local', utime, sensorToLocalFused)
         p = filterUtils.transformPolyData(p,sensorToLocalFused)
+
+        # Add x,y,z labels
+        points = vtkNumpy.getNumpyFromVtk(p, 'Points')
+        vtkNumpy.addNumpyToVtk(p, points[:,0].copy(), 'x')
+        vtkNumpy.addNumpyToVtk(p, points[:,1].copy(), 'y')
+        vtkNumpy.addNumpyToVtk(p, points[:,2].copy(), 'z')
+        bodyToLocal = vtk.vtkTransform()
+        self.queue.getTransform('body', 'local', utime, bodyToLocal)
+        bodyHeight = bodyToLocal.GetPosition()[2]
+        self.polyDataObj.setRangeMap('z', [bodyHeight-0.5, bodyHeight+0.5])
+
         self.polyDataObj.setPolyData(p)
 
         if not self.polyDataObj.initialized:
