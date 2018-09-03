@@ -169,9 +169,9 @@ class DisparityPointCloudItem(vis.PolyDataItem):
         self.addProperty('Channel', imagesChannel)
         self.addProperty('Camera name', cameraName)
 
-        self.addProperty('Decimation', 2, attributes=om.PropertyAttributes(enumNames=['1', '2', '4', '8', '16']))
+        self.addProperty('Decimation', 1, attributes=om.PropertyAttributes(enumNames=['1', '2', '4', '8', '16']))
         self.addProperty('Remove Size', 1000, attributes=om.PropertyAttributes(decimals=0, minimum=0, maximum=100000.0, singleStep=1000))
-        self.addProperty('Target FPS', 10.0, attributes=om.PropertyAttributes(decimals=1, minimum=0.1, maximum=30.0, singleStep=0.1))
+        self.addProperty('Target FPS', 5.0, attributes=om.PropertyAttributes(decimals=1, minimum=0.1, maximum=30.0, singleStep=0.1))
         self.addProperty('Max Range', 5.0,  attributes=om.PropertyAttributes(decimals=2, minimum=0., maximum=30.0, singleStep=0.25))
 
         self.timer = TimerCallback()
@@ -604,7 +604,7 @@ def getCurrentRevolutionData(useVoxelGrid=False):
     return addCoordArraysToPolyData(revPolyData)
 
 
-def getDisparityPointCloud(decimation=4, removeOutliers=True, removeSize=0, rangeThreshold=-1, imagesChannel='REALSENSE_CAMERA', cameraName='CAMERA_LEFT'):
+def getDisparityPointCloud(decimation=2, removeOutliers=True, removeSize=0, rangeThreshold=-1, imagesChannel='REALSENSE_CAMERA', cameraName='CAMERA_LEFT'):
 
     p = cameraview.getStereoPointCloud(decimation, imagesChannel=imagesChannel, cameraName=cameraName, removeSize=removeSize, rangeThreshold=rangeThreshold)
     if not p:
