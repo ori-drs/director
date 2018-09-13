@@ -32,7 +32,7 @@ class WidgetDict(object):
 
 class FootstepsPanel(object):
 
-    def __init__(self, driver, robotModel, jointController, irisDriver):
+    def __init__(self, driver, robotModel, jointController):
 
         self.driver = driver
         self.robotModel = robotModel
@@ -46,7 +46,7 @@ class FootstepsPanel(object):
 
         self.placer = None
 
-        self.irisDriver = irisDriver
+        #self.irisDriver = irisDriver
         self.region_seed_frames = []
 
         self.ui = WidgetDict(self.widget.children())
@@ -65,8 +65,8 @@ class FootstepsPanel(object):
         self.ui.hideBDIButton.connect("clicked()", self.onHideBDIButton)
         self.ui.showBDIButton.connect("clicked()", self.onShowBDIButton)
 
-        self.ui.newRegionSeedButton.connect("clicked()", self.onNewRegionSeed)
-        self.ui.autoIRISSegmentationButton.connect("clicked()", self.onAutoIRISSegmentation)
+        #self.ui.newRegionSeedButton.connect("clicked()", self.onNewRegionSeed)
+        #self.ui.autoIRISSegmentationButton.connect("clicked()", self.onAutoIRISSegmentation)
         self._setupPropertiesPanel()
 
 
@@ -77,12 +77,12 @@ class FootstepsPanel(object):
         for obj in folder.children():
             obj.setProperty('Visible', self.driver.show_contact_slices)
 
-    def onNewRegionSeed(self):
-        t = self.newWalkingGoalFrame(self.robotModel, distanceForward=0.5)
-        self.irisDriver.newTerrainItem(t)
+    #def onNewRegionSeed(self):
+    #    t = self.newWalkingGoalFrame(self.robotModel, distanceForward=0.5)
+    #    self.irisDriver.newTerrainItem(t)
 
-    def onAutoIRISSegmentation(self):
-        self.irisDriver.autoIRISSegmentation()
+    #def onAutoIRISSegmentation(self):
+    #    self.irisDriver.autoIRISSegmentation()
 
     def _setupPropertiesPanel(self):
 

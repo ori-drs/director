@@ -84,16 +84,7 @@
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
     <layout class="QVBoxLayout" name="verticalLayout">
-     <property name="leftMargin">
-      <number>0</number>
-     </property>
-     <property name="topMargin">
-      <number>0</number>
-     </property>
-     <property name="rightMargin">
-      <number>0</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>0</number>
      </property>
      <item>
@@ -142,16 +133,7 @@
      <property name="spacing">
       <number>0</number>
      </property>
-     <property name="leftMargin">
-      <number>0</number>
-     </property>
-     <property name="topMargin">
-      <number>0</number>
-     </property>
-     <property name="rightMargin">
-      <number>0</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>0</number>
      </property>
      <item>
@@ -168,7 +150,7 @@
           <x>0</x>
           <y>0</y>
           <width>256</width>
-          <height>219</height>
+          <height>211</height>
          </rect>
         </property>
        </widget>
@@ -186,16 +168,7 @@
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_3">
     <layout class="QVBoxLayout" name="verticalLayout_2">
-     <property name="leftMargin">
-      <number>0</number>
-     </property>
-     <property name="topMargin">
-      <number>0</number>
-     </property>
-     <property name="rightMargin">
-      <number>0</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>0</number>
      </property>
      <item>
@@ -241,14 +214,9 @@
     <bool>false</bool>
    </attribute>
    <addaction name="ActionAtlasDriverPanel"/>
-   <addaction name="ActionNavigationPanel"/>
-   <addaction name="ActionMappingPanel"/>
    <addaction name="ActionMultisensePanel"/>
    <addaction name="ActionFootstepPanel"/>
    <addaction name="ActionHandControlPanel"/>
-   <addaction name="ActionTeleopPanel"/>
-   <addaction name="ActionMotionPlanningPanel"/>
-   <addaction name="ActionTaskManagerPanel"/>
    <addaction name="ActionScreenGrabberPanel"/>
    <addaction name="ActionSensorDataRequestPanel"/>
    <addaction name="ActionTaskLauncher"/>

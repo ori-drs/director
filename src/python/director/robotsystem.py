@@ -12,24 +12,32 @@ class RobotSystemFactory(object):
             'Segmentation' : [],
             'SegmentationRobotState' : ['Segmentation', 'RobotState'],
             'SegmentationAffordances' : ['Segmentation', 'Affordances'],
-            'PerceptionDrivers' : ['RobotState', 'Planning'],
+            'PerceptionDrivers' : ['RobotState'],
             'HandDrivers' : [],
             'Footsteps' : ['RobotState'],
             'RaycastDriver' : ['Footsteps'],
             'IRISDriver' : ['RobotState', 'Footsteps'],
             'AtlasDriver' : [],
-            'Planning' : ['RobotState'],
-            'Playback' : ['Planning'],
-            'Teleop' : ['Planning', 'Playback', 'Affordances'],
-            'ConvexHullModel' : ['Playback'],
-            'FootstepsPlayback' : ['Footsteps', 'Playback'],
+            'Planning' : ['RobotState'],#x
+            'Playback' : ['Planning'],#x
+            'Teleop' : ['Planning', 'Playback', 'Affordances'],#x
+            'ConvexHullModel' : ['Playback'],#x
+            'FootstepsPlayback' : ['Footsteps', 'Playback'],#x
             'Affordances' : [],
-            'PlannerPublisher' : ['Planning', 'Affordances'],
-            'ViewBehaviors' : ['Footsteps', 'PerceptionDrivers', 'Planning', 'Affordances'],
-            'RobotLinkSelector' : ['ViewBehaviors']}
+            'PlannerPublisher' : ['Planning', 'Affordances'],#x
+            #'ViewBehaviors' : ['Footsteps', 'PerceptionDrivers', 'Planning', 'Affordances'],
+            'ViewBehaviors' : ['Footsteps', 'PerceptionDrivers', 'Affordances'], 
+            'RobotLinkSelector' : ['ViewBehaviors']} #x
 
         disabledComponents = [
             'ConvexHullModel',
+            'Teleop',
+            'Planning',
+            'IRISDriver',
+            'PlannerPublisher',
+            'Playback',
+            'FootstepsPlayback',
+            'RaycastDriver',
             'RobotLinkSelector']
 
         return components, disabledComponents
@@ -81,19 +89,6 @@ class RobotSystemFactory(object):
 
         multisenseDriver, mapServerSource = perception.init(robotSystem.view)
 
-        useNeckDriver = hasattr(robotSystem.ikPlanner, 'neckPitchJoint')
-        if useNeckDriver:
-            neckPitchJoint = robotSystem.ikPlanner.neckPitchJoint
-            neckPitchIndex = robotstate.getDrakePoseJointNames().index(neckPitchJoint)
-
-            def getNeckPitch():
-                return robotSystem.robotStateJointController.q[neckPitchIndex]
-
-            neckDriver = perception.NeckDriver(robotSystem.view, getNeckPitch)
-        else:
-            neckDriver = None
-
-
         spindleJoint = 'hokuyo_joint'
 
         def getSpindleAngleFunction():
@@ -109,7 +104,6 @@ class RobotSystemFactory(object):
 
         return FieldContainer(multisenseDriver=multisenseDriver,
                                 mapServerSource=mapServerSource,
-                                neckDriver=neckDriver,
                                 spindleMonitor=spindleMonitor)
 
     def initHandDrivers(self, robotSystem):

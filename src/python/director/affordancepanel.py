@@ -29,12 +29,11 @@ class WidgetDict(object):
 
 class AffordancePanel(object):
 
-    def __init__(self, view, affordanceManager, jointController=None, raycastDriver=None):
+    def __init__(self, view, affordanceManager, jointController=None):
 
         self.view = view
         self.affordanceManager = affordanceManager
         self.jointController = jointController
-        self.raycastDriver = raycastDriver
 
         loader = QtUiTools.QUiLoader()
         uifile = QtCore.QFile(':/ui/ddAffordancePanel.ui')
@@ -51,10 +50,6 @@ class AffordancePanel(object):
         self.ui.spawnCapsuleButton.connect('clicked()', self.onSpawnCapsule)
         self.ui.spawnRingButton.connect('clicked()', self.onSpawnRing)
         self.ui.spawnMeshButton.connect('clicked()', self.onSpawnMesh)
-        self.ui.getRaycastTerrainButton.connect('clicked()', self.onGetRaycastTerrain)
-
-        if not self.raycastDriver:
-            self.ui.getRaycastTerrainButton.hide()
 
         self.eventFilter = PythonQt.dd.ddPythonEventFilter()
         self.ui.scrollArea.installEventFilter(self.eventFilter)
@@ -78,11 +73,6 @@ class AffordancePanel(object):
             frame = vtk.vtkTransform()
 
         return frame
-
-    def onGetRaycastTerrain(self):
-        affs = self.affordanceManager.getCollisionAffordances()
-        xy = self.jointController.q[:2]
-        self.raycastDriver.requestRaycast(affs, xy-2, xy+2)
 
     def onSpawnBox(self):
         pose = transformUtils.poseFromTransform(self.getSpawnFrame())
@@ -125,12 +115,12 @@ def _getAction():
     return None
 
 
-def init(view, affordanceManager, jointController, raycastDriver):
+def init(view, affordanceManager, jointController):
 
     global panel
     global dock
 
-    panel = AffordancePanel(view, affordanceManager, jointController, raycastDriver)
+    panel = AffordancePanel(view, affordanceManager, jointController)
     dock = app.addWidgetToDock(panel.widget, action=_getAction())
     dock.hide()
 

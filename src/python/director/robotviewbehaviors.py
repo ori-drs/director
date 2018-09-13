@@ -38,8 +38,6 @@ import bot_core as lcmbotcore
 # These could be refactored to be members of a new behaviors class.
 robotSystem = None
 robotModel = None
-handFactory = None
-neckDriver = None
 footstepsDriver = None
 robotLinkSelector = None
 lastRandomColor = 0.0
@@ -539,10 +537,6 @@ viewbehaviors.registerContextMenuActions(getRobotActions)
 
 class RobotViewEventFilter(ViewEventFilter):
 
-    def onMouseWheel(self, event):
-        if neckDriver:
-            neckDriver.onWheelDelta(event.delta())
-
     def onMouseMove(self, event):
 
         for picker in segmentation.viewPickers:
@@ -593,25 +587,8 @@ class RobotViewEventFilter(ViewEventFilter):
             if robotModel is not None:
                 resetCameraToRobot(self.view)
 
-        elif key == 's':
-            if handFactory is not None:
-                side = 'left' if event.modifiers() != QtCore.Qt.ShiftModifier else 'right'
-                placeHandModel(self.getCursorDisplayPosition(), self.view, side)
-        elif key == 'n':
-            if neckDriver:
-                neckDriver.activateNeckControl()
-
-        elif key in ['0', '1', '2', '3']:
-            if neckDriver:
-                neckDriver.applyNeckPitchPreset(int(key))
-
         if consumed:
             self.consumeEvent()
-
-    def onKeyRelease(self, event):
-        if str(event.text()).lower() == 'n':
-            if neckDriver:
-                neckDriver.deactivateNeckControl()
 
 
 class KeyPressLogCommander(ViewEventFilter):
@@ -652,12 +629,10 @@ class RobotViewBehaviors(object):
         self.logCommander = KeyPressLogCommander(view)
         self.robotViewBehaviors = RobotViewEventFilter(view)
 
-        global robotSystem, robotModel, handFactory, footstepsDriver, neckDriver, robotLinkSelector
+        global robotSystem, robotModel, footstepsDriver, robotLinkSelector
 
         robotSystem = _robotSystem
         robotModel = robotSystem.robotStateModel
-        handFactory = robotSystem.handFactory
         footstepsDriver = robotSystem.footstepsDriver
-        #neckDriver = robotSystem.neckDriver
         if app.getMainWindow() is not None:
             robotLinkSelector = RobotLinkSelector()

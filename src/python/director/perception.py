@@ -609,68 +609,6 @@ class LidarSource(TimerCallback):
     def setIntensityRange(self, lowerBound, upperBound):
         self.polyDataObj.setRangeMap('intensity', [lowerBound, upperBound])
 
-class NeckDriver(object):
-
-    def __init__(self, view, getNeckPitchFunction):
-        self.active = False
-        self.view = view
-        self.delta = 0
-        self.textObj = None
-        self._getNeckPitchFunction = getNeckPitchFunction
-        self.presetMap = {0:0, 1:60, 2:45, 3:30}
-
-    def showText(self, neckPitch):
-        if not self.view:
-            return
-        self.textObj = vis.updateText('Neck pitch: %d' % neckPitch, 'Neck Pitch Annotation', parent='spindle axis')
-
-    def cleanupText(self):
-        if self.textObj:
-            om.removeFromObjectModel(self.textObj)
-            self.textObj = None
-
-    def activateNeckControl(self):
-        if not self.active:
-            self.active = True
-            self.delta = 0
-
-    def getNeckPitchDegrees(self):
-        return math.degrees(self._getNeckPitchFunction())
-
-    def applyNeckPitchPreset(self, presetId):
-        if not self.active:
-            return False
-        self.setNeckPitch(self.presetMap[presetId])
-        return True
-
-
-    def applyNeckPitchDelta(self, delta):
-        if delta == 0:
-            return
-
-        neckPitch = self.getNeckPitchDegrees() + delta
-        neckPitch = np.clip(neckPitch, -90, 90)
-        self.setNeckPitch(neckPitch)
-
-    def setNeckPitch(self, neckPitch):
-        MultiSenseSource.setNeckPitch(neckPitch)
-
-    def deactivateNeckControl(self):
-        if self.active:
-            self.active = False
-            self.applyNeckPitchDelta(self.delta)
-            self.cleanupText()
-            self.delta = 0
-
-    def onWheelDelta(self, delta):
-        if not self.active:
-            return False
-
-        self.delta += np.clip(delta, -1, 1)
-        neckPitch = self.getNeckPitchDegrees() + self.delta
-        self.showText(neckPitch)
-        return True
-
 
 class SpindleMonitor(object):
     def __init__(self, getSpindleAngleFunction):

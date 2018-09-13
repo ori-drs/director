@@ -287,7 +287,7 @@ else:
 
 
 if useFootsteps:
-    footstepsPanel = footstepsdriverpanel.init(footstepsDriver, robotStateModel, robotStateJointController, irisDriver)
+    footstepsPanel = footstepsdriverpanel.init(footstepsDriver, robotStateModel, robotStateJointController)
 else:
     app.removeToolbarMacro('ActionFootstepPanel')
 
@@ -559,8 +559,8 @@ if usePlanning:
     for obj in om.getObjects():
         obj.setProperty('Deletable', False)
 
-if useCOPMonitor and not ikPlanner.fixedBaseArm:
-    copMonitor = copmonitor.COPMonitor(robotSystem, view);
+#if useCOPMonitor and not ikPlanner.fixedBaseArm:
+#    copMonitor = copmonitor.COPMonitor(robotSystem, view);
 
 
 if useLoggingWidget:
@@ -798,7 +798,7 @@ setImageWidgetSource = imageWidget.setImageName
 
 screengrabberpanel.init(view)
 framevisualization.init(view)
-affordancePanel = affordancepanel.init(view, affordanceManager, robotStateJointController, raycastDriver)
+affordancePanel = affordancepanel.init(view, affordanceManager, robotStateJointController)
 camerabookmarks.init(view)
 
 cameraControlPanel = cameracontrolpanel.CameraControlPanel(view)

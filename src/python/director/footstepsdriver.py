@@ -257,8 +257,9 @@ class FootstepsDriver(object):
         self.bdi_plan_adjusted = None
 
         view = app.getDRCView()
-        self.altRobotModel, self.altJointController = roboturdf.loadRobotModel('alt model', view, parent='alt model', color=roboturdf.getRobotOrangeColor(), visible=False)
-        self.altRobotModel.setProperty('Visible', False)
+        # duplicate model of robot - disabled
+        #self.altRobotModel, self.altJointController = roboturdf.loadRobotModel('alt model', view, parent='alt model', color=roboturdf.getRobotOrangeColor(), visible=False)
+        #self.altRobotModel.setProperty('Visible', False)
         self.showBDIPlan = False # hide the BDI plans when created
         self.altChannel = "POSE_BODY_ALT"
         self.altSubscribe = None
