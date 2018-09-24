@@ -269,7 +269,8 @@ class FootstepsDriver(object):
         self._setupSubscriptions()
         self._setupProperties()
 
-        self.showToolbarWidget()
+        # mfallon disabled the toolbar
+        #self.showToolbarWidget()
         # If we're a consoleapp and have no main window execButton won't exist
         if hasattr(self, 'execButton'):
             self.execButton.setEnabled(False)
@@ -395,7 +396,8 @@ class FootstepsDriver(object):
         planFolder = getFootstepsFolder()
         self.drawFootstepPlan( self.lastFootstepPlan , planFolder)
         self.transformPlanToBDIFrame( self.lastFootstepPlan )
-        self.showToolbarWidget()
+        # mfallon disabled the toolbar
+        #self.showToolbarWidget()
 
 
     def showToolbarWidget(self):
