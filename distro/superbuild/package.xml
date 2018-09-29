@@ -7,7 +7,6 @@
     <license>BSD</license>
     <buildtool_depend>catkin</buildtool_depend>
     <depend>java</depend>
-    <depend>drake</depend>
     <depend>bot_core_lcmtypes</depend>
     <depend>vs_lcmtypes</depend>
     <depend>bot_core</depend>

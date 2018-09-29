@@ -3,8 +3,7 @@
 #include "ddDrakeModel.h"
 #include "ddSharedPtr.h"
 
-#include <drake/systems/plants/RigidBodyTree.h>
-#include <drake/systems/plants/shapes/Geometry.h>
+
 
 #include <vtkPolyData.h>
 #include <vtkAppendPolyData.h>
@@ -804,6 +803,7 @@ URDFRigidBodyTreeVTK::Ptr loadVTKModelFromFile(const QString &urdfFilename, cons
   f.close();
 
   QString rootDir = QFileInfo(urdfFilename).dir().absolutePath();
+  std::cout << urdfFilename.toUtf8().data() << std::endl;
   return loadVTKModelFromXML(xmlString, rootDir, floatingBaseType);
 }
 

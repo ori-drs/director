@@ -2,7 +2,7 @@
 #include "ddDrakeModel.h"
 #include "ddDrakeVersion.h"
 #include "ddSharedPtr.h"
-
+/*
 #ifdef DRAKE_OH_FORK
 #include <drake/systems/plants/RigidBodyTree.h>
 #include <drake/systems/plants/ForceTorqueMeasurement.h>
@@ -10,7 +10,8 @@
 #include <drake/multibody/rigid_body_tree.h>
 #include <drake/multibody/force_torque_measurement.h>
 #endif
-#include <drake/util/convexHull.h>
+#include <drake/util/convexHull.h>*/
+
 
 #include <vector>
 #include <string>
@@ -44,7 +45,7 @@ QVector<double> ddDrakeWrapper::resolveCenterOfPressure(const ddDrakeModel& ddMo
 {
   // Assumes size of ft_in = size of ft_frame_inds*6, in order (one wrench at a time)
   // returns a 4-vector, which is packed output of RBM resolveCOP, with vector first
-  ddSharedPtr<RigidBodyTreed> model = ddModel.getDrakeRBM();
+  /*ddSharedPtr<RigidBodyTreed> model = ddModel.getDrakeRBM();
   Vector3d normal; for (int i=0; i<normal_in.size(); i++) normal[i] = normal_in[i];
   Vector3d point_on_contact_plane; for (int i=0; i<point_on_contact_plane_in.size(); i++) point_on_contact_plane[i] = point_on_contact_plane_in[i];
   std::vector<ForceTorqueMeasurement> force_torque_measurements;
@@ -58,17 +59,19 @@ QVector<double> ddDrakeWrapper::resolveCenterOfPressure(const ddDrakeModel& ddMo
   std::pair<Eigen::Vector3d, double> ret_eigen= model->resolveCenterOfPressure(*ddModel.getKinematicsCache(), force_torque_measurements, normal, point_on_contact_plane);
   QVector<double> ret; for (int i=0; i<3; i++) ret << ret_eigen.first[i];
   ret << ret_eigen.second;
-  return ret;
+  return ret;*/
+  return QVector<double>();
 }
 
 //-----------------------------------------------------------------------------
 double ddDrakeWrapper::drakeSignedDistanceInsideConvexHull(int num_pts, const QVector<double>& pts_in, const QVector<double> & q_in) const
 {
-  Matrix<double, 2, Eigen::Dynamic> pts(2, num_pts);
+  /*Matrix<double, 2, Eigen::Dynamic> pts(2, num_pts);
   for (int i=0; i<num_pts; i++){
     pts(0,i) = pts_in[i*2];
     pts(1,i) = pts_in[i*2+1];
   }
   Vector2d q; q[0] = q_in[0]; q[1] = q_in[1];
-  return signedDistanceInsideConvexHull(pts, q);
+  return signedDistanceInsideConvexHull(pts, q);*/
+  return 0;
 }
