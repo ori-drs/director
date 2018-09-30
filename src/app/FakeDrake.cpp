@@ -22,15 +22,14 @@ DrakeJoint::DrakeJoint(const std::string& name_joint, int joint_type) :
 }
 
 void RigidBodyTree::addRobotFromURDFString(const std::string &xml_string, std::map<std::string,std::string>& package_map, const std::string &root_dir,
-                            const DrakeJoint::FloatingBaseType floating_base_type) {
-
+                                           const DrakeJoint::FloatingBaseType floating_base_type) {
   if (!my_model_.initString(xml_string)){
-     ROS_ERROR("Failed to parse urdf robot model");
-     return;
+    ROS_ERROR("Failed to parse urdf robot model");
+    return;
   }
   if (!kdl_parser::treeFromUrdfModel(my_model_, my_tree_)){
-     ROS_ERROR("Failed to construct kdl tree");
-     return;
+    ROS_ERROR("Failed to construct kdl tree");
+    return;
   }
   // building data structures of FakeDrake
   std::vector<boost::shared_ptr<urdf::Link> > links;
@@ -41,32 +40,39 @@ void RigidBodyTree::addRobotFromURDFString(const std::string &xml_string, std::m
     body->linkname = links[i]->name;
     body->body_index = i;
     body_index[body->linkname] = i;
-    body->joint.reset(new DrakeJoint(links[i]->parent_joint->name, links[i]->parent_joint->type));
+    if (links[i]->parent_joint) {
+      body->joint.reset(new DrakeJoint(links[i]->parent_joint->name, links[i]->parent_joint->type));
+    }
     //visual
-    Eigen::Isometry3d T_element_to_local;
-    Eigen::Vector3d rpy;
-    double roll, pitch, yaw;
-    links[i]->visual->origin.rotation.getRPY(roll, pitch, yaw);
-    rpy << roll, pitch, yaw;
-    Eigen::Vector3d xyz;
-    xyz << links[i]->visual->origin.position.x, links[i]->visual->origin.position.y, links[i]->visual->origin.position.z;
-    T_element_to_local.matrix() << rpy2rotmat(rpy), xyz, 0, 0, 0, 1;
-    Eigen::Vector4d material(links[i]->visual->material->color.r, links[i]->visual->material->color.g,
-                             links[i]->visual->material->color.b, links[i]->visual->material->color.a);
-    //geometry
-    std::shared_ptr<DrakeShapes::Geometry> geometry = getGeometry(links[i]->visual->geometry);
-    DrakeShapes::VisualElement visual_element(geometry, T_element_to_local, material);
-
-    links[i]->visual;
-    body->visual_elements.push_back(visual_element);
+    if (links[i]->visual) {
+      Eigen::Isometry3d T_element_to_local;
+      Eigen::Vector3d rpy;
+      double roll, pitch, yaw;
+      links[i]->visual->origin.rotation.getRPY(roll, pitch, yaw);
+      rpy << roll, pitch, yaw;
+      Eigen::Vector3d xyz;
+      xyz << links[i]->visual->origin.position.x, links[i]->visual->origin.position.y, links[i]->visual->origin.position.z;
+      T_element_to_local.matrix() << rpy2rotmat(rpy), xyz, 0, 0, 0, 1;
+      Eigen::Vector4d material(Eigen::Vector4d(0.7, 0.7, 0.7, 1));
+      if (links[i]->visual->material) {
+        material = Eigen::Vector4d(links[i]->visual->material->color.r, links[i]->visual->material->color.g,
+                                 links[i]->visual->material->color.b, links[i]->visual->material->color.a);
+      }
+      //geometry
+      std::shared_ptr<DrakeShapes::Geometry> geometry = getGeometry(links[i]->visual->geometry);
+      DrakeShapes::VisualElement visual_element(geometry, T_element_to_local, material);
+      body->visual_elements.push_back(visual_element);
+    }
     bodies.push_back(body);
   }
   // setting parent
   for(int i = 0; i < bodies.size(); ++i) {
+    if (!links[i]->getParent()) {
+      continue;
+    }
     int parent_index = body_index[links[i]->getParent()->name];
     bodies[i]->parent = bodies[parent_index];
   }
-
 
   //compute joint_limit_min, joint_limit_max, num_positions, num_velocities
   num_positions = 0;
@@ -90,6 +96,9 @@ void RigidBodyTree::addRobotFromURDFString(const std::string &xml_string, std::m
 
 std::shared_ptr<DrakeShapes::Geometry> RigidBodyTree::getGeometry(boost::shared_ptr<urdf::Geometry>& urdf_geometry) {
   std::shared_ptr<DrakeShapes::Geometry> geometry;
+  if (!urdf_geometry) {
+    return geometry;
+  }
   switch(urdf_geometry->type) {
   case urdf::Geometry::SPHERE:
   {
