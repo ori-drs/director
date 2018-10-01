@@ -81,6 +81,7 @@ public:
     QUATERNION   = 2
   };
   DrakeJoint(const std::string& name_joint, int joint_type);
+  DrakeJoint(const std::string& name_joint, FloatingBaseType joint_type);
 
   const std::string getName() const {
     return name;
@@ -111,20 +112,22 @@ public:
   //voir KDL::TreeJntToJacSolver ?
   template<typename Scalar>
   Eigen::Matrix<Scalar, TWIST_SIZE, Eigen::Dynamic> geometricJacobian(const KinematicsCache<Scalar>& cache, int base_body_or_frame_ind, int end_effector_body_or_frame_ind, int expressed_in_body_or_frame_ind, bool in_terms_of_qdot = false, std::vector<int>* v_indices = nullptr) const {
-
+    // TODO
+    return Eigen::Matrix<Scalar, TWIST_SIZE, Eigen::Dynamic>();
   }
 
   //difficult
   //transformation between base frame and body frame ( frame of the robot)
   template<typename Scalar>
   Eigen::Transform<Scalar, SPACE_DIMENSION, Eigen::Isometry> relativeTransform(const KinematicsCache<Scalar>& cache, int base_or_frame_ind, int body_or_frame_ind) const {
-
+    // TODO
+    return Eigen::Transform<Scalar, SPACE_DIMENSION, Eigen::Isometry>();
   }
 
   //difficult
   template <typename Scalar>
   void doKinematics(KinematicsCache<Scalar>& cache, bool compute_JdotV = false) const {
-
+    //TODO
   }
 
   Eigen::VectorXd joint_limit_min; // voir RigidBodyTree.cpp l.145
@@ -136,7 +139,12 @@ public:
   //difficult
   template <typename Scalar>
   Eigen::Matrix<Scalar, SPACE_DIMENSION, 1> centerOfMass(KinematicsCache<Scalar> &cache) {
-
+    // TODO
+    Eigen::Matrix<Scalar, SPACE_DIMENSION, 1> m;
+    m(0, 0) = 0;
+    m(1, 0) = 0;
+    m(2, 0) = 0;
+    return m;
   }
   std::shared_ptr<RigidBody> findLink(std::string linkname, int robot=-1) const;
 

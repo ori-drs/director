@@ -1,8 +1,8 @@
 #include "FakeDrake.h"
 #include <exception>
 
-DrakeJoint::DrakeJoint(const std::string& name_joint, int joint_type) :
-  name(name_joint) {
+DrakeJoint::DrakeJoint(const std::string& name_joint, int joint_type)
+  :name(name_joint) {
   switch(joint_type) {
   case int(urdf::Joint::REVOLUTE):
   case int(urdf::Joint::CONTINUOUS):
@@ -13,6 +13,27 @@ DrakeJoint::DrakeJoint(const std::string& name_joint, int joint_type) :
     break;
   case int(urdf::Joint::FLOATING):
     num_positions = 6;
+    num_velocities = 6;
+    break;
+  default:
+    num_positions = 0;
+    num_velocities = 0;
+  }
+}
+
+DrakeJoint::DrakeJoint(const std::string& name_joint, FloatingBaseType joint_type)
+  :name(name_joint){
+  switch(joint_type) {
+  case FloatingBaseType::FIXED:
+    num_positions = 0;
+    num_velocities = 0;
+    break;
+  case FloatingBaseType::ROLLPITCHYAW:
+    num_positions = 6;
+    num_velocities = 6;
+    break;
+  case FloatingBaseType::QUATERNION:
+    num_positions = 7;
     num_velocities = 6;
     break;
   default:
@@ -35,11 +56,25 @@ void RigidBodyTree::addRobotFromURDFString(const std::string &xml_string, std::m
   std::vector<boost::shared_ptr<urdf::Link> > links;
   my_model_.getLinks(links);
   std::map<std::string, int> body_index;
+  //put a link called world at the front of bodies
+  std::shared_ptr<RigidBody> body = std::make_shared<RigidBody>();
+  body->linkname = "world";
+  body->body_index = 0;
+  bodies.push_back(body);
+  //put root element at the front of links
+  /*for(int i = 0; i < links.size(); ++i) {
+    if (links[i] == my_model_.getRoot()) {
+      auto tmp = links[0];
+      links[0] = links[i];
+      links[i] = tmp;
+      break;
+    }
+  }*/
   for(int i = 0; i < links.size(); ++i) {
     std::shared_ptr<RigidBody> body = std::make_shared<RigidBody>();
     body->linkname = links[i]->name;
-    body->body_index = i;
-    body_index[body->linkname] = i;
+    body->body_index = i + 1;
+    body_index[body->linkname] = i + 1;
     if (links[i]->parent_joint) {
       body->joint.reset(new DrakeJoint(links[i]->parent_joint->name, links[i]->parent_joint->type));
     }
@@ -66,12 +101,19 @@ void RigidBodyTree::addRobotFromURDFString(const std::string &xml_string, std::m
     bodies.push_back(body);
   }
   // setting parent
-  for(int i = 0; i < bodies.size(); ++i) {
+  for(int i = 0; i < links.size(); ++i) {
     if (!links[i]->getParent()) {
       continue;
     }
     int parent_index = body_index[links[i]->getParent()->name];
-    bodies[i]->parent = bodies[parent_index];
+    bodies[i+1]->parent = bodies[parent_index];
+  }
+  // attach the root nodes to the world with a floating base joint
+  for(int i = 1; i < bodies.size(); ++i) {
+    if (!bodies[i]->hasParent()) {
+      bodies[i]->parent = bodies[0];
+      bodies[i]->joint.reset(new DrakeJoint("base", floating_base_type));
+    }
   }
 
   //compute joint_limit_min, joint_limit_max, num_positions, num_velocities

@@ -450,7 +450,7 @@ public:
     {
 
       std::shared_ptr<RigidBody> body = model->bodies[bodyIndex];
-
+      
       if (!body->hasParent())
       {
         continue;
@@ -461,13 +461,12 @@ public:
         fixedDOFs.insert(body->getJoint().getName());
         continue;
       }
-
+      
       int dofId = body->position_num_start;
 
       if (body->parent == worldBody)
       {
         //printf("dofMap base\n");
-
         dofMap["base_x"] = dofId + 0;
         dofMap["base_y"] = dofId + 1;
         dofMap["base_z"] = dofId + 2;
