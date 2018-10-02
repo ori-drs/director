@@ -139,7 +139,7 @@ set(pkg_deps)
 project(ddApp)
 find_package(catkin  REQUIRED COMPONENTS bot_core_lcmtypes 
     maps_lcmtypes robotlocomotion_lcmtypes multisense_utils image_utils
-    kdl_parser)
+    kdl_parser forward_kinematics)
 
 #if (USE_DRAKE)
 if (TRUE)

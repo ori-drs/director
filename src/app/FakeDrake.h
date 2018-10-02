@@ -27,8 +27,11 @@
 #include <vtkPNGReader.h>
 #include <vtkImageData.h>
 
+#include <QList>
+
 #include <kdl_parser/kdl_parser.hpp>
 #include <urdf/model.h>
+#include "forward_kinematics/treefksolverposfull_recursive.hpp"
 
 const int SPACE_DIMENSION = 3;
 const int TWIST_SIZE = 6;
@@ -40,13 +43,15 @@ private:
   /*std::unordered_map<RigidBody const *, KinematicsCacheElement<Scalar>, std::hash<RigidBody const *>, std::equal_to<RigidBody const *>, Eigen::aligned_allocator<std::pair<RigidBody const* const, KinematicsCacheElement<Scalar> > > > elements;
   std::vector<RigidBody const *> bodies;
   const int num_positions;
-  const int num_velocities;*/
+  const int num_velocities;
   Eigen::Matrix<Scalar, Eigen::Dynamic, 1> q;
   Eigen::Matrix<Scalar, Eigen::Dynamic, 1> v;
   bool velocity_vector_valid;
   bool position_kinematics_cached;
   bool jdotV_cached;
-  bool inertias_cached;
+  bool inertias_cached;*/
+  Eigen::VectorXd jointPositions;
+  QList<QString> jointNames;
 
 public:
   KinematicsCache(const std::vector<std::shared_ptr<RigidBody> > & bodies)
@@ -64,10 +69,25 @@ public:
       this->bodies.push_back(&body);
     }
     invalidate();*/
-  }
+  }/*
 template <typename Derived>
   void initialize(const Eigen::MatrixBase<Derived>& q) {
 
+  }*/
+  void initialize(const Eigen::VectorXd& q) {
+    jointPositions = q;
+  }
+
+  const Eigen::VectorXd& getJointPositions() const {
+    return jointPositions;
+  }
+
+  const QList<QString>& getJointNames() const {
+    return jointNames;
+  }
+
+  void setJointNames(const QList<QString>& names) {
+    jointNames = names;
   }
 
 };
@@ -102,78 +122,6 @@ protected:
 namespace DrakeShapes {
 class Geometry;
 }
-class RigidBodyTree {
-public:
-
-  // load urdf
-  void addRobotFromURDFString(const std::string &xml_string, std::map<std::string,std::string>& package_map, const std::string &root_dir = ".",
-                              const DrakeJoint::FloatingBaseType floating_base_type = DrakeJoint::ROLLPITCHYAW);
-  //difficult
-  //voir KDL::TreeJntToJacSolver ?
-  template<typename Scalar>
-  Eigen::Matrix<Scalar, TWIST_SIZE, Eigen::Dynamic> geometricJacobian(const KinematicsCache<Scalar>& cache, int base_body_or_frame_ind, int end_effector_body_or_frame_ind, int expressed_in_body_or_frame_ind, bool in_terms_of_qdot = false, std::vector<int>* v_indices = nullptr) const {
-    // TODO
-    return Eigen::Matrix<Scalar, TWIST_SIZE, Eigen::Dynamic>();
-  }
-
-  //difficult
-  //transformation between base frame and body frame ( frame of the robot)
-  template<typename Scalar>
-  Eigen::Transform<Scalar, SPACE_DIMENSION, Eigen::Isometry> relativeTransform(const KinematicsCache<Scalar>& cache, int base_or_frame_ind, int body_or_frame_ind) const {
-    // TODO
-    return Eigen::Transform<Scalar, SPACE_DIMENSION, Eigen::Isometry>();
-  }
-
-  //difficult
-  template <typename Scalar>
-  void doKinematics(KinematicsCache<Scalar>& cache, bool compute_JdotV = false) const {
-    //TODO
-  }
-
-  Eigen::VectorXd joint_limit_min; // voir RigidBodyTree.cpp l.145
-  Eigen::VectorXd joint_limit_max;
-
-  //return position of linkname in vector bodies
-  int findLinkId(const std::string& linkname, int robot = -1) const;
-  std::string getBodyOrFrameName(int id);
-  //difficult
-  template <typename Scalar>
-  Eigen::Matrix<Scalar, SPACE_DIMENSION, 1> centerOfMass(KinematicsCache<Scalar> &cache) {
-    // TODO
-    Eigen::Matrix<Scalar, SPACE_DIMENSION, 1> m;
-    m(0, 0) = 0;
-    m(1, 0) = 0;
-    m(2, 0) = 0;
-    return m;
-  }
-  std::shared_ptr<RigidBody> findLink(std::string linkname, int robot=-1) const;
-
-  //+ some methods to find meshes
-  // Rigid body objects
-  std::vector<std::shared_ptr<RigidBody> > bodies;
-  int num_positions; // sum of num_positions of all joints
-  int num_velocities;
-
-private:
-  std::shared_ptr<DrakeShapes::Geometry> getGeometry(boost::shared_ptr<urdf::Geometry> &urdf_geometry);
-  KDL::Tree my_tree_;
-  urdf::Model my_model_;
-
-  template<typename Derived>
-  Eigen::Matrix<typename Derived::Scalar, 3, 3> rpy2rotmat(const Eigen::MatrixBase<Derived>& rpy) {
-    EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Eigen::MatrixBase<Derived>, 3);
-    auto rpy_array = rpy.array();
-    auto s = rpy_array.sin();
-    auto c = rpy_array.cos();
-
-    Eigen::Matrix<typename Derived::Scalar, 3, 3> R;
-    R.row(0) << c(2) * c(1), c(2) * s(1) * s(0) - s(2) * c(0), c(2) * s(1) * c(0) + s(2) * s(0);
-    R.row(1) << s(2) * c(1), s(2) * s(1) * s(0) + c(2) * c(0), s(2) * s(1) * c(0) - c(2) * s(0);
-    R.row(2) << -s(1), c(1) * s(0), c(1) * c(0);
-
-    return R;
-  };
-};
 
 namespace DrakeShapes {
 class VisualElement;
@@ -196,6 +144,104 @@ public:
   std::unique_ptr<DrakeJoint> joint;
 };
 
+class RigidBodyTree {
+public:
+
+  // load urdf
+  void addRobotFromURDFString(const std::string &xml_string, std::map<std::string,std::string>& package_map, const std::string &root_dir = ".",
+                              const DrakeJoint::FloatingBaseType floating_base_type = DrakeJoint::ROLLPITCHYAW);
+  //voir KDL::TreeJntToJacSolver ?
+  template<typename Scalar>
+  Eigen::Matrix<Scalar, TWIST_SIZE, Eigen::Dynamic> geometricJacobian(const KinematicsCache<Scalar>& cache, int base_body_or_frame_ind, int end_effector_body_or_frame_ind, int expressed_in_body_or_frame_ind, bool in_terms_of_qdot = false, std::vector<int>* v_indices = nullptr) const {
+    // TODO
+    return Eigen::Matrix<Scalar, TWIST_SIZE, Eigen::Dynamic>();
+  }
+
+  //transformation between base frame and body frame ( frame of the robot)
+  template<typename Scalar>
+  Eigen::Transform<Scalar, SPACE_DIMENSION, Eigen::Isometry> relativeTransform(const KinematicsCache<Scalar>& cache, int base_or_frame_ind, int body_or_frame_ind) const {
+    // Eigen::Transform<Scalar, SPACE_DIMENSION, Eigen::Isometry> = Isometry3d
+    Eigen::Transform<Scalar, SPACE_DIMENSION, Eigen::Isometry> tf_out;
+    tf_out.setIdentity();
+    if (body_or_frame_ind >= 0 && body_or_frame_ind < bodies.size()) {
+      /*for (auto x:cartpos_out)
+        std::cout << bodies.at(body_or_frame_ind)->linkname << ", " << x.first << std::endl;*/
+      if (cartpos_out.find(bodies.at(body_or_frame_ind)->linkname) != cartpos_out.end()) {
+        return KDLToEigen(cartpos_out.at(bodies.at(body_or_frame_ind)->linkname));
+      }
+    }
+    return tf_out;
+  }
+
+  template <typename Scalar>
+  void doKinematics(KinematicsCache<Scalar>& cache, bool compute_JdotV = false) {
+    std::map<std::string, double> jointpos_in;
+    const Eigen::VectorXd jointPositions = cache.getJointPositions();
+    const QList<QString>& jointNames = cache.getJointNames();
+    if (jointPositions.size() != jointNames.size())
+    {
+      std::cout << "RigidBodyTree::doKinematics(): jointPositions size "
+                << jointPositions.size() << " != " << jointNames.size() << std::endl;
+      return;
+    }
+    for(int i = 0; i < jointPositions.rows(); ++i) {
+      if (bodies[i]->joint) {
+        jointpos_in.insert(std::make_pair(jointNames[i].toUtf8().data(), jointPositions(i)));
+      }
+    }
+
+    bool kinematics_status;
+    bool flatten_tree=true; // determines absolute transforms to robot origin, otherwise relative transforms between joints.
+    boost::shared_ptr<KDL::TreeFkSolverPosFull_recursive> fksolver = boost::shared_ptr<KDL::TreeFkSolverPosFull_recursive>(new KDL::TreeFkSolverPosFull_recursive(my_tree_));
+    kinematics_status = fksolver->JntToCart(jointpos_in,cartpos_out,flatten_tree);
+  }
+
+  Eigen::VectorXd joint_limit_min;
+  Eigen::VectorXd joint_limit_max;
+
+  //return position of linkname in vector bodies
+  int findLinkId(const std::string& linkname, int robot = -1) const;
+  std::string getBodyOrFrameName(int id);
+  //difficult
+  template <typename Scalar>
+  Eigen::Matrix<Scalar, SPACE_DIMENSION, 1> centerOfMass(KinematicsCache<Scalar> &cache) {
+    // TODO
+    Eigen::Matrix<Scalar, SPACE_DIMENSION, 1> m;
+    m(0, 0) = 0;
+    m(1, 0) = 0;
+    m(2, 0) = 0;
+    return m;
+  }
+  std::shared_ptr<RigidBody> findLink(std::string linkname, int robot=-1) const;
+
+  // Rigid body objects
+  std::vector<std::shared_ptr<RigidBody> > bodies;
+  int num_positions; // sum of num_positions of all joints
+  int num_velocities;
+
+private:
+  std::shared_ptr<DrakeShapes::Geometry> getGeometry(boost::shared_ptr<urdf::Geometry> &urdf_geometry);
+  KDL::Tree my_tree_;
+  urdf::Model my_model_;
+  std::map<std::string, KDL::Frame > cartpos_out; //TODO move that in KinematicsCache
+
+  template<typename Derived>
+  Eigen::Matrix<typename Derived::Scalar, 3, 3> rpy2rotmat(const Eigen::MatrixBase<Derived>& rpy) {
+    EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Eigen::MatrixBase<Derived>, 3);
+    auto rpy_array = rpy.array();
+    auto s = rpy_array.sin();
+    auto c = rpy_array.cos();
+
+    Eigen::Matrix<typename Derived::Scalar, 3, 3> R;
+    R.row(0) << c(2) * c(1), c(2) * s(1) * s(0) - s(2) * c(0), c(2) * s(1) * c(0) + s(2) * s(0);
+    R.row(1) << s(2) * c(1), s(2) * s(1) * s(0) + c(2) * c(0), s(2) * s(1) * c(0) - c(2) * s(0);
+    R.row(2) << -s(1), c(1) * s(0), c(1) * c(0);
+
+    return R;
+  };
+
+  static Eigen::Isometry3d KDLToEigen(const KDL::Frame& tf);
+};
 
 namespace DrakeShapes
 {

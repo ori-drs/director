@@ -944,6 +944,7 @@ void ddDrakeModel::setJointPositions(const QVector<double>& jointPositions)
 
   this->Internal->JointPositions = jointPositions;
   model->cache->initialize(q);
+  model->cache->setJointNames(getJointNames());
   model->doKinematics(*model->cache);
   model->updateModel();
   emit this->modelChanged();

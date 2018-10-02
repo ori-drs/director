@@ -61,15 +61,6 @@ void RigidBodyTree::addRobotFromURDFString(const std::string &xml_string, std::m
   body->linkname = "world";
   body->body_index = 0;
   bodies.push_back(body);
-  //put root element at the front of links
-  /*for(int i = 0; i < links.size(); ++i) {
-    if (links[i] == my_model_.getRoot()) {
-      auto tmp = links[0];
-      links[0] = links[i];
-      links[i] = tmp;
-      break;
-    }
-  }*/
   for(int i = 0; i < links.size(); ++i) {
     std::shared_ptr<RigidBody> body = std::make_shared<RigidBody>();
     body->linkname = links[i]->name;
@@ -172,6 +163,16 @@ std::shared_ptr<DrakeShapes::Geometry> RigidBodyTree::getGeometry(boost::shared_
     break;
   }
   return geometry;
+}
+
+ Eigen::Isometry3d RigidBodyTree::KDLToEigen(const KDL::Frame& tf){
+  Eigen::Isometry3d tf_out;
+  tf_out.setIdentity();
+  tf_out.translation()  << tf.p[0], tf.p[1], tf.p[2];
+  Eigen::Quaterniond q;
+  tf.M.GetQuaternion( q.x() , q.y(), q.z(), q.w());
+  tf_out.rotate(q);
+  return tf_out;
 }
 
 //return position of linkname in vector bodies
