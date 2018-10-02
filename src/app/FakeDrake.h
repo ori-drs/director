@@ -132,7 +132,7 @@ public:
   const DrakeJoint& getJoint() const;
   int getPositionNumStart() const;
 
-  Eigen::Matrix3Xd contact_pts; //first initialise with empty matrix
+  Eigen::Matrix3Xd contact_pts; //TODO first initialise with empty matrix
 
   std::shared_ptr<RigidBody> parent;
 
@@ -185,9 +185,7 @@ public:
       return;
     }
     for(int i = 0; i < jointPositions.rows(); ++i) {
-      if (bodies[i]->joint) {
         jointpos_in.insert(std::make_pair(jointNames[i].toUtf8().data(), jointPositions(i)));
-      }
     }
 
     bool kinematics_status;
