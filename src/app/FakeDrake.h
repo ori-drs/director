@@ -52,6 +52,7 @@ private:
   bool inertias_cached;*/
   Eigen::VectorXd jointPositions;
   QList<QString> jointNames;
+  Eigen::Isometry3d baseTransform;
 
 public:
   KinematicsCache(const std::vector<std::shared_ptr<RigidBody> > & bodies)
@@ -90,6 +91,13 @@ template <typename Derived>
     jointNames = names;
   }
 
+  void setBaseTransform(const Eigen::Isometry3d& transform) {
+    baseTransform = transform;
+  }
+  const Eigen::Isometry3d& getBaseTransform() const {
+    return baseTransform;
+  }
+
 };
 
 class DrakeJoint {
@@ -112,6 +120,7 @@ public:
   int getNumVelocities() const {
     return num_velocities;
   }
+
 protected:
   std::string name;
   int num_positions;
@@ -155,6 +164,9 @@ public:
   Eigen::Matrix<Scalar, TWIST_SIZE, Eigen::Dynamic> geometricJacobian(const KinematicsCache<Scalar>& cache, int base_body_or_frame_ind, int end_effector_body_or_frame_ind, int expressed_in_body_or_frame_ind, bool in_terms_of_qdot = false, std::vector<int>* v_indices = nullptr) const {
     // TODO
     return Eigen::Matrix<Scalar, TWIST_SIZE, Eigen::Dynamic>();
+    /*boost::shared_ptr<KDL::TreeJntToJacSolver> jacsolver = boost::shared_ptr<KDL::TreeJntToJacSolver>(new KDL::TreeJntToJacSolver(my_tree_));
+    KDL::Jacobian jacobian;
+    int solver_status = jacsolver->JntToCart(jointpos_in, jacobian, segmentName);*/
   }
 
   //transformation between base frame and body frame ( frame of the robot)
@@ -163,11 +175,17 @@ public:
     // Eigen::Transform<Scalar, SPACE_DIMENSION, Eigen::Isometry> = Isometry3d
     Eigen::Transform<Scalar, SPACE_DIMENSION, Eigen::Isometry> tf_out;
     tf_out.setIdentity();
+    const Eigen::Isometry3d baseTransform = cache.getBaseTransform();
+    Eigen::Vector3d baseTranslation = baseTransform.matrix().block<3, 1>(0, 3);
+    Eigen::Matrix3d baseRotation = baseTransform.matrix().block<3, 3>(0, 0);
+    tf_out.pretranslate(baseTranslation);
+    tf_out.prerotate(baseRotation);
     if (body_or_frame_ind >= 0 && body_or_frame_ind < bodies.size()) {
-      /*for (auto x:cartpos_out)
-        std::cout << bodies.at(body_or_frame_ind)->linkname << ", " << x.first << std::endl;*/
-      if (cartpos_out.find(bodies.at(body_or_frame_ind)->linkname) != cartpos_out.end()) {
-        return KDLToEigen(cartpos_out.at(bodies.at(body_or_frame_ind)->linkname));
+      if (links_pos.find(bodies.at(body_or_frame_ind)->linkname) != links_pos.end()) {
+        Eigen::Isometry3d trans = links_pos.at(bodies.at(body_or_frame_ind)->linkname);
+        trans.pretranslate(baseTranslation);
+        trans.prerotate(baseRotation);
+        return trans;
       }
     }
     return tf_out;
@@ -189,9 +207,37 @@ public:
     }
 
     bool kinematics_status;
-    bool flatten_tree=true; // determines absolute transforms to robot origin, otherwise relative transforms between joints.
+    std::map<std::string, KDL::Frame > cartpos_out;
+    bool flatten_tree = true; // determines absolute transforms to robot origin, otherwise relative transforms between joints.
     boost::shared_ptr<KDL::TreeFkSolverPosFull_recursive> fksolver = boost::shared_ptr<KDL::TreeFkSolverPosFull_recursive>(new KDL::TreeFkSolverPosFull_recursive(my_tree_));
-    kinematics_status = fksolver->JntToCart(jointpos_in,cartpos_out,flatten_tree);
+    kinematics_status = fksolver->JntToCart(jointpos_in, cartpos_out, flatten_tree);
+    for (auto link_pos : cartpos_out) {
+      links_pos[link_pos.first] = KDLToEigen(link_pos.second);
+    }
+    // set base transform
+    Eigen::Vector3d translation, rpy;
+    Eigen::Matrix3d rotation;
+    for (int i = 0; i < jointNames.size(); ++i) {
+      if (jointNames[i] == "base_x") {
+        translation(0) = jointPositions[i];
+      } else if (jointNames[i] == "base_y") {
+        translation(1) = jointPositions[i];
+      } else if (jointNames[i] == "base_z") {
+        translation(2) = jointPositions[i];
+      } else if (jointNames[i] == "base_roll") {
+        rpy(0) = jointPositions[i];
+      } else if (jointNames[i] == "base_pitch") {
+        rpy(1) = jointPositions[i];
+      } else if (jointNames[i] == "base_yaw") {
+        rpy(2) = jointPositions[i];
+      }
+    }
+    rotation = rpy2rotmat(rpy);
+    Eigen::Isometry3d transform;
+    transform.setIdentity();
+    transform.pretranslate(translation);
+    transform.prerotate(rotation);
+    cache.setBaseTransform(transform);
   }
 
   Eigen::VectorXd joint_limit_min;
@@ -221,7 +267,7 @@ private:
   std::shared_ptr<DrakeShapes::Geometry> getGeometry(boost::shared_ptr<urdf::Geometry> &urdf_geometry);
   KDL::Tree my_tree_;
   urdf::Model my_model_;
-  std::map<std::string, KDL::Frame > cartpos_out; //TODO move that in KinematicsCache
+  std::map<std::string, Eigen::Isometry3d > links_pos; //TODO move that in KinematicsCache
 
   template<typename Derived>
   Eigen::Matrix<typename Derived::Scalar, 3, 3> rpy2rotmat(const Eigen::MatrixBase<Derived>& rpy) {
