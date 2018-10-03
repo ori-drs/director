@@ -137,6 +137,7 @@ class VisualElement;
 }
 class RigidBody {
 public:
+  RigidBody();
   bool hasParent() const;
   const DrakeJoint& getJoint() const;
   int getPositionNumStart() const;
@@ -145,12 +146,14 @@ public:
 
   std::shared_ptr<RigidBody> parent;
 
-  int position_num_start; // see RigidBodyTree.cpp l.122
+  int position_num_start;
   int velocity_num_start;
   std::vector< DrakeShapes::VisualElement, Eigen::aligned_allocator<DrakeShapes::VisualElement> > visual_elements;
   int body_index; // position in vector of bodies
   std::string linkname;
   std::unique_ptr<DrakeJoint> joint;
+  double mass;
+  Eigen::Vector3d com;
 };
 
 class RigidBodyTree {
@@ -246,14 +249,22 @@ public:
   //return position of linkname in vector bodies
   int findLinkId(const std::string& linkname, int robot = -1) const;
   std::string getBodyOrFrameName(int id);
-  //difficult
+
   template <typename Scalar>
   Eigen::Matrix<Scalar, SPACE_DIMENSION, 1> centerOfMass(KinematicsCache<Scalar> &cache) {
-    // TODO
     Eigen::Matrix<Scalar, SPACE_DIMENSION, 1> m;
-    m(0, 0) = 0;
-    m(1, 0) = 0;
-    m(2, 0) = 0;
+    m.setZero();
+    double sumMass = 0.;
+    for (int i = 0; i < bodies.size(); ++i) {
+      Eigen::Isometry3d transform = relativeTransform(cache, 0, bodies[i]->body_index);
+      Eigen::Vector3d translation = transform.matrix().block<3, 1>(0, 3);
+      if (bodies[i]->mass > 0) {
+        sumMass += bodies[i]->mass;
+        m += bodies[i]->mass * (transform * bodies[i]->com);
+      }
+    }
+    if (sumMass > 0)
+      m /= sumMass;
     return m;
   }
   std::shared_ptr<RigidBody> findLink(std::string linkname, int robot=-1) const;

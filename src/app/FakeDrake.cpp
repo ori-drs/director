@@ -42,6 +42,11 @@ DrakeJoint::DrakeJoint(const std::string& name_joint, FloatingBaseType joint_typ
   }
 }
 
+RigidBody::RigidBody()
+  :mass(0.){
+  com.setZero();
+}
+
 void RigidBodyTree::addRobotFromURDFString(const std::string &xml_string, std::map<std::string,std::string>& package_map, const std::string &root_dir,
                                            const DrakeJoint::FloatingBaseType floating_base_type) {
   if (!my_model_.initString(xml_string)){
@@ -68,6 +73,11 @@ void RigidBodyTree::addRobotFromURDFString(const std::string &xml_string, std::m
     body_index[body->linkname] = i + 1;
     if (links[i]->parent_joint) {
       body->joint.reset(new DrakeJoint(links[i]->parent_joint->name, links[i]->parent_joint->type));
+    }
+    //mass and com
+    if (links[i]->inertial) {
+      body->mass = links[i]->inertial->mass;
+      body->com << links[i]->inertial->origin.position.x, links[i]->inertial->origin.position.y, links[i]->inertial->origin.position.z;
     }
     //visual
     if (links[i]->visual) {

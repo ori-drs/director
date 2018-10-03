@@ -946,6 +946,7 @@ void ddDrakeModel::setJointPositions(const QVector<double>& jointPositions)
   model->cache->initialize(q);
   model->cache->setJointNames(getJointNames());
   model->doKinematics(*model->cache);
+    std::cout << "center of mass " << getCenterOfMass()[0] <<  ", " << getCenterOfMass()[1] <<  "," << getCenterOfMass()[2] << std::endl;
   model->updateModel();
   emit this->modelChanged();
 }
