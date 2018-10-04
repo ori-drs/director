@@ -30,8 +30,11 @@
 #include <QList>
 
 #include <kdl_parser/kdl_parser.hpp>
+#include <kdl/treejnttojacsolver.hpp>
+#include <forward_kinematics/treefksolverposfull_recursive.hpp>
+
 #include <urdf/model.h>
-#include "forward_kinematics/treefksolverposfull_recursive.hpp"
+
 
 const int SPACE_DIMENSION = 3;
 const int TWIST_SIZE = 6;
@@ -40,41 +43,14 @@ class RigidBody;
 template <typename Scalar>
 class KinematicsCache {
 private:
-  /*std::unordered_map<RigidBody const *, KinematicsCacheElement<Scalar>, std::hash<RigidBody const *>, std::equal_to<RigidBody const *>, Eigen::aligned_allocator<std::pair<RigidBody const* const, KinematicsCacheElement<Scalar> > > > elements;
-  std::vector<RigidBody const *> bodies;
-  const int num_positions;
-  const int num_velocities;
-  Eigen::Matrix<Scalar, Eigen::Dynamic, 1> q;
-  Eigen::Matrix<Scalar, Eigen::Dynamic, 1> v;
-  bool velocity_vector_valid;
-  bool position_kinematics_cached;
-  bool jdotV_cached;
-  bool inertias_cached;*/
   Eigen::VectorXd jointPositions;
   QList<QString> jointNames;
   Eigen::Isometry3d baseTransform;
 
 public:
   KinematicsCache(const std::vector<std::shared_ptr<RigidBody> > & bodies)
-      /*num_positions(getNumPositions(bodies)),
-      num_velocities(getNumVelocities(bodies)),
-      q(Eigen::Matrix<Scalar, Eigen::Dynamic, 1>::Zero(num_positions)),
-      v(Eigen::Matrix<Scalar, Eigen::Dynamic, 1>::Zero(num_velocities)),
-      velocity_vector_valid(false)*/
   {
-    /*for (const auto& body_shared_ptr : bodies) {
-      const RigidBody& body = *body_shared_ptr;
-      int num_positions_joint = body.hasParent() ? body.getJoint().getNumPositions() : 0;
-      int num_velocities_joint = body.hasParent() ? body.getJoint().getNumVelocities() : 0;
-      elements.insert({&body, KinematicsCacheElement<Scalar>(num_positions_joint, num_velocities_joint)});
-      this->bodies.push_back(&body);
-    }
-    invalidate();*/
-  }/*
-template <typename Derived>
-  void initialize(const Eigen::MatrixBase<Derived>& q) {
-
-  }*/
+  }
   void initialize(const Eigen::VectorXd& q) {
     jointPositions = q;
   }
@@ -142,7 +118,7 @@ public:
   const DrakeJoint& getJoint() const;
   int getPositionNumStart() const;
 
-  Eigen::Matrix3Xd contact_pts; //TODO first initialise with empty matrix
+  Eigen::Matrix3Xd contact_pts;
 
   std::shared_ptr<RigidBody> parent;
 
@@ -162,14 +138,47 @@ public:
   // load urdf
   void addRobotFromURDFString(const std::string &xml_string, std::map<std::string,std::string>& package_map, const std::string &root_dir = ".",
                               const DrakeJoint::FloatingBaseType floating_base_type = DrakeJoint::ROLLPITCHYAW);
-  //voir KDL::TreeJntToJacSolver ?
+
   template<typename Scalar>
   Eigen::Matrix<Scalar, TWIST_SIZE, Eigen::Dynamic> geometricJacobian(const KinematicsCache<Scalar>& cache, int base_body_or_frame_ind, int end_effector_body_or_frame_ind, int expressed_in_body_or_frame_ind, bool in_terms_of_qdot = false, std::vector<int>* v_indices = nullptr) const {
-    // TODO
-    return Eigen::Matrix<Scalar, TWIST_SIZE, Eigen::Dynamic>();
+    Eigen::MatrixXd jac;
+    jac.setZero(TWIST_SIZE, 6);
     /*boost::shared_ptr<KDL::TreeJntToJacSolver> jacsolver = boost::shared_ptr<KDL::TreeJntToJacSolver>(new KDL::TreeJntToJacSolver(my_tree_));
     KDL::Jacobian jacobian;
-    int solver_status = jacsolver->JntToCart(jointpos_in, jacobian, segmentName);*/
+    if (end_effector_body_or_frame_ind < 0 || end_effector_body_or_frame_ind >= bodies.size()) {
+      return jac;
+    }
+    KDL::JntArray q_in;
+    q_in.resize(my_tree_.getNrOfJoints());
+    const Eigen::VectorXd jointPositions = cache.getJointPositions();
+    const QList<QString>& jointNames = cache.getJointNames();
+    if (jointPositions.size() != jointNames.size())
+    {
+      std::cout << "RigidBodyTree::geometricJacobian(): jointPositions size "
+                << jointPositions.size() << " != " << jointNames.size() << std::endl;
+      return jac;
+    }
+
+    //std::string segmentName = bodies[end_effector_body_or_frame_ind]->linkname;
+    std::string segmentName = "LF_SHANK";
+    //filling q_in
+    int count = 0;
+    for(auto& segment : my_tree_.getSegments()) {
+      double position;
+      for(int i = 0; i < jointNames.size(); ++i) {
+        std::string jointName = segment.second.segment.getJoint().getName();
+        if (jointNames[i].toUtf8().data() == jointName) {
+          position = jointPositions[i];
+          break;
+        }
+      }
+      q_in.data(count) = position;
+      ++count;
+    }
+    int solver_status = jacsolver->JntToJac(q_in, jacobian, segmentName);
+    std::cout << "jacobian " << jacobian.data << std::endl;
+    std::cout << "End " << std::endl;*/
+    return jac;
   }
 
   //transformation between base frame and body frame ( frame of the robot)
