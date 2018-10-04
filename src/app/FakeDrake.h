@@ -190,13 +190,12 @@ public:
     const Eigen::Isometry3d baseTransform = cache.getBaseTransform();
     Eigen::Vector3d baseTranslation = baseTransform.matrix().block<3, 1>(0, 3);
     Eigen::Matrix3d baseRotation = baseTransform.matrix().block<3, 3>(0, 0);
-    tf_out.pretranslate(baseTranslation);
-    tf_out.prerotate(baseRotation);
+    tf_out.matrix() << baseRotation, baseTranslation, 0, 0, 0, 1;
     if (body_or_frame_ind >= 0 && body_or_frame_ind < bodies.size()) {
       if (links_pos.find(bodies.at(body_or_frame_ind)->linkname) != links_pos.end()) {
         Eigen::Isometry3d trans = links_pos.at(bodies.at(body_or_frame_ind)->linkname);
-        trans.pretranslate(baseTranslation);
         trans.prerotate(baseRotation);
+        trans.pretranslate(baseTranslation);
         return trans;
       }
     }
@@ -247,8 +246,7 @@ public:
     rotation = rpy2rotmat(rpy);
     Eigen::Isometry3d transform;
     transform.setIdentity();
-    transform.pretranslate(translation);
-    transform.prerotate(rotation);
+    transform.matrix() << rotation, translation, 0, 0, 0, 1;
     cache.setBaseTransform(transform);
   }
 
