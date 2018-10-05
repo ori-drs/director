@@ -155,7 +155,6 @@ if (TRUE)
   set(moc_srcs)
   qt_wrap_cpp(moc_srcs
     ddDrakeModel.h
-    ddDrakeWrapper.h
   )
 
   list(APPEND srcs
@@ -164,7 +163,6 @@ if (TRUE)
 
   list(APPEND srcs
     ${moc_srcs}
-    ddDrakeWrapper.cpp
   )
 
   # openhumanoids uses an old drake fork which has a divergent api so we

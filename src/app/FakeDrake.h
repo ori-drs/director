@@ -1,31 +1,9 @@
-#include <Eigen/Dense>
 #include <memory>
 
+#include <Eigen/Dense>
+
 #include <vtkPolyData.h>
-#include <vtkAppendPolyData.h>
-#include <vtkSmartPointer.h>
-#include <vtkActor.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkPolyDataNormals.h>
-#include <vtkCellData.h>
-#include <vtkIdTypeArray.h>
-#include <vtkOBJReader.h>
-#include <vtkSTLReader.h>
-#include <vtkSphereSource.h>
-#include <vtkCylinderSource.h>
-#include <vtkCubeSource.h>
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkTransform.h>
-#include <vtkStringArray.h>
-#include <vtkFieldData.h>
-#include <vtkMath.h>
-#include <vtkProperty.h>
-#include <vtkXMLPolyDataReader.h>
-#include <vtkXMLMultiBlockDataReader.h>
-#include <vtkMultiBlockDataSet.h>
-#include <vtkJPEGReader.h>
-#include <vtkPNGReader.h>
-#include <vtkImageData.h>
+#include <vtkRenderer.h>
 
 #include <QList>
 
@@ -35,43 +13,52 @@
 
 #include <urdf/model.h>
 
-
 const int SPACE_DIMENSION = 3;
 const int TWIST_SIZE = 6;
 
 class RigidBody;
 template <typename Scalar>
+// KinematicsCache is a collection of data used to do forward kinematics on a RigidBodyTree
 class KinematicsCache {
 private:
-  Eigen::VectorXd jointPositions;
-  QList<QString> jointNames;
-  Eigen::Isometry3d baseTransform;
+  Eigen::VectorXd jointPositions_;
+  QList<QString> jointNames_;
+  Eigen::Isometry3d baseTransform_;
+  std::map<std::string, Eigen::Isometry3d > linksTransformations_;
 
 public:
   KinematicsCache(const std::vector<std::shared_ptr<RigidBody> > & bodies)
   {
   }
   void initialize(const Eigen::VectorXd& q) {
-    jointPositions = q;
+    jointPositions_ = q;
   }
 
   const Eigen::VectorXd& getJointPositions() const {
-    return jointPositions;
+    return jointPositions_;
   }
 
   const QList<QString>& getJointNames() const {
-    return jointNames;
+    return jointNames_;
   }
 
   void setJointNames(const QList<QString>& names) {
-    jointNames = names;
+    jointNames_ = names;
   }
 
   void setBaseTransform(const Eigen::Isometry3d& transform) {
-    baseTransform = transform;
+    baseTransform_ = transform;
   }
   const Eigen::Isometry3d& getBaseTransform() const {
-    return baseTransform;
+    return baseTransform_;
+  }
+
+  std::map<std::string, Eigen::Isometry3d >& getLinksTransformations() {
+    return linksTransformations_;
+  }
+
+  const std::map<std::string, Eigen::Isometry3d >& getLinksTransformations() const {
+    return linksTransformations_;
   }
 
 };
@@ -88,19 +75,19 @@ public:
   DrakeJoint(const std::string& name_joint, FloatingBaseType joint_type);
 
   const std::string getName() const {
-    return name;
+    return name_;
   }
   int getNumPositions() const {
-    return num_positions;
+    return num_positions_;
   }
   int getNumVelocities() const {
-    return num_velocities;
+    return num_velocities_;
   }
 
 protected:
-  std::string name;
-  int num_positions;
-  int num_velocities;
+  std::string name_;
+  int num_positions_;
+  int num_velocities_;
 
 };
 
@@ -139,69 +126,35 @@ public:
   void addRobotFromURDFString(const std::string &xml_string, std::map<std::string,std::string>& package_map, const std::string &root_dir = ".",
                               const DrakeJoint::FloatingBaseType floating_base_type = DrakeJoint::ROLLPITCHYAW);
 
+  //this method is not used
   template<typename Scalar>
   Eigen::Matrix<Scalar, TWIST_SIZE, Eigen::Dynamic> geometricJacobian(const KinematicsCache<Scalar>& cache, int base_body_or_frame_ind, int end_effector_body_or_frame_ind, int expressed_in_body_or_frame_ind, bool in_terms_of_qdot = false, std::vector<int>* v_indices = nullptr) const {
     Eigen::MatrixXd jac;
     jac.setZero(TWIST_SIZE, 6);
-    /*boost::shared_ptr<KDL::TreeJntToJacSolver> jacsolver = boost::shared_ptr<KDL::TreeJntToJacSolver>(new KDL::TreeJntToJacSolver(my_tree_));
-    KDL::Jacobian jacobian;
-    if (end_effector_body_or_frame_ind < 0 || end_effector_body_or_frame_ind >= bodies.size()) {
-      return jac;
-    }
-    KDL::JntArray q_in;
-    q_in.resize(my_tree_.getNrOfJoints());
-    const Eigen::VectorXd jointPositions = cache.getJointPositions();
-    const QList<QString>& jointNames = cache.getJointNames();
-    if (jointPositions.size() != jointNames.size())
-    {
-      std::cout << "RigidBodyTree::geometricJacobian(): jointPositions size "
-                << jointPositions.size() << " != " << jointNames.size() << std::endl;
-      return jac;
-    }
-
-    //std::string segmentName = bodies[end_effector_body_or_frame_ind]->linkname;
-    std::string segmentName = "LF_SHANK";
-    //filling q_in
-    int count = 0;
-    for(auto& segment : my_tree_.getSegments()) {
-      double position;
-      for(int i = 0; i < jointNames.size(); ++i) {
-        std::string jointName = segment.second.segment.getJoint().getName();
-        if (jointNames[i].toUtf8().data() == jointName) {
-          position = jointPositions[i];
-          break;
-        }
-      }
-      q_in.data(count) = position;
-      ++count;
-    }
-    int solver_status = jacsolver->JntToJac(q_in, jacobian, segmentName);
-    std::cout << "jacobian " << jacobian.data << std::endl;
-    std::cout << "End " << std::endl;*/
     return jac;
   }
 
-  //transformation between base frame and body frame ( frame of the robot)
+  //return the transformation of the link given by body_or_frame_ind
   template<typename Scalar>
   Eigen::Transform<Scalar, SPACE_DIMENSION, Eigen::Isometry> relativeTransform(const KinematicsCache<Scalar>& cache, int base_or_frame_ind, int body_or_frame_ind) const {
     // Eigen::Transform<Scalar, SPACE_DIMENSION, Eigen::Isometry> = Isometry3d
-    Eigen::Transform<Scalar, SPACE_DIMENSION, Eigen::Isometry> tf_out;
-    tf_out.setIdentity();
-    const Eigen::Isometry3d baseTransform = cache.getBaseTransform();
+    const Eigen::Isometry3d& baseTransform = cache.getBaseTransform();
     Eigen::Vector3d baseTranslation = baseTransform.matrix().block<3, 1>(0, 3);
     Eigen::Matrix3d baseRotation = baseTransform.matrix().block<3, 3>(0, 0);
-    tf_out.matrix() << baseRotation, baseTranslation, 0, 0, 0, 1;
+
+    const std::map<std::string, Eigen::Isometry3d >& linksTransformation = cache.getLinksTransformations();
     if (body_or_frame_ind >= 0 && body_or_frame_ind < bodies.size()) {
-      if (links_pos.find(bodies.at(body_or_frame_ind)->linkname) != links_pos.end()) {
-        Eigen::Isometry3d trans = links_pos.at(bodies.at(body_or_frame_ind)->linkname);
+      if (linksTransformation.find(bodies.at(body_or_frame_ind)->linkname) != linksTransformation.end()) {
+        Eigen::Isometry3d trans = linksTransformation.at(bodies.at(body_or_frame_ind)->linkname);
         trans.prerotate(baseRotation);
         trans.pretranslate(baseTranslation);
         return trans;
       }
     }
-    return tf_out;
+    return baseTransform;
   }
 
+  //do the forward kinematics of all the links of the body given the joints positions stored in the cache
   template <typename Scalar>
   void doKinematics(KinematicsCache<Scalar>& cache, bool compute_JdotV = false) {
     std::map<std::string, double> jointpos_in;
@@ -214,7 +167,7 @@ public:
       return;
     }
     for(int i = 0; i < jointPositions.rows(); ++i) {
-        jointpos_in.insert(std::make_pair(jointNames[i].toUtf8().data(), jointPositions(i)));
+      jointpos_in.insert(std::make_pair(jointNames[i].toUtf8().data(), jointPositions(i)));
     }
 
     bool kinematics_status;
@@ -222,8 +175,9 @@ public:
     bool flatten_tree = true; // determines absolute transforms to robot origin, otherwise relative transforms between joints.
     boost::shared_ptr<KDL::TreeFkSolverPosFull_recursive> fksolver = boost::shared_ptr<KDL::TreeFkSolverPosFull_recursive>(new KDL::TreeFkSolverPosFull_recursive(my_tree_));
     kinematics_status = fksolver->JntToCart(jointpos_in, cartpos_out, flatten_tree);
+    std::map<std::string, Eigen::Isometry3d >& linksTransformation = cache.getLinksTransformations();
     for (auto link_pos : cartpos_out) {
-      links_pos[link_pos.first] = KDLToEigen(link_pos.second);
+      linksTransformation[link_pos.first] = KDLToEigen(link_pos.second);
     }
     // set base transform
     Eigen::Vector3d translation, rpy;
@@ -264,7 +218,6 @@ public:
     double sumMass = 0.;
     for (int i = 0; i < bodies.size(); ++i) {
       Eigen::Isometry3d transform = relativeTransform(cache, 0, bodies[i]->body_index);
-      Eigen::Vector3d translation = transform.matrix().block<3, 1>(0, 3);
       if (bodies[i]->mass > 0) {
         sumMass += bodies[i]->mass;
         m += bodies[i]->mass * (transform * bodies[i]->com);
@@ -282,11 +235,12 @@ public:
   int num_velocities;
 
 private:
+  //build a Drake geometry form a urdf Geometry
   std::shared_ptr<DrakeShapes::Geometry> getGeometry(boost::shared_ptr<urdf::Geometry> &urdf_geometry);
   KDL::Tree my_tree_;
   urdf::Model my_model_;
-  std::map<std::string, Eigen::Isometry3d > links_pos; //TODO move that in KinematicsCache
 
+  // Convert a vector (roll, pitch, yaw) into a rotation matrix
   template<typename Derived>
   Eigen::Matrix<typename Derived::Scalar, 3, 3> rpy2rotmat(const Eigen::MatrixBase<Derived>& rpy) {
     EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Eigen::MatrixBase<Derived>, 3);
@@ -307,101 +261,100 @@ private:
 
 namespace DrakeShapes
 {
-   enum Shape {
-    UNKNOWN     = 0,
-    BOX         = 1,
-    SPHERE      = 2,
-    CYLINDER    = 3,
-    MESH        = 4,
-    MESH_POINTS = 5,
-    CAPSULE     = 6
-  };
+enum Shape {
+  UNKNOWN     = 0,
+  BOX         = 1,
+  SPHERE      = 2,
+  CYLINDER    = 3,
+  MESH        = 4,
+  MESH_POINTS = 5,
+  CAPSULE     = 6
+};
 
-  const double MIN_RADIUS = 1e-7;
-  class  Geometry {
-    public:
-      Geometry();
-      Geometry(const Geometry& other);
-      virtual ~Geometry() {}
+class  Geometry {
+public:
+  Geometry();
+  Geometry(const Geometry& other);
+  virtual ~Geometry() {}
 
-      const Shape getShape() const {
-        return shape;
-      }
+  const Shape getShape() const {
+    return shape;
+  }
 
-    protected:
-      Geometry(Shape shape);
-      Shape shape;  
-  };
+protected:
+  Geometry(Shape shape);
+  Shape shape;
+};
 
-  class VisualElement {
-  public:
-      VisualElement(const Eigen::Isometry3d& T_element_to_local)
-    : T_element_to_local_(T_element_to_local), material(Eigen::Vector4d(0.7, 0.7, 0.7, 1)) {};
+class VisualElement {
+public:
+  VisualElement(const Eigen::Isometry3d& T_element_to_local)
+    : T_element_to_local_(T_element_to_local), material_(Eigen::Vector4d(0.7, 0.7, 0.7, 1)) {};
 
-      VisualElement(const std::shared_ptr<Geometry>& geometry,
-                    const Eigen::Isometry3d& T_element_to_local,
-                    const Eigen::Vector4d& material)
-    : T_element_to_local_(T_element_to_local), geometry_(geometry), material(material) {};
+  VisualElement(const std::shared_ptr<Geometry>& geometry,
+                const Eigen::Isometry3d& T_element_to_local,
+                const Eigen::Vector4d& material)
+    : T_element_to_local_(T_element_to_local), geometry_(geometry), material_(material) {};
 
-      virtual ~VisualElement(){};
+  virtual ~VisualElement(){};
 
-      const Eigen::Vector4d& getMaterial() const { return material;}
+  const Eigen::Vector4d& getMaterial() const { return material_;}
 
-      const Shape getShape() const;
+  const Shape getShape() const;
 
-      const Geometry& getGeometry() const;
-      const Eigen::Isometry3d& getLocalTransform() const {
-        return T_element_to_local_;
-      }
+  const Geometry& getGeometry() const;
+  const Eigen::Isometry3d& getLocalTransform() const {
+    return T_element_to_local_;
+  }
 
 
-    protected:
-      Eigen::Vector4d material;
-      std::shared_ptr<Geometry> geometry_;
-      Eigen::Isometry3d T_element_to_local_;
-  };
+protected:
+  Eigen::Vector4d material_;
+  std::shared_ptr<Geometry> geometry_;
+  Eigen::Isometry3d T_element_to_local_;
+};
 
-  class Sphere: public Geometry {
-    public:
-      Sphere(double radius);
-      virtual ~Sphere() {}
-      
-      double radius;
-  };
+class Sphere: public Geometry {
+public:
+  Sphere(double radius);
+  virtual ~Sphere() {}
 
-  class Box : public Geometry {
-    public:
-      Box(const Eigen::Vector3d& size);
-      virtual ~Box() {}
-      Eigen::Vector3d size;
-      
-  };
+  double radius;
+};
 
-  class  Cylinder : public Geometry {
-    public:
-      Cylinder(double radius, double length);
-      virtual ~Cylinder() {}
+class Box : public Geometry {
+public:
+  Box(const Eigen::Vector3d& size);
+  virtual ~Box() {}
+  Eigen::Vector3d size;
 
-      double radius;
-      double length;
-  };
+};
 
-  class Mesh : public Geometry {
-    public:
-      Mesh(const std::string& filename, double scale);
-      virtual ~Mesh() {}
+class  Cylinder : public Geometry {
+public:
+  Cylinder(double radius, double length);
+  virtual ~Cylinder() {}
 
-      double scale; // Eigen::Vector3d
-      std::string filename;
-  };
+  double radius;
+  double length;
+};
 
-  class Capsule : public Geometry {
-    public:
-      Capsule(double radius, double length);
-      virtual ~Capsule() {}
-      double radius;
-      double length;
-  };
+class Mesh : public Geometry {
+public:
+  Mesh(const std::string& filename, double scale);
+  virtual ~Mesh() {}
+
+  double scale;
+  std::string filename;
+};
+
+class Capsule : public Geometry {
+public:
+  Capsule(double radius, double length);
+  virtual ~Capsule() {}
+  double radius;
+  double length;
+};
 
 }
 

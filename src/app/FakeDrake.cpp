@@ -2,43 +2,43 @@
 #include <exception>
 
 DrakeJoint::DrakeJoint(const std::string& name_joint, int joint_type)
-  :name(name_joint) {
+  :name_(name_joint) {
   switch(joint_type) {
   case int(urdf::Joint::REVOLUTE):
   case int(urdf::Joint::CONTINUOUS):
   case int(urdf::Joint::PRISMATIC):
   case int(urdf::Joint::PLANAR):
-    num_positions = 1;
-    num_velocities = 1;
+    num_positions_ = 1;
+    num_velocities_ = 1;
     break;
   case int(urdf::Joint::FLOATING):
-    num_positions = 6;
-    num_velocities = 6;
+    num_positions_ = 6;
+    num_velocities_ = 6;
     break;
   default:
-    num_positions = 0;
-    num_velocities = 0;
+    num_positions_ = 0;
+    num_velocities_ = 0;
   }
 }
 
 DrakeJoint::DrakeJoint(const std::string& name_joint, FloatingBaseType joint_type)
-  :name(name_joint){
+  :name_(name_joint){
   switch(joint_type) {
   case FloatingBaseType::FIXED:
-    num_positions = 0;
-    num_velocities = 0;
+    num_positions_ = 0;
+    num_velocities_ = 0;
     break;
   case FloatingBaseType::ROLLPITCHYAW:
-    num_positions = 6;
-    num_velocities = 6;
+    num_positions_ = 6;
+    num_velocities_ = 6;
     break;
   case FloatingBaseType::QUATERNION:
-    num_positions = 7;
-    num_velocities = 6;
+    num_positions_ = 7;
+    num_velocities_ = 6;
     break;
   default:
-    num_positions = 0;
-    num_velocities = 0;
+    num_positions_ = 0;
+    num_velocities_ = 0;
   }
 }
 
@@ -92,7 +92,7 @@ void RigidBodyTree::addRobotFromURDFString(const std::string &xml_string, std::m
       Eigen::Vector4d material(Eigen::Vector4d(0.7, 0.7, 0.7, 1));
       if (links[i]->visual->material) {
         material = Eigen::Vector4d(links[i]->visual->material->color.r, links[i]->visual->material->color.g,
-                                 links[i]->visual->material->color.b, links[i]->visual->material->color.a);
+                                   links[i]->visual->material->color.b, links[i]->visual->material->color.a);
       }
       //geometry
       std::shared_ptr<DrakeShapes::Geometry> geometry = getGeometry(links[i]->visual->geometry);
@@ -175,7 +175,7 @@ std::shared_ptr<DrakeShapes::Geometry> RigidBodyTree::getGeometry(boost::shared_
   return geometry;
 }
 
- Eigen::Isometry3d RigidBodyTree::KDLToEigen(const KDL::Frame& tf){
+Eigen::Isometry3d RigidBodyTree::KDLToEigen(const KDL::Frame& tf){
   Eigen::Isometry3d tf_out;
   tf_out.setIdentity();
   tf_out.translation()  << tf.p[0], tf.p[1], tf.p[2];
