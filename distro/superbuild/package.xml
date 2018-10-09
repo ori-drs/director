@@ -19,5 +19,6 @@
     <depend>image_utils</depend>
     <depend>pcl_ros</depend>    
     <depend>pcl_plugin</depend>    
+    <depend>forward_kinematics</depend>
 </package>
 
