@@ -137,29 +137,32 @@ set(pkg_deps)
 
 # project name needed to avoid lcm_catkin clash
 project(ddApp)
-find_package(catkin  REQUIRED COMPONENTS bot_core_lcmtypes drake 
-    maps_lcmtypes robotlocomotion_lcmtypes multisense_utils image_utils)
+find_package(catkin  REQUIRED COMPONENTS bot_core_lcmtypes 
+    maps_lcmtypes robotlocomotion_lcmtypes multisense_utils image_utils
+    kdl_parser forward_kinematics)
 
-if (USE_DRAKE)
+#if (USE_DRAKE)
+if (TRUE)
 
-  find_package(Drake REQUIRED MODULE)
+  #find_package(Drake REQUIRED MODULE)
   find_package(Eigen REQUIRED)
 
   include_directories(
     ${EIGEN_INCLUDE_DIRS}
-    ${DRAKE_INCLUDE_DIRS}
     ${catkin_INCLUDE_DIRS}
   )
 
   set(moc_srcs)
   qt_wrap_cpp(moc_srcs
     ddDrakeModel.h
-    ddDrakeWrapper.h
+  )
+
+  list(APPEND srcs
+    DirectorRigidBodyTree.cpp
   )
 
   list(APPEND srcs
     ${moc_srcs}
-    ddDrakeWrapper.cpp
   )
 
   # openhumanoids uses an old drake fork which has a divergent api so we
@@ -180,7 +183,6 @@ if (USE_DRAKE)
 
   list(APPEND deps
     ${catkin_LIBRARIES}
-#    ${DRAKE_LIBRARIES}
   )
 
 endif()

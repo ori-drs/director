@@ -3,8 +3,7 @@
 #include "ddDrakeModel.h"
 #include "ddSharedPtr.h"
 
-#include <drake/systems/plants/RigidBodyTree.h>
-#include <drake/systems/plants/shapes/Geometry.h>
+
 
 #include <vtkPolyData.h>
 #include <vtkAppendPolyData.h>
@@ -451,7 +450,7 @@ public:
     {
 
       std::shared_ptr<RigidBody> body = model->bodies[bodyIndex];
-
+      
       if (!body->hasParent())
       {
         continue;
@@ -462,13 +461,12 @@ public:
         fixedDOFs.insert(body->getJoint().getName());
         continue;
       }
-
+      
       int dofId = body->position_num_start;
 
       if (body->parent == worldBody)
       {
         //printf("dofMap base\n");
-
         dofMap["base_x"] = dofId + 0;
         dofMap["base_y"] = dofId + 1;
         dofMap["base_z"] = dofId + 2;
@@ -945,6 +943,7 @@ void ddDrakeModel::setJointPositions(const QVector<double>& jointPositions)
 
   this->Internal->JointPositions = jointPositions;
   model->cache->initialize(q);
+  model->cache->setJointNames(getJointNames());
   model->doKinematics(*model->cache);
   model->updateModel();
   emit this->modelChanged();
