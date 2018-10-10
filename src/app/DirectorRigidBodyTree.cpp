@@ -1,4 +1,4 @@
-#include "FakeDrake.h"
+#include "DirectorRigidBodyTree.h"
 #include <exception>
 
 DrakeJoint::DrakeJoint(const std::string& name_joint, int joint_type)
@@ -57,7 +57,7 @@ void RigidBodyTree::addRobotFromURDFString(const std::string &xml_string, std::m
     ROS_ERROR("Failed to construct kdl tree");
     return;
   }
-  // building data structures of FakeDrake
+  // building data structures of RigidBodyTree
   std::vector<boost::shared_ptr<urdf::Link> > links;
   my_model_.getLinks(links);
   std::map<std::string, int> body_index;

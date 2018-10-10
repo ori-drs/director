@@ -802,7 +802,6 @@ URDFRigidBodyTreeVTK::Ptr loadVTKModelFromFile(const QString &urdfFilename, cons
   f.close();
 
   QString rootDir = QFileInfo(urdfFilename).dir().absolutePath();
-  std::cout << urdfFilename.toUtf8().data() << std::endl;
   return loadVTKModelFromXML(xmlString, rootDir, floatingBaseType);
 }
 

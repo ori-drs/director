@@ -158,7 +158,7 @@ if (TRUE)
   )
 
   list(APPEND srcs
-    FakeDrake.cpp
+    DirectorRigidBodyTree.cpp
   )
 
   list(APPEND srcs

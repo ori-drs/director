@@ -7,7 +7,7 @@
 #include "ddSharedPtr.h"
 #include "ddAppConfigure.h"
 #include "ddDrakeVersion.h"
-#include "FakeDrake.h"
+#include "DirectorRigidBodyTree.h"
 
 /*class vtkRenderer;
 class vtkTransform;
