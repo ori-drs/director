@@ -41,50 +41,50 @@ class DRCArgParser(object):
 
 
     def getDefaultBotConfigFile(self):
-        return os.path.join(director.getDRCBaseDir(), 'params/config/anymal/robot.cfg')
+        return os.path.join(director.getDRCBaseDir(), 'config/anymal/robot.cfg')
 
     def getDefaultDirectorConfigFile(self):
         return self.getDefaultValkyrieDirectorConfigFile();
 
     def getDefaultAtlasV3DirectorConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'params/models/atlas_v3/director_config.json')
+                            'models/atlas_v3/director_config.json')
 
     def getDefaultAtlasV4DirectorConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'params/models/atlas_v4/director_config.json')
+                            'models/atlas_v4/director_config.json')
 
     def getDefaultAtlasV5DirectorConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'params/models/atlas_v5/director_config.json')
+                            'models/atlas_v5/director_config.json')
 
     def getDefaultValkyrieDirectorConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'params/models/val_description/director_config.json')
+                            'models/val_description/director_config.json')
 
     def getDefaultValkyrieSimpleDirectorConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'params/models/val_description/director_config_simple.json')
+                            'models/val_description/director_config_simple.json')
 
     def getDefaultHyQDirectorConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'params/models/hyq_description/director_config.json')
+                            'models/hyq_description/director_config.json')
 
     def getDefaultAnymalDirectorConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'params/models/anymal_description/director_config.json')
+                            'config/anymal/director_config.json')
 
     def getDefaultKukaLWRConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'params/models/lwr_defs/director_config.json')
+                            'models/lwr_defs/director_config.json')
 
     def getDefaultHuskyConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'params/models/husky_description/director_config.json')
+                            'config/husky/director_config.json')
 
     def getDefaultDualArmHuskyConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'params/models/dual_arm_husky_description/director_config.json')
+                            'models/dual_arm_husky_description/director_config.json')
 
 
     def _isPyDrakeAvailable(self):
