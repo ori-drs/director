@@ -3,7 +3,7 @@ project(Superbuild)
 
 # I don't know if this function is used. Another call to find catkin
 # is used elsewhere
-find_package(catkin  REQUIRED COMPONENTS bot_core_lcmtypes
+find_package(catkin  REQUIRED COMPONENTS bot_core_lcmtypes drc_lcmtypes
     maps_lcmtypes robotlocomotion_lcmtypes multisense_utils image_utils bot_frames
     vs_lcmtypes)
 
