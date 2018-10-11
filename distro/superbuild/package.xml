@@ -13,6 +13,7 @@
     <depend>bot_param</depend>
     <depend>bot_frames</depend>
     <depend>maps_lcmtypes</depend>
+    <depend>drc_lcmtypes</depend>
     <depend>maps_server</depend>
     <depend>robotlocomotion_lcmtypes</depend>
     <depend>multisense_utils</depend>
