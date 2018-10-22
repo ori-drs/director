@@ -13,7 +13,6 @@ option(USE_PERCEPTION "Build director features that require OpenCV, PCL, cv-util
 option(USE_DRC "Build with DRC." ON)
 option(USE_DRC_MAPS "Build with DRC Maps." ON)
 
-option(USE_SYSTEM_EIGEN "Use system version of eigen.  If off, eigen will be built." OFF)
 option(USE_SYSTEM_LCM "Use system version of lcm.  If off, lcm will be built." ON)
 option(USE_SYSTEM_LIBBOT "Use system version of libbot.  If off, libbot will be built." ON)
 option(USE_SYSTEM_PCL "Use system version of pcl.  If off, pcl will be built." ON)
@@ -100,35 +99,6 @@ set(python_args
   -DPYTHON_INCLUDE_DIR2:PATH=${PYTHON_INCLUDE_DIR} # required for cmake 2.8 on ubuntu 14.04
   -DPYTHON_LIBRARY:PATH=${PYTHON_LIBRARY}
   )
-
-
-###############################################################################
-# eigen
-
-if (NOT USE_SYSTEM_EIGEN)
-
-ExternalProject_Add(
-  eigen
-  URL https://bitbucket.org/eigen/eigen/get/3.3.3.tar.gz
-  URL_MD5 f21cee193e15e55cfd15ebbc16fc00a7
-  CMAKE_CACHE_ARGS
-    ${default_cmake_args}
-    ${qt_args}
-)
-
-ExternalProject_Add_Step(eigen make_pkgconfig_dir
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${install_prefix}/lib/pkgconfig
-  DEPENDERS configure)
-
-set(eigen_args
-  -DEIGEN_INCLUDE_DIR:PATH=${install_prefix}/include/eigen3
-  -DEIGEN_INCLUDE_DIRS:PATH=${install_prefix}/include/eigen3
-  -DEIGEN3_INCLUDE_DIR:PATH=${install_prefix}/include/eigen3
-  )
-
-set(eigen_depends eigen)
-
-endif()
 
 
 ###############################################################################
@@ -264,65 +234,6 @@ if(USE_STANDALONE_LCMGL)
   set(lcmgl_depends bot-lcmgl)
 
 endif()
-
-
-###############################################################################
-# PythonQt
-
-if(DD_QT_VERSION EQUAL 4)
-  set(PythonQt_TAG patched-6)
-else()
-  set(PythonQt_TAG patched-8)
-endif()
-
-ExternalProject_Add(PythonQt
-  GIT_REPOSITORY https://github.com/commontk/PythonQt.git
-  GIT_TAG ${PythonQt_TAG}
-  CMAKE_CACHE_ARGS
-    ${default_cmake_args}
-    ${qt_args}
-    ${python_args}
-    -DPythonQt_Wrap_Qtcore:BOOL=ON
-    -DPythonQt_Wrap_Qtgui:BOOL=ON
-    -DPythonQt_Wrap_Qtuitools:BOOL=ON
-  )
-
-###############################################################################
-# ctkPythonConsole
-
-if(DD_QT_VERSION EQUAL 4)
-  set(ctkPythonConsole_TAG 495ae0f)
-else()
-  set(ctkPythonConsole_TAG add-qt5-support)
-endif()
-
-ExternalProject_Add(ctkPythonConsole
-  GIT_REPOSITORY https://github.com/patmarion/ctkPythonConsole
-  GIT_TAG ${ctkPythonConsole_TAG}
-  CMAKE_CACHE_ARGS
-    ${default_cmake_args}
-    ${qt_args}
-    ${python_args}
-  DEPENDS
-    PythonQt
-  )
-
-###############################################################################
-# QtPropertyBrowser
-
-if(DD_QT_VERSION EQUAL 4)
-  set(QtPropertyBrowser_TAG baf10af)
-else()
-  set(QtPropertyBrowser_TAG 5ca603a)
-endif()
-
-ExternalProject_Add(QtPropertyBrowser
-  GIT_REPOSITORY https://github.com/patmarion/QtPropertyBrowser
-  GIT_TAG ${QtPropertyBrowser_TAG}
-  CMAKE_CACHE_ARGS
-    ${default_cmake_args}
-    ${qt_args}
-  )
 
 
 ###############################################################################
@@ -496,7 +407,6 @@ if(USE_PCL AND NOT USE_SYSTEM_PCL)
     GIT_TAG pcl-1.8.0
     CMAKE_CACHE_ARGS
       ${default_cmake_args}
-      ${eigen_args}
       ${boost_args}
       ${flann_args}
       ${vtk_args}
@@ -511,7 +421,6 @@ if(USE_PCL AND NOT USE_SYSTEM_PCL)
 
     DEPENDS
       ${vtk_depends}
-      ${eigen_depends}
       flann
   )
 
@@ -530,7 +439,6 @@ ExternalProject_Add(PointCloudLibraryPlugin
   GIT_TAG 84de916
   CMAKE_CACHE_ARGS
     ${default_cmake_args}
-    ${eigen_args}
     ${boost_args}
     ${flann_args}
     ${python_args}
@@ -629,7 +537,6 @@ ExternalProject_Add(director
     -DDD_QT_VERSION:STRING=${DD_QT_VERSION}
     -DUSE_PERCEPTION:BOOL=${USE_PERCEPTION}
     ${default_cmake_args}
-    ${eigen_args}
     ${boost_args}
     ${flann_args}
     ${vtk_args}
@@ -640,12 +547,8 @@ ExternalProject_Add(director
 
     ${vtk_depends}
     ${pcl_depends}
-    ${eigen_depends}
     ${lcm_depends}
     ${libbot_depends}
     ${cvutils_depends}
-    PythonQt
-    ctkPythonConsole
-    QtPropertyBrowser
 
   )
