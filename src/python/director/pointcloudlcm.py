@@ -100,7 +100,7 @@ class PointCloudSource(TimerCallback):
         self.alpha = 1.0
 
         self.lastPointCloud = 0
-        self.numberOfPointClouds = 20
+        self.numberOfPointClouds = 3
         self.nextPointCloudId = 0
         self.pointClouds = []
         self.initPointClouds()
