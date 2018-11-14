@@ -1,7 +1,5 @@
 find_package(PythonQt REQUIRED)
-find_package(CTKPythonConsole REQUIRED)
 find_package(OpenGL REQUIRED)
-find_package(QtPropertyBrowser REQUIRED)
 if(DD_QT_VERSION EQUAL 4)
   include(${QT_USE_FILE})
 else()
@@ -25,8 +23,6 @@ check_vtk_qt_version()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_SOURCE_DIR}/src/common)
-include_directories(${QTPROPERTYBROWSER_INCLUDE_DIRS})
-include_directories(${CTK_PYTHONCONSOLE_INCLUDE_DIRS})
 include_directories(${PYTHONQT_INCLUDE_DIRS})
 include_directories(${PYTHON_INCLUDE_DIRS})
 
@@ -121,9 +117,7 @@ set(srcs
 
 set(deps
   ${QT_LIBRARIES}
-  ${CTK_PYTHONCONSOLE_LIBRARIES}
   ${PYTHONQT_LIBRARIES}
-  ${QTPROPERTYBROWSER_LIBRARY}
   ${OPENGL_LIBRARIES}
   ${VTK_LIBRARIES}
   )
@@ -139,7 +133,7 @@ set(pkg_deps)
 project(ddApp)
 find_package(catkin  REQUIRED COMPONENTS bot_core_lcmtypes 
     maps_lcmtypes robotlocomotion_lcmtypes multisense_utils image_utils
-    kdl_parser forward_kinematics)
+    kdl_parser forward_kinematics ctk_python_console qt_property_browser)
 
 #if (USE_DRAKE)
 if (TRUE)

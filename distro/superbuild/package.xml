@@ -21,5 +21,7 @@
     <depend>pcl_ros</depend>    
     <depend>pcl_plugin</depend>    
     <depend>forward_kinematics</depend>
+    <depend>ctk_python_console</depend>
+    <depend>qt_property_browser</depend>
 </package>
 
