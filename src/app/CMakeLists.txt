@@ -1,4 +1,3 @@
-find_package(PythonQt REQUIRED)
 find_package(OpenGL REQUIRED)
 if(DD_QT_VERSION EQUAL 4)
   include(${QT_USE_FILE})
@@ -23,7 +22,6 @@ check_vtk_qt_version()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_SOURCE_DIR}/src/common)
-include_directories(${PYTHONQT_INCLUDE_DIRS})
 include_directories(${PYTHON_INCLUDE_DIRS})
 
 set(decorator_file ${CMAKE_CURRENT_BINARY_DIR}/ddPythonQtDecorators.h)
@@ -117,7 +115,6 @@ set(srcs
 
 set(deps
   ${QT_LIBRARIES}
-  ${PYTHONQT_LIBRARIES}
   ${OPENGL_LIBRARIES}
   ${VTK_LIBRARIES}
   )
@@ -133,7 +130,8 @@ set(pkg_deps)
 project(ddApp)
 find_package(catkin  REQUIRED COMPONENTS bot_core_lcmtypes 
     maps_lcmtypes robotlocomotion_lcmtypes multisense_utils image_utils
-    kdl_parser forward_kinematics ctk_python_console qt_property_browser)
+    kdl_parser forward_kinematics ctk_python_console qt_property_browser python_qt)
+
 
 #if (USE_DRAKE)
 if (TRUE)
