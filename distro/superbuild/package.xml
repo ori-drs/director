@@ -23,6 +23,6 @@
     <depend>forward_kinematics</depend>
     <depend>ctk_python_console</depend>
     <depend>qt_property_browser</depend>
-    <depend>PythonQt</depend>
+    <depend>python_qt</depend>
 </package>
 
