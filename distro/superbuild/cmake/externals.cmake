@@ -525,6 +525,7 @@ message(STATUS "extenrals $USE_COLLECTIONS " ${USE_COLLECTIONS})
 ExternalProject_Add(director
   SOURCE_DIR ${Superbuild_SOURCE_DIR}/../..
   DOWNLOAD_COMMAND ""
+  BUILD_ALWAYS 1
   CMAKE_CACHE_ARGS
 
     -DUSE_LCM:BOOL=${USE_LCM}
@@ -550,5 +551,4 @@ ExternalProject_Add(director
     ${lcm_depends}
     ${libbot_depends}
     ${cvutils_depends}
-
   )
