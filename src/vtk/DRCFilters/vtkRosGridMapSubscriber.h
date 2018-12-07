@@ -49,8 +49,7 @@ private:
 
   vtkSmartPointer<vtkPolyData> ConvertMesh(const grid_map::GridMap& inputMap);
 
-  std::deque<vtkSmartPointer<vtkPolyData> > dataset_;
-  const int max_number_of_gridmaps_;
+  vtkSmartPointer<vtkPolyData> dataset_;
   boost::shared_ptr<ros::Subscriber> subscriber_;
   boost::shared_ptr<ros::AsyncSpinner> spinner_;
   std::mutex mutex_;

@@ -19,7 +19,6 @@
 vtkStandardNewMacro(vtkRosGridMapSubscriber);
 
 vtkRosGridMapSubscriber::vtkRosGridMapSubscriber()
-  :max_number_of_gridmaps_(2)
 {
   if (!ros::isInitialized()) {
     int argc = 0;
@@ -54,8 +53,7 @@ void vtkRosGridMapSubscriber::GridMapCallback(const grid_map_msgs::GridMap& mess
   // Convert message to map.
   grid_map::GridMap inputMap;
   grid_map::GridMapRosConverter::fromMessage(message, inputMap);
-  dataset_.push_back(ConvertMesh(inputMap));
-  UpdateDequeSize();
+  dataset_ = ConvertMesh(inputMap);
 }
 
 vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMesh(const grid_map::GridMap& inputMap)
@@ -113,26 +111,15 @@ vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMesh(const grid_map
   return polyData;
 }
 
-void vtkRosGridMapSubscriber::UpdateDequeSize()
-{
-  while (dataset_.size() >= max_number_of_gridmaps_)
-  {
-    dataset_.pop_front();
-  }
-}
-
 void vtkRosGridMapSubscriber::GetMeshForMapId(vtkPolyData* polyData)
 {
-  if (!polyData)
+  if (!polyData || !dataset_)
   {
     return;
   }
 
   std::lock_guard<std::mutex> lock(mutex_);
-  for (size_t i = 0; i < dataset_.size(); ++i)
-  {
-    polyData->DeepCopy(dataset_[i]);
-  }
+  polyData->DeepCopy(dataset_);
 }
 
 void vtkRosGridMapSubscriber::PrintSelf(ostream& os, vtkIndent indent)
