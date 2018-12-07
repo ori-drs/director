@@ -771,8 +771,6 @@ class RosGridMap(vis.PolyDataItem):
         self.reader = drc.vtkRosGridMapSubscriber()
         self.reader.Start()
 
-    def updatePolyData(self, viewId, polyData):
-	x = 1
 
     def _onPropertyChanged(self, propertySet, propertyName):
         vis.PolyDataItem._onPropertyChanged(self, propertySet, propertyName)
@@ -786,8 +784,7 @@ class RosGridMap(vis.PolyDataItem):
     def showMap(self, viewId, mapId):
         polyData = vtk.vtkPolyData()
 
-        self.reader.GetMeshForMapId(viewId, mapId, polyData)
-        self.updatePolyData(viewId, polyData)
+        self.reader.GetMeshForMapId(polyData)
 
         if self.callbackFunc:
             self.callbackFunc()

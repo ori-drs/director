@@ -63,48 +63,62 @@ vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMesh(const grid_map
   const size_t rows = inputMap.getSize()(0);
   const size_t cols = inputMap.getSize()(1);
   long int count_point = 0;
+
+  vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
   vtkSmartPointer<vtkCellArray> cellArray = vtkSmartPointer<vtkCellArray>::New();
   vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
   points->SetDataTypeToDouble();
 
-  //const std::vector< std::string > &  layers = inputMap.getLayers();
-  //TODO check that there is a layer called layer_name
+  const std::vector< std::string > &  layers = inputMap.getLayers();
   std::string layer_name = "elevation";
+  // check if the gridmap contains the layer called layer_name
+  if ( std::find(layers.begin(), layers.end(), layer_name) == layers.end()) {
+    return polyData;
+  }
   for (size_t i = 0; i < rows - 1; ++i) {
     for (size_t j = 0; j < cols - 1; ++j) {
 
-      grid_map::Position3 position1, position2, position3, position4;
-      grid_map::Index index(i, j);
+      grid_map::Position3 position1, position2, position3;
 
-      if (!inputMap.isValid(grid_map::Index(i,j))) continue;
-      if (!inputMap.isValid(grid_map::Index(i+1,j))) continue;
-      if (!inputMap.isValid(grid_map::Index(i+1,j+1))) continue;
-      if (!inputMap.isValid(grid_map::Index(i,j+1))) continue;
+      if (!inputMap.isValid(grid_map::Index(i, j))) continue;
+      if (!inputMap.isValid(grid_map::Index(i, j+1))) continue;
+      if (!inputMap.isValid(grid_map::Index(i+1, j))) continue;
 
-      inputMap.getPosition3(layer_name, grid_map::Index(i,j), position1);
-      inputMap.getPosition3(layer_name, grid_map::Index(i+1,j), position2);
-      inputMap.getPosition3(layer_name, grid_map::Index(i+1,j+1), position3);
-      inputMap.getPosition3(layer_name, grid_map::Index(i,j+1), position4);
+      inputMap.getPosition3(layer_name, grid_map::Index(i, j), position1);
+      inputMap.getPosition3(layer_name, grid_map::Index(i, j+1), position2);
+      inputMap.getPosition3(layer_name, grid_map::Index(i+1, j), position3);
 
       points->InsertNextPoint(position1(0), position1(1), position1(2));
       points->InsertNextPoint(position2(0), position2(1), position2(2));
       points->InsertNextPoint(position3(0), position3(1), position3(2));
-      points->InsertNextPoint(position4(0), position4(1), position4(2));
 
-      vtkSmartPointer<vtkPolygon> polygon =
-                vtkSmartPointer<vtkPolygon>::New();
-      polygon->GetPointIds()->SetNumberOfIds(4);
-      polygon->GetPointIds()->SetId(0, count_point);
-      polygon->GetPointIds()->SetId(1, count_point + 1);
-      polygon->GetPointIds()->SetId(2, count_point + 2);
-      polygon->GetPointIds()->SetId(3, count_point + 3);
-      cellArray->InsertNextCell(polygon);
+      vtkSmartPointer<vtkTriangle> triangle =
+                vtkSmartPointer<vtkTriangle>::New();
+      triangle->GetPointIds()->SetId(0, count_point);
+      triangle->GetPointIds()->SetId(1, count_point + 1);
+      triangle->GetPointIds()->SetId(2, count_point + 2);
+      cellArray->InsertNextCell(triangle);
 
-      count_point += 4;
+      // triangle 2
+      if (!inputMap.isValid(grid_map::Index(i+1, j+1))) continue;
+
+      inputMap.getPosition3(layer_name, grid_map::Index(i, j+1), position1);
+      inputMap.getPosition3(layer_name, grid_map::Index(i+1, j+1), position2);
+      inputMap.getPosition3(layer_name, grid_map::Index(i+1, j), position3);
+
+      points->InsertNextPoint(position1(0), position1(1), position1(2));
+      points->InsertNextPoint(position2(0), position2(1), position2(2));
+      points->InsertNextPoint(position3(0), position3(1), position3(2));
+
+      triangle->GetPointIds()->SetId(0, count_point + 3);
+      triangle->GetPointIds()->SetId(1, count_point + 4);
+      triangle->GetPointIds()->SetId(2, count_point + 5);
+      cellArray->InsertNextCell(triangle);
+
+      count_point += 6;
     }
   }
 
-  vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
   polyData->SetPoints(points);
   polyData->SetPolys(cellArray);
   return polyData;
@@ -118,9 +132,8 @@ void vtkRosGridMapSubscriber::UpdateDequeSize()
   }
 }
 
-void vtkRosGridMapSubscriber::GetMeshForMapId(int viewId, vtkIdType mapId, vtkPolyData* polyData)
+void vtkRosGridMapSubscriber::GetMeshForMapId(vtkPolyData* polyData)
 {
-  // TODO for the moment ignoring viewId and mapId
   if (!polyData)
   {
     return;
