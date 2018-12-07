@@ -78,44 +78,33 @@ vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMesh(const grid_map
   for (size_t i = 0; i < rows - 1; ++i) {
     for (size_t j = 0; j < cols - 1; ++j) {
 
-      grid_map::Position3 position1, position2, position3;
+      std::vector<grid_map::Position3> vertices;
+      for (size_t k = 0; k < 2; k++) {
+        for (size_t l = 0; l < 2; l++) {
+          grid_map::Position3 position;
+          grid_map::Index index(i + k, j + l);
+          if (!inputMap.isValid(index)) continue;
 
-      if (!inputMap.isValid(grid_map::Index(i, j))) continue;
-      if (!inputMap.isValid(grid_map::Index(i, j+1))) continue;
-      if (!inputMap.isValid(grid_map::Index(i+1, j))) continue;
+          inputMap.getPosition3(layer_name, index, position);
+          vertices.push_back(position);
+        }
+      }
+      if (vertices.size() > 2) {
+        for (size_t m = 1; m < vertices.size() - 1; m++) {
+          points->InsertNextPoint(vertices[m-1](0), vertices[m-1](1), vertices[m-1](2));
+          points->InsertNextPoint(vertices[m](0), vertices[m](1), vertices[m](2));
+          points->InsertNextPoint(vertices[m+1](0), vertices[m+1](1), vertices[m+1](2));
 
-      inputMap.getPosition3(layer_name, grid_map::Index(i, j), position1);
-      inputMap.getPosition3(layer_name, grid_map::Index(i, j+1), position2);
-      inputMap.getPosition3(layer_name, grid_map::Index(i+1, j), position3);
+          vtkSmartPointer<vtkTriangle> triangle =
+              vtkSmartPointer<vtkTriangle>::New();
+          triangle->GetPointIds()->SetId(0, count_point);
+          triangle->GetPointIds()->SetId(1, count_point + 1);
+          triangle->GetPointIds()->SetId(2, count_point + 2);
+          cellArray->InsertNextCell(triangle);
+          count_point += 3;
+        }
+      }
 
-      points->InsertNextPoint(position1(0), position1(1), position1(2));
-      points->InsertNextPoint(position2(0), position2(1), position2(2));
-      points->InsertNextPoint(position3(0), position3(1), position3(2));
-
-      vtkSmartPointer<vtkTriangle> triangle =
-                vtkSmartPointer<vtkTriangle>::New();
-      triangle->GetPointIds()->SetId(0, count_point);
-      triangle->GetPointIds()->SetId(1, count_point + 1);
-      triangle->GetPointIds()->SetId(2, count_point + 2);
-      cellArray->InsertNextCell(triangle);
-
-      // triangle 2
-      if (!inputMap.isValid(grid_map::Index(i+1, j+1))) continue;
-
-      inputMap.getPosition3(layer_name, grid_map::Index(i, j+1), position1);
-      inputMap.getPosition3(layer_name, grid_map::Index(i+1, j+1), position2);
-      inputMap.getPosition3(layer_name, grid_map::Index(i+1, j), position3);
-
-      points->InsertNextPoint(position1(0), position1(1), position1(2));
-      points->InsertNextPoint(position2(0), position2(1), position2(2));
-      points->InsertNextPoint(position3(0), position3(1), position3(2));
-
-      triangle->GetPointIds()->SetId(0, count_point + 3);
-      triangle->GetPointIds()->SetId(1, count_point + 4);
-      triangle->GetPointIds()->SetId(2, count_point + 5);
-      cellArray->InsertNextCell(triangle);
-
-      count_point += 6;
     }
   }
 
