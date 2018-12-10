@@ -47,7 +47,7 @@ private:
 
   void GridMapCallback(const grid_map_msgs::GridMap& message);
 
-  vtkSmartPointer<vtkPolyData> ConvertMesh(const grid_map::GridMap& inputMap);
+  vtkSmartPointer<vtkPolyData> ConvertMesh(grid_map::GridMap &inputMap);
 
   vtkSmartPointer<vtkPolyData> dataset_;
   boost::shared_ptr<ros::Subscriber> subscriber_;

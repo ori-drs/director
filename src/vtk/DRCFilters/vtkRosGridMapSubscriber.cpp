@@ -56,8 +56,9 @@ void vtkRosGridMapSubscriber::GridMapCallback(const grid_map_msgs::GridMap& mess
   dataset_ = ConvertMesh(inputMap);
 }
 
-vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMesh(const grid_map::GridMap& inputMap)
+vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMesh(grid_map::GridMap& inputMap)
 {
+  inputMap.convertToDefaultStartIndex();
   const size_t rows = inputMap.getSize()(0);
   const size_t cols = inputMap.getSize()(1);
   long int count_point = 0;
@@ -81,7 +82,9 @@ vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMesh(const grid_map
         for (size_t l = 0; l < 2; l++) {
           grid_map::Position3 position;
           grid_map::Index index(i + k, j + l);
-          if (!inputMap.isValid(index)) continue;
+          if (!inputMap.isValid(index)) {
+            continue;
+          }
 
           inputMap.getPosition3(layer_name, index, position);
           vertices.push_back(position);
@@ -105,7 +108,7 @@ vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMesh(const grid_map
 
     }
   }
-
+  std::cout << "count " << count_point << std::endl;
   polyData->SetPoints(points);
   polyData->SetPolys(cellArray);
   return polyData;

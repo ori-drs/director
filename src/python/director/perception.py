@@ -762,7 +762,7 @@ class MapServerSource(TimerCallback):
 class RosGridMap(vis.PolyDataItem):
 
     def __init__(self, callbackFunc=None):
-        vis.PolyDataItem.__init__(self, 'grid map', vtk.vtkPolyData(), view=None)
+        vis.PolyDataItem.__init__(self, 'elevation map', vtk.vtkPolyData(), view=None)
         self.polyDataObject = None
         self.timer = TimerCallback()
         self.timer.callback = self.updateMap
@@ -776,9 +776,9 @@ class RosGridMap(vis.PolyDataItem):
         vis.PolyDataItem._onPropertyChanged(self, propertySet, propertyName)
         if propertyName == 'Visible':
             if self.getProperty(propertyName):
-                self.timer.start(self)
+                self.timer.start()
             else:
-                self.timer.stop(self)
+                self.timer.stop()
 
 
     def showMap(self, viewId, mapId):
