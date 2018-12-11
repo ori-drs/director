@@ -68,16 +68,34 @@ vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMesh(grid_map::Grid
   vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
   points->SetDataTypeToDouble();
 
+
   const std::vector< std::string > &  layers = inputMap.getLayers();
+  // initialize colors
+  std::string color_layer = "elevation";
+  bool hasColor = (std::find(layers.begin(), layers.end(), color_layer) != layers.end());
+
+  vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+  float minIntensity;
+  float maxIntensity;
+  if (hasColor) {
+    colors->SetNumberOfComponents(3);
+    colors->SetName(color_layer.c_str());
+    minIntensity = inputMap[color_layer].minCoeffOfFinites();
+    maxIntensity = inputMap[color_layer].maxCoeffOfFinites();
+  }
+
   std::string layer_name = "elevation";
   // check if the gridmap contains the layer called layer_name
   if ( std::find(layers.begin(), layers.end(), layer_name) == layers.end()) {
+    std::cout << "No layer called elevation" << std::endl;
     return polyData;
   }
+
   for (size_t i = 0; i < rows - 1; ++i) {
     for (size_t j = 0; j < cols - 1; ++j) {
 
       std::vector<grid_map::Position3> vertices;
+      std::vector<grid_map::Index> indexes;
       for (size_t k = 0; k < 2; k++) {
         for (size_t l = 0; l < 2; l++) {
           grid_map::Position3 position;
@@ -88,6 +106,7 @@ vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMesh(grid_map::Grid
 
           inputMap.getPosition3(layer_name, index, position);
           vertices.push_back(position);
+          indexes.push_back(index);
         }
       }
       if (vertices.size() > 2) {
@@ -103,13 +122,37 @@ vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMesh(grid_map::Grid
           triangle->GetPointIds()->SetId(2, count_point + 2);
           cellArray->InsertNextCell(triangle);
           count_point += 3;
+
+          if (hasColor) {
+            /*unsigned char red[3] = {255, 0, 0};
+            colors->InsertNextTupleValue(red);
+            colors->InsertNextTupleValue(red);
+            colors->InsertNextTupleValue(red);*/
+
+            unsigned char color = computeColor(inputMap, color_layer,
+                                               indexes[m], minIntensity, maxIntensity);
+            unsigned char color1[3] = {color, color, color};
+            colors->InsertNextTupleValue(color1);
+            color = computeColor(inputMap, color_layer,
+                                 indexes[m], minIntensity, maxIntensity);
+            unsigned char color2[3] = {color, color, color};
+            colors->InsertNextTupleValue(color2);
+            color = computeColor(inputMap, color_layer,
+                                 indexes[m], minIntensity, maxIntensity);
+            unsigned char color3[3] = {color, color, color};
+            colors->InsertNextTupleValue(color3);
+          }
+
         }
       }
 
     }
   }
-  std::cout << "count " << count_point << std::endl;
+
   polyData->SetPoints(points);
+  if (hasColor) {
+    polyData->GetPointData()->SetScalars(colors);
+  }
   polyData->SetPolys(cellArray);
   return polyData;
 }
@@ -128,6 +171,20 @@ void vtkRosGridMapSubscriber::GetMeshForMapId(vtkPolyData* polyData)
 void vtkRosGridMapSubscriber::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkPolyDataAlgorithm::PrintSelf(os, indent);
+}
+
+void vtkRosGridMapSubscriber::normalizeColor(float& intensity, float min_intensity, float max_intensity) const
+{
+  intensity = std::min(intensity, max_intensity);
+  intensity = std::max(intensity, min_intensity);
+  intensity = 255 * (intensity - min_intensity) / (max_intensity - min_intensity);
+}
+
+unsigned char vtkRosGridMapSubscriber::computeColor(grid_map::GridMap& inputMap, const std::string& color_layer,
+                                            const grid_map::Index& index, float minIntensity, float maxIntensity) const {
+  float value = inputMap[color_layer](index(0), index(1));
+  normalizeColor(value, minIntensity, maxIntensity);
+  return value;
 }
 
 

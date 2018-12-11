@@ -49,6 +49,14 @@ private:
 
   vtkSmartPointer<vtkPolyData> ConvertMesh(grid_map::GridMap &inputMap);
 
+  /**
+  Compute color value in the interval [0,255].
+  **/
+  void normalizeColor(float& intensity, float min_intensity, float max_intensity) const;
+
+  unsigned char computeColor(grid_map::GridMap& inputMap, const std::string& color_layer,
+                     const grid_map::Index& index, float minIntensity, float maxIntensity) const;
+
   vtkSmartPointer<vtkPolyData> dataset_;
   boost::shared_ptr<ros::Subscriber> subscriber_;
   boost::shared_ptr<ros::AsyncSpinner> spinner_;
