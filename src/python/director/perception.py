@@ -763,8 +763,6 @@ class RosGridMap(vis.PolyDataItem):
 
     def __init__(self, callbackFunc=None):
         vis.PolyDataItem.__init__(self, 'elevation map', vtk.vtkPolyData(), view=None)
-        #self.addProperty('Color By', 5,
-        #                 attributes=om.PropertyAttributes(enumNames=['Solid Color', 'intensity', 'ring', 'x', 'y', 'z']))
         self.timer = TimerCallback()
         self.timer.callback = self.updateMap
         self.timer.start()

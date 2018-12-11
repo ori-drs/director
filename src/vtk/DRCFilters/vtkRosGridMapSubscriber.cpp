@@ -71,17 +71,18 @@ vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMesh(grid_map::Grid
 
   const std::vector< std::string > &  layers = inputMap.getLayers();
   // initialize colors
-  std::string color_layer = "elevation";
-  bool hasColor = (std::find(layers.begin(), layers.end(), color_layer) != layers.end());
+  //std::string color_layer = "elevation";
+  //bool hasColor = (std::find(layers.begin(), layers.end(), color_layer) != layers.end());
 
-  vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
-  float minIntensity;
-  float maxIntensity;
-  if (hasColor) {
-    colors->SetNumberOfComponents(3);
-    colors->SetName(color_layer.c_str());
-    minIntensity = inputMap[color_layer].minCoeffOfFinites();
-    maxIntensity = inputMap[color_layer].maxCoeffOfFinites();
+  std::vector<vtkSmartPointer<vtkUnsignedCharArray> > colors(layers.size());
+  std::vector<float> minIntensity(layers.size());
+  std::vector<float> maxIntensity(layers.size());
+  for(int i = 0; i < layers.size(); ++i) {
+    colors[i] = vtkSmartPointer<vtkUnsignedCharArray>::New();
+    colors[i]->SetNumberOfComponents(3);
+    colors[i]->SetName(layers[i].c_str());
+    minIntensity[i] = inputMap[layers[i]].minCoeffOfFinites();
+    maxIntensity[i] = inputMap[layers[i]].maxCoeffOfFinites();
   }
 
   std::string layer_name = "elevation";
@@ -123,24 +124,20 @@ vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMesh(grid_map::Grid
           cellArray->InsertNextCell(triangle);
           count_point += 3;
 
-          if (hasColor) {
-            /*unsigned char red[3] = {255, 0, 0};
-            colors->InsertNextTupleValue(red);
-            colors->InsertNextTupleValue(red);
-            colors->InsertNextTupleValue(red);*/
-
-            unsigned char color = computeColor(inputMap, color_layer,
-                                               indexes[m], minIntensity, maxIntensity);
+          //colors
+          for(int i = 0; i< layers.size(); ++i) {
+            unsigned char color = computeColor(inputMap, layers[i],
+                                               indexes[m-1], minIntensity[i], maxIntensity[i]);
             unsigned char color1[3] = {color, color, color};
-            colors->InsertNextTupleValue(color1);
-            color = computeColor(inputMap, color_layer,
-                                 indexes[m], minIntensity, maxIntensity);
+            colors[i]->InsertNextTupleValue(color1);
+            color = computeColor(inputMap, layers[i],
+                                 indexes[m], minIntensity[i], maxIntensity[i]);
             unsigned char color2[3] = {color, color, color};
-            colors->InsertNextTupleValue(color2);
-            color = computeColor(inputMap, color_layer,
-                                 indexes[m], minIntensity, maxIntensity);
+            colors[i]->InsertNextTupleValue(color2);
+            color = computeColor(inputMap, layers[i],
+                                 indexes[m+1], minIntensity[i], maxIntensity[i]);
             unsigned char color3[3] = {color, color, color};
-            colors->InsertNextTupleValue(color3);
+            colors[i]->InsertNextTupleValue(color3);
           }
 
         }
@@ -150,8 +147,8 @@ vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMesh(grid_map::Grid
   }
 
   polyData->SetPoints(points);
-  if (hasColor) {
-    polyData->GetPointData()->SetScalars(colors);
+  for(int i = 0; i< layers.size(); ++i) {
+    polyData->GetPointData()->AddArray(colors[i]);
   }
   polyData->SetPolys(cellArray);
   return polyData;
