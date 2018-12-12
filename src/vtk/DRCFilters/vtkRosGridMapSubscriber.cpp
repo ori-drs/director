@@ -123,18 +123,15 @@ vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMesh(grid_map::Grid
 
           //colors
           for(int i = 0; i< layers.size(); ++i) {
-            float intensity = computeIntensity(inputMap, layers[i],
-                                               indexes[m-1], minIntensity[i], maxIntensity[i]);
             unsigned char color[3];
-            getInterpolatedColor(intensity, color);
+            getInterpolatedColor(inputMap, layers[i], indexes[m-1],
+                                 minIntensity[i], maxIntensity[i], color);
             colors[i]->InsertNextTupleValue(color);
-            intensity = computeIntensity(inputMap, layers[i],
-                                 indexes[m], minIntensity[i], maxIntensity[i]);
-            getInterpolatedColor(intensity, color);
+            getInterpolatedColor(inputMap, layers[i], indexes[m],
+                                 minIntensity[i], maxIntensity[i], color);
             colors[i]->InsertNextTupleValue(color);
-            intensity = computeIntensity(inputMap, layers[i],
-                                 indexes[m+1], minIntensity[i], maxIntensity[i]);
-            getInterpolatedColor(intensity, color);
+            getInterpolatedColor(inputMap, layers[i], indexes[m+1],
+                                 minIntensity[i], maxIntensity[i], color);
             colors[i]->InsertNextTupleValue(color);
           }
 
@@ -175,26 +172,31 @@ void vtkRosGridMapSubscriber::normalizeIntensity(float& intensity, float minInte
     intensity = std::max(intensity, minIntensity);
     intensity = (intensity - minIntensity) / (maxIntensity - minIntensity);
   } else {
-    intensity = 1;
+    intensity = 1.f;
   }
 }
 
-float vtkRosGridMapSubscriber::computeIntensity(grid_map::GridMap& inputMap, const std::string& color_layer,
-                                            const grid_map::Index& index, float minIntensity, float maxIntensity) const {
-  float value = inputMap[color_layer](index(0), index(1));
-  normalizeIntensity(value, minIntensity, maxIntensity);
-  return value;
-}
-
-void vtkRosGridMapSubscriber::getInterpolatedColor(float intensity, unsigned char (&color)[3]) const {
-  color[0] = 255 * clamp(std::min(4*intensity - 1.5, -4*intensity + 4.5) , 0.0, 1.0);
-  color[1] = 255 * clamp(std::min(4*intensity - 0.5, -4*intensity + 3.5) , 0.0, 1.0);
-  color[2] = 255 * clamp(std::min(4*intensity + 0.5, -4*intensity + 2.5) , 0.0, 1.0);
+void vtkRosGridMapSubscriber::getInterpolatedColor(grid_map::GridMap& inputMap, const std::string& colorLayer,
+                                                   const grid_map::Index& index, float minIntensity, float maxIntensity,
+                                                   unsigned char (&color)[3]) const {
+  float intensity = inputMap[colorLayer](index(0), index(1));
+  if (colorLayer != "color") {
+    normalizeIntensity(intensity, minIntensity, maxIntensity);
+    color[0] = 255 * clamp(std::min(4*intensity - 1.5, -4*intensity + 4.5) , 0.0, 1.0);
+    color[1] = 255 * clamp(std::min(4*intensity - 0.5, -4*intensity + 3.5) , 0.0, 1.0);
+    color[2] = 255 * clamp(std::min(4*intensity + 0.5, -4*intensity + 2.5) , 0.0, 1.0);
+  } else {
+    Eigen::Vector3f colorVectorRGB;
+    grid_map::colorValueToVector(intensity, colorVectorRGB);
+    color[0] = 255 * colorVectorRGB(0);
+    color[1] = 255 * colorVectorRGB(1);
+    color[2] = 255 * colorVectorRGB(2);
+  }
 }
 
 float vtkRosGridMapSubscriber::clamp(float x, float lower, float upper)
 {
-    return std::min(upper, std::max(x, lower));
+  return std::min(upper, std::max(x, lower));
 }
 
 

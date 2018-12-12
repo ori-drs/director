@@ -43,21 +43,21 @@ private:
   vtkRosGridMapSubscriber(const vtkRosGridMapSubscriber&);  // Not implemented.
   void operator=(const vtkRosGridMapSubscriber&);  // Not implemented.
 
-  void UpdateDequeSize();
-
   void GridMapCallback(const grid_map_msgs::GridMap& message);
 
   vtkSmartPointer<vtkPolyData> ConvertMesh(grid_map::GridMap &inputMap);
 
   /**
-  Compute color value in the interval [0,1].
-  **/
+  * @brief normalizeIntensity computes color value in the interval [0,1].
+  */
   void normalizeIntensity(float& intensity, float minIntensity, float maxIntensity) const;
 
-  void getInterpolatedColor(float intensity, unsigned char (&color)[3]) const;
-
-  float computeIntensity(grid_map::GridMap& inputMap, const std::string& color_layer,
-                     const grid_map::Index& index, float minIntensity, float maxIntensity) const;
+  /**
+   * @brief getInterpolatedColor computes the color contained in the colorLayer
+   */
+  void getInterpolatedColor(grid_map::GridMap& inputMap, const std::string& colorLayer,
+                            const grid_map::Index& index, float minIntensity, float maxIntensity,
+                            unsigned char (&color)[3]) const;
 
   static float clamp(float x, float lower, float upper);
 
