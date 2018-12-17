@@ -70,7 +70,7 @@ vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMesh(grid_map::Grid
 
 
   const std::vector< std::string > &  layers = inputMap.getLayers();
-  // initialize colors
+  // initialize colors, one for each layers
   std::vector<vtkSmartPointer<vtkUnsignedCharArray> > colors(layers.size());
   std::vector<float> minIntensity(layers.size());
   std::vector<float> maxIntensity(layers.size());
@@ -181,11 +181,14 @@ void vtkRosGridMapSubscriber::getInterpolatedColor(grid_map::GridMap& inputMap, 
                                                    unsigned char (&color)[3]) const {
   float intensity = inputMap[colorLayer](index(0), index(1));
   if (colorLayer != "color") {
+    // transform the intensity to get a value between [0-1]
     normalizeIntensity(intensity, minIntensity, maxIntensity);
+    // transform the intensity into jet color
     color[0] = 255 * clamp(std::min(4*intensity - 1.5, -4*intensity + 4.5) , 0.0, 1.0);
     color[1] = 255 * clamp(std::min(4*intensity - 0.5, -4*intensity + 3.5) , 0.0, 1.0);
     color[2] = 255 * clamp(std::min(4*intensity + 0.5, -4*intensity + 2.5) , 0.0, 1.0);
   } else {
+    // extracting the color from the layer
     Eigen::Vector3f colorVectorRGB;
     grid_map::colorValueToVector(intensity, colorVectorRGB);
     color[0] = 255 * colorVectorRGB(0);
