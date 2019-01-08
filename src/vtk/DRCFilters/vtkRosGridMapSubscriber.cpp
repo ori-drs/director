@@ -53,6 +53,9 @@ void vtkRosGridMapSubscriber::GridMapCallback(const grid_map_msgs::GridMap& mess
   // Convert message to map.
   grid_map::GridMap inputMap;
   grid_map::GridMapRosConverter::fromMessage(message, inputMap);
+
+  //we can't modify dataset_ if it's being copied in GetMesh
+  std::lock_guard<std::mutex> lock(mutex_);
   dataset_ = ConvertMesh(inputMap);
 }
 
@@ -149,13 +152,14 @@ vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMesh(grid_map::Grid
   return polyData;
 }
 
-void vtkRosGridMapSubscriber::GetMeshForMapId(vtkPolyData* polyData)
+void vtkRosGridMapSubscriber::GetMesh(vtkPolyData* polyData)
 {
   if (!polyData || !dataset_)
   {
     return;
   }
 
+  //we can't copy dataset_ if it's being modified in GridMapCallback
   std::lock_guard<std::mutex> lock(mutex_);
   polyData->DeepCopy(dataset_);
 }

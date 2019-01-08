@@ -31,7 +31,7 @@ public:
 
   void Stop();
 
-  void GetMeshForMapId(vtkPolyData* polyData);
+  void GetMesh(vtkPolyData* polyData);
 
 
 protected:

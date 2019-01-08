@@ -780,10 +780,10 @@ class RosGridMap(vis.PolyDataItem):
                 self.timer.stop()
 
 
-    def showMap(self, viewId, mapId):
+    def showMap(self):
         polyData = vtk.vtkPolyData()
 
-        self.reader.GetMeshForMapId(polyData)
+        self.reader.GetMesh(polyData)
 
         if self.callbackFunc:
             self.callbackFunc()
@@ -792,7 +792,7 @@ class RosGridMap(vis.PolyDataItem):
 
 
     def updateMap(self):
-        self.showMap(1, 1)
+        self.showMap()
 
 
 
