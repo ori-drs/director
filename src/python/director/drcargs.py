@@ -44,7 +44,7 @@ class DRCArgParser(object):
         return os.path.join(director.getDRCBaseDir(), 'config/anymal/robot.cfg')
 
     def getDefaultDirectorConfigFile(self):
-        return self.getDefaultValkyrieDirectorConfigFile();
+        return self.getDefaultAnymalDirectorConfigFile();
 
     def getDefaultAtlasV3DirectorConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),

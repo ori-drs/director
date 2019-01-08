@@ -727,7 +727,7 @@ class CameraFrustumVisualizer(object):
 views = {}
 
 
-def addCameraView(channel, viewName=None, cameraName=None, imageType=-1):
+def addCameraView(channel, viewName=None, cameraName=None, imageType=-1, addToView=True):
     cameraName = cameraName or channel
     if cameraName not in imageManager.queue.getCameraNames():
         import warnings
@@ -742,11 +742,16 @@ def addCameraView(channel, viewName=None, cameraName=None, imageType=-1):
         imageManager.queue.addCameraStream(
             imagesChannel, cameraName, lcmbotcore.images_t.LEFT)
 
-    imageManager.addImage(cameraName)
-    view = CameraImageView(imageManager, cameraName, viewName)
-    global views
-    views[channel] = view
-    return view
+    if (addToView):
+        #print "will add to view", cameraName
+        imageManager.addImage(cameraName)
+        view = CameraImageView(imageManager, cameraName, viewName)
+        global views
+        views[channel] = view
+        return view
+    else:
+        print "will NOT camera add to view", cameraName
+        return None
 
 
 def getStereoPointCloud(decimation=4, imagesChannel='MULTISENSE_CAMERA', cameraName='MULTISENSE_CAMERA_LEFT', removeSize=0, rangeThreshold = -1):
@@ -881,12 +886,12 @@ class KintinuousMapping(object):
         self.showFusedMaps()
 
 
-def init():
+def init(view=None,addToView=True):
     global imageManager
     imageManager = ImageManager()
 
     global cameraView
-    cameraView = CameraView(imageManager)
+    cameraView = CameraView(imageManager,view)
 
     if "modelName" in drcargs.getDirectorConfig():
         _modelName = drcargs.getDirectorConfig()['modelName']
@@ -899,7 +904,7 @@ def init():
             monoCamera = monoCameras[i]
             monoCameraShortName = monoCamerasShortName[i]
             if monoCamera in cameraNames:
-                addCameraView(monoCamera, monoCameraShortName)
+                addCameraView(monoCamera, monoCameraShortName, addToView=addToView)
 
         #import bot_core as lcmbotcore
         #addCameraView('MULTISENSE_CAMERA', 'Head camera right', 'MULTISENSE_CAMERA_RIGHT', lcmbotcore.images_t.RIGHT)
