@@ -778,6 +778,10 @@ class RosGridMap(vis.PolyDataItem):
                 self.timer.start()
             else:
                 self.timer.stop()
+        elif propertyName == 'Color By':
+            color= self.getPropertyEnumValue(propertyName)
+            self.reader.SetColorLayer(color)
+            self.showMap()
 
 
     def showMap(self):

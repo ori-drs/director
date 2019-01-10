@@ -33,6 +33,7 @@ public:
 
   void GetMesh(vtkPolyData* polyData);
 
+  void SetColorLayer(const std::string& colorLayer);
 
 protected:
 
@@ -45,7 +46,7 @@ private:
 
   void GridMapCallback(const grid_map_msgs::GridMap& message);
 
-  vtkSmartPointer<vtkPolyData> ConvertMesh(grid_map::GridMap &inputMap);
+  vtkSmartPointer<vtkPolyData> ConvertMesh();
 
   /**
   * @brief normalizeIntensity computes color value in the interval [0,1].
@@ -62,6 +63,9 @@ private:
   static float clamp(float x, float lower, float upper);
 
   vtkSmartPointer<vtkPolyData> dataset_;
+  grid_map::GridMap inputMap_;
+  std::string colorLayer_;
+
   boost::shared_ptr<ros::Subscriber> subscriber_;
   boost::shared_ptr<ros::AsyncSpinner> spinner_;
   std::mutex mutex_;
