@@ -759,6 +759,47 @@ class MapServerSource(TimerCallback):
         self.updateMap()
 
 
+class RosGridMap(vis.PolyDataItem):
+
+    def __init__(self, callbackFunc=None):
+        vis.PolyDataItem.__init__(self, 'elevation map', vtk.vtkPolyData(), view=None)
+        self.timer = TimerCallback()
+        self.timer.callback = self.updateMap
+        self.timer.start()
+        self.callbackFunc = callbackFunc
+        self.reader = drc.vtkRosGridMapSubscriber()
+        self.reader.Start()
+
+
+    def _onPropertyChanged(self, propertySet, propertyName):
+        vis.PolyDataItem._onPropertyChanged(self, propertySet, propertyName)
+        if propertyName == 'Visible':
+            if self.getProperty(propertyName):
+                self.timer.start()
+            else:
+                self.timer.stop()
+        elif propertyName == 'Color By':
+            color= self.getPropertyEnumValue(propertyName)
+            self.reader.SetColorLayer(color)
+            self.showMap()
+
+
+    def showMap(self):
+        polyData = vtk.vtkPolyData()
+
+        self.reader.GetMesh(polyData)
+
+        if self.callbackFunc:
+            self.callbackFunc()
+        #update view
+        self.setPolyData(polyData)
+
+
+    def updateMap(self):
+        self.showMap()
+
+
+
 def init(view):
     global _multisenseItem
     global multisenseDriver
@@ -794,6 +835,9 @@ def init(view):
     else:
         mapServerSource = None
 
+    rosGridMap = RosGridMap(callbackFunc=view.render)
+    rosGridMap.addToView(view)
+    om.addToObjectModel(rosGridMap, sensorsFolder)
 
     spindleDebug = SpindleAxisDebug(multisenseDriver)
     spindleDebug.addToView(view)

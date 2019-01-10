@@ -80,7 +80,7 @@ set(deps
 set(pkg_deps)
 
 find_package(catkin  REQUIRED COMPONENTS vs_lcmtypes bot_frames maps_server
-  maps_lcmtypes)
+  maps_lcmtypes grid_map_ros grid_map_msgs )
 
 list(APPEND deps
   ${catkin_LIBRARIES}
@@ -122,7 +122,7 @@ if (USE_DRC_MAPS)
   #find_package(MapsLcm REQUIRED)
   find_package(PCL REQUIRED)
 
-  list(APPEND sources vtkMapServerSource.cxx)
+  list(APPEND sources vtkMapServerSource.cxx vtkRosGridMapSubscriber.cpp)
   include_directories(${PCL_INCLUDE_DIRS})
   #include_directories(${MAPS_INCLUDE_DIRS})
   list(APPEND deps ${PCL_LIBRARIES})#${MAPS_LIBRARIES}  ${MAPSLCM_LIBRARIES})
