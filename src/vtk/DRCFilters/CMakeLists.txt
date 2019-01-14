@@ -122,7 +122,7 @@ if (USE_DRC_MAPS)
   #find_package(MapsLcm REQUIRED)
   find_package(PCL REQUIRED)
 
-  list(APPEND sources vtkMapServerSource.cxx vtkRosGridMapSubscriber.cpp)
+  list(APPEND sources vtkMapServerSource.cxx vtkRosGridMapSubscriber.cpp vtkRosPointCloudSubscriber.cpp)
   include_directories(${PCL_INCLUDE_DIRS})
   #include_directories(${MAPS_INCLUDE_DIRS})
   list(APPEND deps ${PCL_LIBRARIES})#${MAPS_LIBRARIES}  ${MAPSLCM_LIBRARIES})
