@@ -91,7 +91,6 @@ set(python_files
   director/planningutils.py
   director/planplayback.py
   director/playbackpanel.py
-  director/pointcloudlcm.py
   director/pointpicker.py
   director/pointselector.py
   director/polarisplatformplanner.py
