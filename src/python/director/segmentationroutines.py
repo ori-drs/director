@@ -121,7 +121,7 @@ class UserGroundHeightProvider(object):
     def __init__(self, groundHeight):
         self.groundHeight = groundHeight
 
-    def getGroundHeight():
+    def getGroundHeight(self):
         return self.groundHeight
 
 class UserViewProvider(object):
