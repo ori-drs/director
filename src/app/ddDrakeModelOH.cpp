@@ -22,6 +22,7 @@
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkTransform.h>
 #include <vtkStringArray.h>
+#include <vtkDoubleArray.h>
 #include <vtkFieldData.h>
 #include <vtkMath.h>
 #include <vtkProperty.h>
@@ -282,6 +283,19 @@ TextureMapType TextureMap;
 
 }
 
+bool getColorForMesh(vtkSmartPointer<vtkPolyData> polyData, QColor& color)
+{
+  vtkDoubleArray* colorArray = vtkDoubleArray::SafeDownCast(polyData->GetFieldData()->GetAbstractArray("color_material"));
+  if (!colorArray)
+  {
+    return false;
+  }
+  double c[3];
+  colorArray->GetTuple(0, c);
+  color.setRgb(c[0]*255, c[1]*255, c[2]*255);
+  return true;
+}
+
 vtkSmartPointer<vtkTexture> getTextureForMesh(vtkSmartPointer<vtkPolyData> polyData, const QString& meshFileName)
 {
   vtkStringArray* textureArray = vtkStringArray::SafeDownCast(polyData->GetFieldData()->GetAbstractArray("texture_filename"));
@@ -378,7 +392,15 @@ std::vector<ddMeshVisual::Ptr> loadMeshVisuals(const QString& filename)
     }
 
     visual->Texture = getTextureForMesh(polyDataList[i], filename);
-    //visual->Actor->SetTexture(visual->Texture);
+    QColor color;
+    bool success = getColorForMesh(polyDataList[i], color);
+    if (success)
+    {
+      visual->Color = color;
+      visual->Actor->GetProperty()->SetColor(color.red()/255.,
+          color.green()/255.,
+          color.blue()/255.);
+    }
     visuals.push_back(visual);
   }
 
@@ -671,11 +693,14 @@ public:
 
           meshVisual->Name = body->linkname;
           meshMap[body].push_back(meshVisual);
-
-          meshVisual->Color = QColor(visual.getMaterial()[0]*255, visual.getMaterial()[1]*255, visual.getMaterial()[2]*255);
-          meshVisual->Actor->GetProperty()->SetColor(visual.getMaterial()[0],
-                                                     visual.getMaterial()[1],
-                                                     visual.getMaterial()[2]);
+          if (visualType != DrakeShapes::MESH || (visualType == DrakeShapes::MESH && !meshVisual->Color.isValid() ))
+            //!meshVisual->Color.isValid() means the color hasn't been set
+          {
+            meshVisual->Color = QColor(visual.getMaterial()[0]*255, visual.getMaterial()[1]*255, visual.getMaterial()[2]*255);
+            meshVisual->Actor->GetProperty()->SetColor(visual.getMaterial()[0],
+                visual.getMaterial()[1],
+                visual.getMaterial()[2]);
+          }
         }
 
       }
@@ -1422,7 +1447,13 @@ void ddDrakeModel::setTexturesEnabled(bool enabled)
   std::vector<ddMeshVisual::Ptr> visuals = this->Internal->Model->meshVisuals();
   for (size_t i = 0; i < visuals.size(); ++i)
   {
-    visuals[i]->Actor->SetTexture(enabled ? visuals[i]->Texture : NULL);
+    if (enabled && visuals[i]->Texture == NULL) {
+      visuals[i]->Actor->GetProperty()->SetColor(visuals[i]->Color.redF(),
+                                               visuals[i]->Color.greenF(),
+                                               visuals[i]->Color.blueF());
+    } else {
+      visuals[i]->Actor->SetTexture(enabled ? visuals[i]->Texture : NULL);
+    }
   }
 
   emit this->displayChanged();

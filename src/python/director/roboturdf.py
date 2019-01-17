@@ -168,8 +168,8 @@ class RobotModelItem(om.ObjectModelItem):
             strs = name.split('_')
             if len(strs) >= 2 and strs[0] in ['left', 'right'] and strs[1] in ('finger', 'palm') or name.endswith('hand_force_torque'):
                 self.model.setLinkColor(name, QtGui.QColor(90, 90, 90) if strs[1] == 'finger' else QtGui.QColor(20,20,20))
-            else:
-                self.model.setLinkColor(name, QtGui.QColor(255,255,255))
+            #else:
+            #    self.model.setLinkColor(name, QtGui.QColor(255,255,255))
 
     def addToView(self, view):
         if view in self.views:
