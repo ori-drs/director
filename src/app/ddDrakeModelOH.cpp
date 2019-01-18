@@ -68,7 +68,8 @@ class ddMeshVisual
   vtkSmartPointer<vtkTransform> Transform;
   vtkSmartPointer<vtkTransform> VisualToLink;
   vtkSmartPointer<vtkTexture> Texture;
-  QColor Color;
+  //UrdfColor : color from the urdf file, color : color from the material of the mesh
+  QColor Color, UrdfColor;
   std::string Name;
 
 private:
@@ -693,10 +694,11 @@ public:
 
           meshVisual->Name = body->linkname;
           meshMap[body].push_back(meshVisual);
+
+          meshVisual->UrdfColor = QColor(visual.getMaterial()[0]*255, visual.getMaterial()[1]*255, visual.getMaterial()[2]*255);
           if (visualType != DrakeShapes::MESH || (visualType == DrakeShapes::MESH && !meshVisual->Color.isValid() ))
             //!meshVisual->Color.isValid() means the color hasn't been set
-          {
-            meshVisual->Color = QColor(visual.getMaterial()[0]*255, visual.getMaterial()[1]*255, visual.getMaterial()[2]*255);
+          {            
             meshVisual->Actor->GetProperty()->SetColor(visual.getMaterial()[0],
                 visual.getMaterial()[1],
                 visual.getMaterial()[2]);
@@ -1421,13 +1423,12 @@ void ddDrakeModel::setColor(const QColor& color)
 //-----------------------------------------------------------------------------
 void ddDrakeModel::setUrdfColors()
 {
-  //std::cout << "Set Urdf Colors" << std::endl;
   std::vector<ddMeshVisual::Ptr> visuals = this->Internal->Model->meshVisuals();
   for (size_t i = 0; i < visuals.size(); ++i)
   {
-    visuals[i]->Actor->GetProperty()->SetColor(visuals[i]->Color.redF(),
-                                               visuals[i]->Color.greenF(),
-                                               visuals[i]->Color.blueF());
+    visuals[i]->Actor->GetProperty()->SetColor(visuals[i]->UrdfColor.redF(),
+                                               visuals[i]->UrdfColor.greenF(),
+                                               visuals[i]->UrdfColor.blueF());
   }
   emit this->displayChanged();
 }
@@ -1448,6 +1449,7 @@ void ddDrakeModel::setTexturesEnabled(bool enabled)
   for (size_t i = 0; i < visuals.size(); ++i)
   {
     if (enabled && visuals[i]->Texture == NULL) {
+      // the color is the color of the material of the mesh if any, the default color otherwise
       visuals[i]->Actor->GetProperty()->SetColor(visuals[i]->Color.redF(),
                                                visuals[i]->Color.greenF(),
                                                visuals[i]->Color.blueF());
