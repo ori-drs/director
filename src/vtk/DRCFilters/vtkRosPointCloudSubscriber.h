@@ -8,6 +8,7 @@
 
 #include <sensor_msgs/PointCloud2.h>
 #include <ros/ros.h>
+#include <tf/transform_listener.h>
 
 #include <vtkDRCFiltersModule.h>
 #include <vtkPolyDataAlgorithm.h>
@@ -63,6 +64,7 @@ private:
 
   boost::shared_ptr<ros::Subscriber> subscriber_;
   boost::shared_ptr<ros::AsyncSpinner> spinner_;
+  boost::shared_ptr<tf::TransformListener> tfListener_;
   std::mutex mutex_;
 };
 
