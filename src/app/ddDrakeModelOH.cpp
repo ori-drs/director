@@ -698,7 +698,8 @@ public:
           meshVisual->UrdfColor = QColor(visual.getMaterial()[0]*255, visual.getMaterial()[1]*255, visual.getMaterial()[2]*255);
           if (visualType != DrakeShapes::MESH || (visualType == DrakeShapes::MESH && !meshVisual->Color.isValid() ))
             //!meshVisual->Color.isValid() means the color hasn't been set
-          {            
+          {
+            meshVisual->Color = meshVisual->UrdfColor;
             meshVisual->Actor->GetProperty()->SetColor(visual.getMaterial()[0],
                 visual.getMaterial()[1],
                 visual.getMaterial()[2]);
@@ -1448,14 +1449,11 @@ void ddDrakeModel::setTexturesEnabled(bool enabled)
   std::vector<ddMeshVisual::Ptr> visuals = this->Internal->Model->meshVisuals();
   for (size_t i = 0; i < visuals.size(); ++i)
   {
-    if (enabled && visuals[i]->Texture == NULL) {
-      // the color is the color of the material of the mesh if any, the default color otherwise
-      visuals[i]->Actor->GetProperty()->SetColor(visuals[i]->Color.redF(),
+    visuals[i]->Actor->GetProperty()->SetColor(visuals[i]->Color.redF(),
                                                visuals[i]->Color.greenF(),
                                                visuals[i]->Color.blueF());
-    } else {
-      visuals[i]->Actor->SetTexture(enabled ? visuals[i]->Texture : NULL);
-    }
+
+    visuals[i]->Actor->SetTexture(enabled ? visuals[i]->Texture : NULL);
   }
 
   emit this->displayChanged();

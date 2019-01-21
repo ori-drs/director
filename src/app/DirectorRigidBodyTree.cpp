@@ -89,7 +89,8 @@ void RigidBodyTree::addRobotFromURDFString(const std::string &xml_string, std::m
       Eigen::Vector3d xyz;
       xyz << links[i]->visual->origin.position.x, links[i]->visual->origin.position.y, links[i]->visual->origin.position.z;
       T_element_to_local.matrix() << rpy2rotmat(rpy), xyz, 0, 0, 0, 1;
-      Eigen::Vector4d material(Eigen::Vector4d(0.7, 0.7, 0.7, 1));
+      //Eigen::Vector4d material(Eigen::Vector4d(0.7, 0.7, 0.7, 1));
+      Eigen::Vector4d material(Eigen::Vector4d(1, 1, 1, 1)); // default material = white
       if (links[i]->visual->material) {
         material = Eigen::Vector4d(links[i]->visual->material->color.r, links[i]->visual->material->color.g,
                                    links[i]->visual->material->color.b, links[i]->visual->material->color.a);
