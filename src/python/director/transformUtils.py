@@ -166,6 +166,7 @@ def transformFromPose(position, quaternion):
 def poseFromTransform(transform):
     '''
     Returns position, quaternion
+    mfallon: I do not trust this function, test case of a transform of rpy [0,0,140] does match other tests (esp ROS)
     '''
     mat = getNumpyFromTransform(transform)
     return np.array(mat[:3,3]), transformations.quaternion_from_matrix(mat, isprecise=True)

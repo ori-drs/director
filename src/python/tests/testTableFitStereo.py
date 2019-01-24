@@ -40,7 +40,7 @@ segmentationroutines.SegmentationContext.initWithUser(groundHeight, viewFrame)
 dataDir = app.getTestingDataDirectory()
 polyData = ioUtils.readPolyData(os.path.join(dataDir, 'tabletop/table-sparse-stereo.vtp'))
 vis.showPolyData(polyData, 'pointcloud snapshot original', colorByName='rgb_colors')
-polyData = segmentationroutines.sparsifyStereoCloud( polyData )
+#polyData = segmentationroutines.sparsifyStereoCloud( polyData )
 vis.showPolyData(polyData, 'pointcloud snapshot')
 
 # Use only returns near the robot:
@@ -49,7 +49,16 @@ polyData = segmentation.thresholdPoints(polyData, 'distance_along_view_x', [0, 1
 
 # I removed segmentTableThenFindDrills() because it used a depreciated function: 
 #segmentation.segmentTableThenFindDrills(polyData, [1.2864902,  -0.93351376,  1.10208917])
-segmentation.segmentTableSceneClusters(polyData, [1.2864902,  -0.93351376,  1.10208917], clusterInXY=True )
+objectClusters, tableData = segmentation.segmentTableSceneClusters(polyData, [1.2864902,  -0.93351376,  1.10208917], clusterInXY=True )
+
+print ""
+print "answer should be: 314 297 292 16 10"
+
+result_str='answer: '
+for i,c in enumerate(objectClusters):
+    result_str +=str(int(c.GetNumberOfPoints())) + " "
+
+print result_str
 
 if app.getTestingInteractiveEnabled():
 

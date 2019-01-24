@@ -63,7 +63,6 @@ from director import lcmcollections
 from director import atlasdriver
 from director import atlasdriverpanel
 from director import multisensepanel
-from director import pointcloudlcm
 from director import navigationpanel
 from director import handcontrolpanel
 from director import sensordatarequestpanel
@@ -234,8 +233,6 @@ if usePerception:
     else:
         app.removeToolbarMacro('ActionMultisensePanel')
 
-    if usePointCloudSource:
-        pointcloudlcm.init(view)
 
     sensordatarequestpanel.init()
 

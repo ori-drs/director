@@ -764,7 +764,7 @@ class RosGridMap(vis.PolyDataItem):
     def __init__(self, callbackFunc=None):
         vis.PolyDataItem.__init__(self, 'elevation map', vtk.vtkPolyData(), view=None)
         self.timer = TimerCallback()
-        self.timer.callback = self.updateMap
+        self.timer.callback = self.showMap
         self.timer.start()
         self.callbackFunc = callbackFunc
         self.reader = drc.vtkRosGridMapSubscriber()
@@ -795,8 +795,54 @@ class RosGridMap(vis.PolyDataItem):
         self.setPolyData(polyData)
 
 
-    def updateMap(self):
-        self.showMap()
+class RosInit(vis.PolyDataItem):
+
+    def __init__(self, callbackFunc=None):
+        vis.PolyDataItem.__init__(self, 'RosInit', vtk.vtkPolyData(), view=None)
+        self.callbackFunc = callbackFunc
+        self.reader = drc.vtkRosInit()
+        for this_arg in sys.argv:
+            self.reader.AddArg(this_arg)
+        # This actually calls roscpp
+        self.reader.Start()
+
+
+class RosPointCloud(vis.PolyDataItem):
+
+    def __init__(self, callbackFunc=None):
+        vis.PolyDataItem.__init__(self, 'PointCloud', vtk.vtkPolyData(), view=None)
+        self.timer = TimerCallback()
+        self.timer.callback = self.showPointCloud
+        self.timer.start()
+        self.callbackFunc = callbackFunc
+        self.reader = drc.vtkRosPointCloudSubscriber()
+        topicName = '/velodyne/point_cloud_filtered'
+        self.reader.Start(topicName)
+        self.addProperty('Updates Enabled', True)
+        self.addProperty('Topic name', topicName)
+
+
+    def _onPropertyChanged(self, propertySet, propertyName):
+        vis.PolyDataItem._onPropertyChanged(self, propertySet, propertyName)
+        if propertyName == 'Visible' or propertyName == 'Updates Enabled':
+            if self.getProperty(propertyName):
+                self.timer.start()
+            else:
+                self.timer.stop()
+        elif propertyName == 'Topic name':
+            topicName = self.getProperty(propertyName)
+            self.reader.Stop()
+            self.reader.Start(topicName)
+
+
+    def showPointCloud(self):
+        polyData = vtk.vtkPolyData()
+        self.reader.GetPointCloud(polyData)
+
+        if self.callbackFunc:
+            self.callbackFunc()
+        #update view
+        self.setPolyData(polyData)
 
 
 
@@ -835,9 +881,17 @@ def init(view):
     else:
         mapServerSource = None
 
+    rosInit = RosInit(callbackFunc=view.render)
+    rosInit.addToView(view)
+    om.addToObjectModel(rosInit, sensorsFolder)
+
     rosGridMap = RosGridMap(callbackFunc=view.render)
     rosGridMap.addToView(view)
     om.addToObjectModel(rosGridMap, sensorsFolder)
+
+    rosPointCloud = RosPointCloud(callbackFunc=view.render)
+    rosPointCloud.addToView(view)
+    om.addToObjectModel(rosPointCloud, sensorsFolder)
 
     spindleDebug = SpindleAxisDebug(multisenseDriver)
     spindleDebug.addToView(view)
