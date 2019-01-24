@@ -30,7 +30,7 @@ vtkRosInit::~vtkRosInit() {
 
 void vtkRosInit::Start() {
   if (!ros::isInitialized()) {
-    std::cout << "vtkRosInit: ROS not initialized. Running init.\n";
+    std::cout << "vtkRosInit: roscpp not initialized. Running init.\n";
 
     //std::cout << "Using these args:\n";
     //for(size_t i = 0; i < args.size(); i++){
