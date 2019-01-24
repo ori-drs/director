@@ -21,10 +21,7 @@ vtkStandardNewMacro(vtkRosGridMapSubscriber);
 vtkRosGridMapSubscriber::vtkRosGridMapSubscriber()
 {
   if (!ros::isInitialized()) {
-    int argc = 0;
-    char** argv = 0;
-    ros::init(argc, argv, "director", ros::init_options::NoSigintHandler |
-              ros::init_options::AnonymousName);
+    std::cout << "WARNING: vtkRosGridMapSubscriber: ROS not Initialized\n";
   }
 }
 

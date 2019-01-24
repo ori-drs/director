@@ -795,6 +795,18 @@ class RosGridMap(vis.PolyDataItem):
         self.setPolyData(polyData)
 
 
+class RosInit(vis.PolyDataItem):
+
+    def __init__(self, callbackFunc=None):
+        vis.PolyDataItem.__init__(self, 'RosInit', vtk.vtkPolyData(), view=None)
+        self.callbackFunc = callbackFunc
+        self.reader = drc.vtkRosInit()
+        for this_arg in sys.argv:
+            self.reader.AddArg(this_arg)
+        # This actually calls roscpp
+        self.reader.Start()
+
+
 class RosPointCloud(vis.PolyDataItem):
 
     def __init__(self, callbackFunc=None):
@@ -868,6 +880,10 @@ def init(view):
         mapServerSource.start()
     else:
         mapServerSource = None
+
+    rosInit = RosInit(callbackFunc=view.render)
+    rosInit.addToView(view)
+    om.addToObjectModel(rosInit, sensorsFolder)
 
     rosGridMap = RosGridMap(callbackFunc=view.render)
     rosGridMap.addToView(view)
