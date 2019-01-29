@@ -20,6 +20,7 @@ from director.filterUtils import *
 from director.fieldcontainer import FieldContainer
 from director.segmentationroutines import *
 from director import cameraview
+import vtkDRCFiltersPython as drc
 
 from thirdparty import qhull_2d
 from thirdparty import min_bounding_rect
@@ -174,6 +175,8 @@ class DisparityPointCloudItem(vis.PolyDataItem):
         self.addProperty('Target FPS', 5.0, attributes=om.PropertyAttributes(decimals=1, minimum=0.1, maximum=30.0, singleStep=0.1))
         self.addProperty('Max Range', 5.0,  attributes=om.PropertyAttributes(decimals=2, minimum=0., maximum=30.0, singleStep=0.25))
 
+        self.reader = drc.vtkRosDepthImageSubscriber()
+        self.reader.Start()
         self.timer = TimerCallback()
         self.timer.callback = self.update
         self.lastUtime = 0
@@ -217,8 +220,10 @@ class DisparityPointCloudItem(vis.PolyDataItem):
         decimation = int(self.properties.getPropertyEnumValue('Decimation'))
         removeSize = int(self.properties.getProperty('Remove Size'))
         rangeThreshold = float(self.properties.getProperty('Max Range'))
-        polyData = getDisparityPointCloud(decimation, imagesChannel=self.getProperty('Channel'), cameraName=self.getProperty('Camera name'),
-                                          removeOutliers=False, removeSize=removeSize, rangeThreshold = rangeThreshold)
+        #polyData = getDisparityPointCloud(decimation, imagesChannel=self.getProperty('Channel'), cameraName=self.getProperty('Camera name'),
+        #                                  removeOutliers=False, removeSize=removeSize, rangeThreshold = rangeThreshold)
+        polyData = vtk.vtkPolyData()
+        self.reader.GetMesh(polyData)
 
         bodyToLocal = vtk.vtkTransform()
         self.imageManager.queue.getTransform('body', 'local', utime, bodyToLocal)
