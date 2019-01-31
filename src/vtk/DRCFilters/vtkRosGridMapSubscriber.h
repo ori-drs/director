@@ -33,6 +33,8 @@ public:
 
   void GetMesh(vtkPolyData* polyData);
 
+  void GetPointCloud(vtkPolyData* polyData);
+
   void SetColorLayer(const std::string& colorLayer);
 
 protected:
@@ -59,6 +61,8 @@ private:
   void getInterpolatedColor(grid_map::GridMap& inputMap, const std::string& colorLayer,
                             const grid_map::Index& index, float minIntensity, float maxIntensity,
                             unsigned char (&color)[3]) const;
+
+  vtkPolyData* ConvertMeshToPointCloud();
 
   static float clamp(float x, float lower, float upper);
 

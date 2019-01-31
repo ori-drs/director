@@ -7,13 +7,15 @@ from director import segmentation
 from director.consoleapp import ConsoleApp
 from director import drcargs
 from director import vtkAll as vtk
-from director import vtkDRCFiltersPython as drc
 
 from director import applogic
 from director import visualization as vis
 from director.timercallback import TimerCallback
 
-reader= drc.vtkRosGridMapSubscriber()
+vtkRos= vtk.vtkRosInit()
+vtkRos.Start()
+
+reader= vtk.vtkRosGridMapSubscriber()
 reader.Start()
 print reader
 
@@ -26,12 +28,16 @@ view = app.createView()
 def spin():
     polyData = vtk.vtkPolyData()
     reader.GetMesh(polyData)
-    n = polyData.GetNumberOfPoints()
     vis.updatePolyData(polyData,'mesh')
-    print "Number of points",  polyData.GetNumberOfPoints()
+    print "Number of points (a)",  polyData.GetNumberOfPoints()
+    if (polyData.GetNumberOfPoints() == 0):
+        return
 
-    polyData2=segmentation.applyVoxelGrid(polyData)
-    vis.updatePolyData(polyData2,'point cloud')
+    polyDataPC = vtk.vtkPolyData()
+    reader.GetPointCloud(polyDataPC)
+    vis.updatePolyData(polyDataPC, 'output')
+    print "Number of points (b)",  polyDataPC.GetNumberOfPoints()
+
 
     
 quitTimer = TimerCallback(targetFps=5.0)

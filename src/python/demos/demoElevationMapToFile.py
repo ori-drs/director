@@ -8,6 +8,9 @@ from director import ioUtils
 from director import vtkDRCFiltersPython as drc
 from director.shallowCopy import shallowCopy
 
+vtkRos= drc.vtkRosInit()
+vtkRos.Start()
+
 reader= drc.vtkRosGridMapSubscriber()
 reader.Start()
 print reader
@@ -21,16 +24,14 @@ while (continueLoop):
     n = polyData.GetNumberOfPoints()
     print "Number of points",  polyData.GetNumberOfPoints()
 
-    leafSize = 0.005
-    v = vtk.vtkPCLVoxelGrid()
-    v.SetLeafSize(leafSize, leafSize, leafSize)
-    v.SetInputData(polyData)
-    v.Update()
-    polyData2 = shallowCopy(v.GetOutput())
+    polyDataPC = vtk.vtkPolyData()
+    reader.GetPointCloud(polyDataPC)
+    print "Number of output points",  polyDataPC.GetNumberOfPoints()
 
 
-    if (polyData2.GetNumberOfPoints() > 0):
-        ioUtils.writePolyData(polyData2, 'out.ply')
+
+    if (polyDataPC.GetNumberOfPoints() > 0):
+        ioUtils.writePolyData(polyDataPC, 'out.ply')
         continueLoop = False
 
     time.sleep(0.1)

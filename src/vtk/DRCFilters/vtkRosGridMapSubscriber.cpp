@@ -219,6 +219,45 @@ void vtkRosGridMapSubscriber::GetMesh(vtkPolyData* polyData)
   polyData->DeepCopy(dataset_);
 }
 
+
+// ----------------------------------------------------------------------------
+vtkPolyData* vtkRosGridMapSubscriber::ConvertMeshToPointCloud() {
+
+  const size_t numberOfPoints = dataset_->GetNumberOfPoints();
+
+  vtkPolyData* polyData = vtkPolyData::New();
+  vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+  points->SetDataTypeToFloat();
+  points->Allocate(numberOfPoints);
+  polyData->SetPoints(points);
+  polyData->SetVerts(NewVertexCells(numberOfPoints));
+
+  // TODO: add the other fields into the point cloud
+
+  for (size_t i = 0; i < numberOfPoints; ++i){
+    double p[3];
+    dataset_->GetPoint(i,p);
+    points->InsertNextPoint(p[0], p[1], p[2]);
+  }
+
+  //std::cout << "numberOfPoints: "<< numberOfPoints <<"\n";
+  return polyData;
+}
+
+
+
+void vtkRosGridMapSubscriber::GetPointCloud(vtkPolyData* polyData)
+{
+  if (!polyData || !dataset_)
+  {
+    return;
+  }
+
+  std::lock_guard<std::mutex> lock(mutex_);
+  vtkSmartPointer<vtkPolyData> pointcloud = ConvertMeshToPointCloud();
+  polyData->DeepCopy(pointcloud);
+}
+
 void vtkRosGridMapSubscriber::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkPolyDataAlgorithm::PrintSelf(os, indent);
