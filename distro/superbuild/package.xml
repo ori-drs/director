@@ -24,5 +24,6 @@
     <depend>ctk_python_console</depend>
     <depend>qt_property_browser</depend>
     <depend>python_qt</depend>
+    <depend>multi_gait_executor_msgs</depend>
 </package>
 
