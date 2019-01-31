@@ -19,11 +19,6 @@ import numpy as np
 import drc as lcmdrc
 import bot_core as lcmbotcore
 
-try:
-    import multisense as lcmmultisense
-except:
-    print "Failed to import multisense message types. Sending commands won't work"
-import maps as lcmmaps
 import lcmUtils
 
 
@@ -636,127 +631,6 @@ class SpindleMonitor(object):
 
     def getAverageSpindleVelocity(self):
         return self.spindleSpinRateAverager.getAverage()
-
-
-class MapServerSource(TimerCallback):
-
-    def __init__(self, view, callbackFunc=None):
-        TimerCallback.__init__(self)
-        self.reader = None
-        self.folder = None
-        self.view = view
-        self.displayedMapIds = {}
-        self.polyDataObjects = {}
-        self.targetFps = 10
-        self.callbackFunc = callbackFunc
-        self.colorizeCallback = None
-        self.useMeshes = True
-
-    def getNameForViewId(self, viewId):
-
-        for typeName, typeValue in lcmmaps.data_request_t.__dict__.iteritems():
-            if typeValue == viewId:
-                return typeName
-
-        return 'Map View ' + str(viewId)
-
-    def updatePolyData(self, viewId, polyData):
-
-        obj = self.polyDataObjects.get(viewId)
-        if obj not in om.getObjects():
-            obj = None
-        if not obj:
-            hiddenMapIds = [9999]
-            visibleDefault = False if viewId in hiddenMapIds else True
-            obj = vis.PolyDataItem(self.getNameForViewId(viewId), polyData, self.view)
-
-            obj.setProperty('Visible', visibleDefault)
-            if obj._isPointCloud():
-                obj.setProperty('Color', [1, 1, 1])
-                obj.setProperty('Alpha', 0.5)
-            else:
-                obj.setProperty('Color', [0, 0.68, 1])
-
-            if viewId == lcmmaps.data_request_t.HEIGHT_MAP_SCENE:
-                obj.setProperty('Surface Mode', 'Wireframe')
-
-            folder = om.findObjectByName('Map Server')
-            folder.addProperty('Min Range', self.reader.GetDistanceRange()[0],
-                             attributes=om.PropertyAttributes(decimals=2, minimum=0.0, maximum=100.0, singleStep=0.25, hidden=False))
-            folder.addProperty('Max Range', self.reader.GetDistanceRange()[1],
-                             attributes=om.PropertyAttributes(decimals=2, minimum=0.0, maximum=100.0, singleStep=0.25, hidden=False))
-            folder.addProperty('Edge Filter Angle', self.reader.GetEdgeAngleThreshold(),
-                         attributes=om.PropertyAttributes(decimals=0, minimum=0.0, maximum=60.0, singleStep=1, hidden=False))
-            folder.addProperty('Min Height', self.reader.GetHeightRange()[0],
-                             attributes=om.PropertyAttributes(decimals=2, minimum=-80.0, maximum=80.0, singleStep=0.25, hidden=False))
-            folder.addProperty('Max Height', self.reader.GetHeightRange()[1],
-                             attributes=om.PropertyAttributes(decimals=2, minimum=-80.0, maximum=80.0, singleStep=0.25, hidden=False))
-            om.addToObjectModel(obj, folder)
-            om.expand(folder)
-            self.folder = folder
-            self.polyDataObjects[viewId] = obj
-        else:
-            obj.setPolyData(polyData)
-
-        if self.colorizeCallback:
-            self.colorizeCallback(obj)
-
-    def showMap(self, viewId, mapId):
-        polyData = vtk.vtkPolyData()
-
-        if self.useMeshes:
-            self.reader.GetMeshForMapId(viewId, mapId, polyData)
-        else:
-            self.reader.GetDataForMapId(viewId, mapId, polyData)
-
-        self.updatePolyData(viewId, polyData)
-        self.displayedMapIds[viewId] = mapId
-
-        if self.callbackFunc:
-            self.callbackFunc()
-
-    def getSceneHeightData(self):
-        return self.getDepthMapData(lcmmaps.data_request_t.HEIGHT_MAP_SCENE)
-
-    def getDepthMapData(self, viewId):
-
-        mapId = self.reader.GetCurrentMapId(viewId)
-        if mapId < 0:
-            return None, None
-
-        depthImage = vtk.vtkImageData()
-        transform = vtk.vtkTransform()
-        self.reader.GetDataForMapId(viewId, mapId, depthImage, transform)
-
-        dims = depthImage.GetDimensions()
-        d = vnp.getNumpyFromVtk(depthImage, 'ImageScalars')
-        d = d.reshape(dims[1], dims[0])
-        t = np.array([[transform.GetMatrix().GetElement(r, c) for c in xrange(4)] for r in xrange(4)])
-
-        return d, t
-
-    def start(self):
-        if self.reader is None:
-            self.reader = drc.vtkMapServerSource()
-            self.reader.Start()
-
-        TimerCallback.start(self)
-
-    def updateMap(self):
-        if (self.folder):
-            self.reader.SetDistanceRange(self.folder.getProperty('Min Range'), self.folder.getProperty('Max Range'))
-            self.reader.SetEdgeAngleThreshold(self.folder.getProperty('Edge Filter Angle'))
-            self.reader.SetHeightRange(self.folder.getProperty('Min Height'), self.folder.getProperty('Max Height'))
-            
-        viewIds = self.reader.GetViewIds()
-        viewIds = vnp.numpy_support.vtk_to_numpy(viewIds) if viewIds.GetNumberOfTuples() else []
-        for viewId in viewIds:
-            mapId = self.reader.GetCurrentMapId(viewId)
-            if viewId not in self.displayedMapIds or mapId != self.displayedMapIds[viewId]:
-                self.showMap(viewId, mapId)
-
-    def tick(self):
-        self.updateMap()
 
 
 class RosGridMap(vis.PolyDataItem):
