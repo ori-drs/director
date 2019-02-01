@@ -62,7 +62,7 @@ private:
                             const grid_map::Index& index, float minIntensity, float maxIntensity,
                             unsigned char (&color)[3]) const;
 
-  vtkPolyData* ConvertMeshToPointCloud();
+  vtkSmartPointer<vtkPolyData> ConvertMeshToPointCloud();
 
   static float clamp(float x, float lower, float upper);
 

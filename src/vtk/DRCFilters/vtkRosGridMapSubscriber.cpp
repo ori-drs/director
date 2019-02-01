@@ -221,11 +221,11 @@ void vtkRosGridMapSubscriber::GetMesh(vtkPolyData* polyData)
 
 
 // ----------------------------------------------------------------------------
-vtkPolyData* vtkRosGridMapSubscriber::ConvertMeshToPointCloud() {
+vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMeshToPointCloud() {
 
   const size_t numberOfPoints = dataset_->GetNumberOfPoints();
 
-  vtkPolyData* polyData = vtkPolyData::New();
+  vtkSmartPointer<vtkPolyData> polyData = vtkPolyData::New();
   vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
   points->SetDataTypeToFloat();
   points->Allocate(numberOfPoints);
