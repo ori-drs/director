@@ -46,6 +46,9 @@ void DepthImageUtils::unpackImage(const sensor_msgs::ImageConstPtr& image_a, con
   Q(0,3) = -cx;
   Q(1,3) = -cy;
   Q(2,3) = f;
+  /*Q(0,3) = -317.176025390625;
+  Q(1,3) = -246.1299743652344;
+  Q(2,3) = 618.7470092773438;*/
   Q(3,3) = 0;//(stereo_params_.right.cx - stereo_params_.left.cx ) / baseline;
 
   depth_buf_ = const_cast<uint8_t*>(&image_depth->data[0]);
@@ -58,6 +61,7 @@ void DepthImageUtils::unpackImage(const sensor_msgs::ImageConstPtr& image_a, con
 void DepthImageUtils::unpackMultisense(const uint8_t* depth_data, const uint8_t* color_data, int h, int w, cv::Mat_<double> repro_matrix,
                                        pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud, bool is_rgb, int depth_type)
 {
+  depth_type = 1; // TODO change
   if (depth_type==0) {
 
     // Convert Carnegie disparity format into floating point disparity. Store in local buffer

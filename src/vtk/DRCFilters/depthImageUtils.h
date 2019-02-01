@@ -10,6 +10,9 @@
 
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
+#ifndef Q_MOC_RUN
+#include <pcl/filters/passthrough.h>
+#endif
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>

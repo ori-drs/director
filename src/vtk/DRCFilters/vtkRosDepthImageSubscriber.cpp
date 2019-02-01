@@ -88,12 +88,21 @@ void vtkRosDepthImageSubscriber::DepthImageCallback(const sensor_msgs::ImageCons
                                                     const sensor_msgs::ImageConstPtr& image_b,
                                                     const sensor_msgs::CameraInfoConstPtr& info_b)
 {
+  double rangeThreshold = 5.0;
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
   utils_.unpackImage(image_a, info_a, image_b, info_b, cloud);
+
+  if (rangeThreshold >= 0) {
+    pcl::PassThrough<pcl::PointXYZRGB> pass;
+    pass.setInputCloud (cloud);
+    pass.setFilterFieldName ("z");
+    pass.setFilterLimits (0.0, rangeThreshold);
+    pass.filter(*cloud);
+  }
+
   //std::lock_guard<std::mutex> lock(mutex_);
   //dataset_ = transformPolyDataUtils::PolyDataFromPointCloud(cloud);
   //
-  //std::cout << image_b->header.frame_id << ", " << image_a->header.frame_id << std::endl;
   std::string frame_id = image_b->header.frame_id;
   vtkSmartPointer<vtkTransform> sensorToLocalTransform = vtkSmartPointer<vtkTransform>::New();
   tf::StampedTransform transform;
