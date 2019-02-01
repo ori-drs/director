@@ -668,6 +668,12 @@ class RosGridMap(vis.PolyDataItem):
         #update view
         self.setPolyData(polyData)
 
+    def getPointCloud(self):
+        polyData = vtk.vtkPolyData()
+
+        self.reader.GetPointCloud(polyData)
+        return polyData
+
 
 class RosInit(vis.PolyDataItem):
 
