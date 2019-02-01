@@ -137,3 +137,13 @@ void vtkRosDepthImageSubscriber::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkPolyDataAlgorithm::PrintSelf(os, indent);
 }
+
+void vtkRosDepthImageSubscriber::SetDecimate(int decimate)
+{
+  utils_.SetDecimate(decimate);
+}
+
+void vtkRosDepthImageSubscriber::SetRemoveSize(int size_threshold)
+{
+  utils_.SetRemoveSize(size_threshold);
+}

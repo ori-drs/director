@@ -196,8 +196,14 @@ class DisparityPointCloudItem(vis.PolyDataItem):
             else:
                 self.timer.stop()
 
-        elif propertyName in ('Decimation', 'Remove outliers', 'Max Range'):
+        if propertyName in ('Decimation', 'Remove outliers', 'Max Range'):
             self.lastUtime = 0
+        if propertyName == 'Decimation':
+            decimate = self.getPropertyEnumValue(propertyName)
+            self.reader.SetDecimate(int(decimate))
+        elif propertyName == 'Remove Size':
+            remove_size = self.getProperty(propertyName)
+            self.reader.SetRemoveSize(remove_size)
 
 
     def onRemoveFromObjectModel(self):

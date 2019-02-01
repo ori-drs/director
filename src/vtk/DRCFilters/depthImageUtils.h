@@ -31,6 +31,10 @@ public:
   void unpackMultisense(const uint8_t* depth_data, const uint8_t* color_data, int h, int w, cv::Mat_<double> repro_matrix,
                         pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud, bool is_rgb = true, int depth_type = 0);
 
+  void SetDecimate(int decimate);
+
+  void SetRemoveSize(int size_threshold);
+
 private:
 
   int decimate_;

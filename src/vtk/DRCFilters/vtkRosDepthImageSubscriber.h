@@ -44,6 +44,10 @@ public:
 
   void GetMesh(vtkPolyData* poly_data);
 
+  void SetDecimate(int decimate);
+
+  void SetRemoveSize(int size_threshold);
+
 protected:
 
   vtkRosDepthImageSubscriber();

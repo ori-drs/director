@@ -172,3 +172,13 @@ void DepthImageUtils::unpackMultisense(const uint8_t* depth_data, const uint8_t*
 //  cout << "points: " << cloud->points.size() << "\n";
 //  pcl::io::savePCDFileASCII ("test_pcd.pcd", *cloud);
 }
+
+void DepthImageUtils::SetDecimate(int decimate)
+{
+  decimate_ = decimate;
+}
+// Set to
+void DepthImageUtils::SetRemoveSize(int size_threshold)
+{
+  size_threshold_ = size_threshold;
+}
