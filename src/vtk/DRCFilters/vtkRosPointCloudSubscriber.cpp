@@ -28,6 +28,7 @@ vtkRosPointCloudSubscriber::vtkRosPointCloudSubscriber()
   tfListener_ = boost::make_shared<tf::TransformListener>();
   dataset_ = vtkSmartPointer<vtkPolyData>::New();
   frame_id_ = "no_frame";
+  fixed_frame_ = "odom"; // or "map"
   sec_ = 0;
   nsec_ = 0;
 }
@@ -63,9 +64,9 @@ void vtkRosPointCloudSubscriber::PointCloudCallback(const sensor_msgs::PointClou
   vtkSmartPointer<vtkTransform> sensorToLocalTransform = vtkSmartPointer<vtkTransform>::New();
   tf::StampedTransform transform;
   ros::Time time = message->header.stamp;
-  tfListener_->waitForTransform("/map", frame_id_, time, ros::Duration(10.0));
+  tfListener_->waitForTransform(fixed_frame_, frame_id_, time, ros::Duration(10.0));
   try {
-    tfListener_->lookupTransform("/map", frame_id_, time, transform);
+    tfListener_->lookupTransform(fixed_frame_, frame_id_, time, transform);
     sensorToLocalTransform = transformPolyDataUtils::transformFromPose(transform);
   }
   catch (tf::TransformException& ex){

@@ -16,3 +16,13 @@ void ddLCMSubscriber::setSpeedLimit(double);
 QString ddLCMSubscriber::channel() const;
 double ddLCMSubscriber::getMessageRate();
 ddLCMSubscriber::~ddLCMSubscriber();
+
+
+ddROSSubscriber::ddROSSubscriber(const QString&);
+ddROSSubscriber::ddROSSubscriber(const QString&, QObject*);
+QString ddROSSubscriber::channel() const;
+QVector<double> ddROSSubscriber::getJointPositions() const;
+QStringList ddROSSubscriber::getJointNames() const;
+QVector<double> ddROSSubscriber::getRobotPosition() const;
+QVector<double> ddROSSubscriber::getRobotOrientation() const;
+void ddROSSubscriber::setSpeedLimit(double);

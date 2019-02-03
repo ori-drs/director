@@ -5,7 +5,7 @@ project(Superbuild)
 # is used elsewhere
 find_package(catkin  REQUIRED COMPONENTS bot_core_lcmtypes drc_lcmtypes
     multisense_utils image_utils bot_frames
-    vs_lcmtypes multi_gait_executor_msgs)
+    vs_lcmtypes multi_gait_executor_msgs quadruped_msgs)
 
 # set a default build type if none was specified
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)

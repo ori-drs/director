@@ -58,6 +58,7 @@ private:
 
   vtkSmartPointer<vtkPolyData> dataset_;
   std::string frame_id_;
+  std::string fixed_frame_;
   long sec_;
   long nsec_;
   sensor_msgs::PointCloud2Ptr input_;

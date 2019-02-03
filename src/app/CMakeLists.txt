@@ -188,6 +188,7 @@ if (USE_LCM)
   qt_wrap_cpp(moc_srcs
     ddLCMSubscriber.h
     ddLCMThread.h
+    ddROSSubscriber.h
   )
 
   list(APPEND srcs

@@ -25,5 +25,6 @@
     <depend>qt_property_browser</depend>
     <depend>python_qt</depend>
     <depend>multi_gait_executor_msgs</depend>
+    <depend>quadruped_msgs</depend>
 </package>
 
