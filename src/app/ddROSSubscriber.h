@@ -41,7 +41,7 @@ public:
     int argc = 0;
     char** argv = 0;
 
-    ros::init(argc, argv, "directordd", ros::init_options::NoSigintHandler |
+    ros::init(argc, argv, "director_dd", ros::init_options::NoSigintHandler |
               ros::init_options::AnonymousName);    
   }else{
     std::cout << "ddROSSubscriber is init\n";
