@@ -129,7 +129,7 @@ set(pkg_deps)
 # project name needed to avoid lcm_catkin clash
 project(ddApp)
 find_package(catkin  REQUIRED COMPONENTS bot_core_lcmtypes 
-    robotlocomotion_lcmtypes multisense_utils image_utils
+    multisense_utils image_utils
     kdl_parser forward_kinematics ctk_python_console qt_property_browser python_qt)
 
 

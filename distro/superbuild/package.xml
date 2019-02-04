@@ -15,7 +15,6 @@
     <depend>maps_lcmtypes</depend>
     <depend>drc_lcmtypes</depend>
     <depend>maps_server</depend>
-    <depend>robotlocomotion_lcmtypes</depend>
     <depend>multisense_utils</depend>
     <depend>image_utils</depend>
     <depend>pcl_ros</depend>    
