@@ -65,7 +65,6 @@ from director import atlasdriverpanel
 from director import multisensepanel
 from director import navigationpanel
 from director import handcontrolpanel
-from director import sensordatarequestpanel
 from director import tasklaunchpanel
 from director.jointpropagator import JointPropagator
 from director import planningutils
@@ -103,7 +102,6 @@ from director.tasks import taskmanagerwidget
 from director.tasks.descriptions import loadTaskDescriptions
 import drc as lcmdrc
 import bot_core as lcmbotcore
-import maps as lcmmaps
 
 from collections import OrderedDict
 import functools
@@ -233,8 +231,6 @@ if usePerception:
     else:
         app.removeToolbarMacro('ActionMultisensePanel')
 
-
-    sensordatarequestpanel.init()
 
     depthCameras = drcargs.getDirectorConfig()['depthCameras']
     depthCamerasShortName = drcargs.getDirectorConfig()['depthCamerasShortName']
@@ -379,33 +375,6 @@ if usePlanning:
                         originalObj.actor.GetUserTransform().SetMatrix(obj.actor.GetUserTransform().GetMatrix())
                         originalObj.actor.GetUserTransform().Modified()
                         obj.setProperty('Visible', False)
-
-
-    def sendDataRequest(requestType, repeatTime=0.0):
-      msg = lcmmaps.data_request_t()
-      msg.type = requestType
-      msg.period = int(repeatTime*10) # period is specified in tenths of a second
-
-      msgList = lcmmaps.data_request_list_t()
-      msgList.utime = getUtime()
-      msgList.requests = [msg]
-      msgList.num_requests = len(msgList.requests)
-      lcmUtils.publish('DATA_REQUEST', msgList)
-
-    def sendSceneHeightRequest(repeatTime=0.0):
-        sendDataRequest(lcmmaps.data_request_t.HEIGHT_MAP_SCENE, repeatTime)
-
-    def sendWorkspaceDepthRequest(repeatTime=0.0):
-        sendDataRequest(lcmmaps.data_request_t.DEPTH_MAP_WORKSPACE_C, repeatTime)
-
-    def sendSceneDepthRequest(repeatTime=0.0):
-        sendDataRequest(lcmmaps.data_request_t.DEPTH_MAP_SCENE, repeatTime)
-
-    def sendFusedDepthRequest(repeatTime=0.0):
-        sendDataRequest(lcmmaps.data_request_t.FUSED_DEPTH, repeatTime)
-
-    def sendFusedHeightRequest(repeatTime=0.0):
-        sendDataRequest(lcmmaps.data_request_t.FUSED_HEIGHT, repeatTime)
 
 
     handJoints = []

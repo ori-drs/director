@@ -113,7 +113,6 @@ set(python_files
   director/segmentation.py
   director/segmentationpanel.py
   director/segmentationroutines.py
-  director/sensordatarequestpanel.py
   director/shallowCopy.py
   director/simpletimer.py
   director/sitstandplanner.py
