@@ -121,7 +121,7 @@ class JointController(object):
         #self.subscriber = lcmUtils.addSubscriber(channelName, bot_core.robot_state_t, onRobotStateMessage)
         #self.subscriber.setSpeedLimit(60)
 
-        self.subscriberRos = PythonQt.dd.ddROSSubscriber("/state_estimator/quadruped_state")
+        self.subscriberRos = PythonQt.dd.ddROSStateSubscriber(sys.argv, "/state_estimator/quadruped_state")
         self.subscriberRos.connect('messageReceived(const QString&)', onRobotStateMessageRos)
         self.subscriberRos.setSpeedLimit(60)
 

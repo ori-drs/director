@@ -1,5 +1,5 @@
-#ifndef __ddROSSubscriber_h
-#define __ddROSSubscriber_h
+#ifndef __ddROSStateSubscriber_h
+#define __ddROSStateSubscriber_h
 
 #include <QObject>
 #include <ddMacros.h>
@@ -21,13 +21,13 @@
 #include <quadruped_msgs/QuadrupedState.h>
 
 
-class DD_APP_EXPORT ddROSSubscriber : public QObject
+class DD_APP_EXPORT ddROSStateSubscriber : public QObject
  {
   Q_OBJECT
 
 public:
 
-  ddROSSubscriber(const QString& channel, QObject* parent=NULL) : QObject(parent)
+  ddROSStateSubscriber(const QList<QString>& argv2, const QString& channel, QObject* parent=NULL) : QObject(parent)
   {
     mChannel = channel;
     this->mEmitMessages = true;
@@ -36,38 +36,51 @@ public:
     this->mTimer.start();
     this->connect(this, SIGNAL(messageReceivedInQueue(const QString&)), SLOT(onMessageInQueue(const QString&)));
 
-  if (!ros::isInitialized()) {
-    std::cout << "ddROSSubscriber is not init\n";
-    int argc = 0;
-    char** argv = 0;
+    if (!ros::isInitialized()) {
+      std::cout << "ddROSStateSubscriber: roscpp not initialized. Running init.\n";
 
-    ros::init(argc, argv, "director_dd", ros::init_options::NoSigintHandler |
-              ros::init_options::AnonymousName);    
-  }else{
-    std::cout << "ddROSSubscriber is init\n";
-  }
+      // guarantee contiguous, null terminated strings
+      std::vector<std::vector<char>> vstrings;
+      // pointers to rhose strings
+      std::vector<char*> cstrings;
+      vstrings.reserve(argv2.size());
+      cstrings.reserve(argv2.size());
 
+      for(size_t i = 0; i < argv2.size(); ++i)
+      {
+        std::string argv_string = argv2[i].toStdString();
+        vstrings.emplace_back(argv_string.begin(), argv_string.end());
+        vstrings.back().push_back('\0');
+        cstrings.push_back(vstrings.back().data());
+      }
+      int argc = cstrings.size();
+
+      ros::init(argc, cstrings.data(), "director_dd", ros::init_options::NoSigintHandler |
+                ros::init_options::AnonymousName);
+
+
+      //int argc = 0;
+      //char** argv = 0;
+      //ros::init(argc, argv, "director_dd", ros::init_options::NoSigintHandler |
+      //          ros::init_options::AnonymousName);
+    }else{
+      std::cout << "ddROSStateSubscriber: ROS is Initialized. Not running init. This should not happen\n";
+    }
 
     ros::NodeHandle n;
     subscriber_ = boost::make_shared<ros::Subscriber>(
-    n.subscribe("/state_estimator/quadruped_state", 1000, &ddROSSubscriber::messageHandler, this));
-
-    mRobotPosition = QVector<double>(3, 0.0);
-    mRobotOrientation = QVector<double>(4, 0.0);
-    mRobotOrientation[0] = 1; // w,x,y,z
-
-    std::cout << "called ros subscribe" << "\n";
+    n.subscribe("/state_estimator/quadruped_state", 1000, &ddROSStateSubscriber::messageHandler, this));
 
   }
 
-  virtual ~ddROSSubscriber()
+  virtual ~ddROSStateSubscriber()
   {
   }
 
   virtual void subscribe()//lcm::LCM* lcmHandle)
   {
 
-    //mSubscription = lcmHandle->subscribe(mChannel.toLocal8Bit().data(), &ddROSSubscriber::messageHandler, this);
+    //mSubscription = lcmHandle->subscribe(mChannel.toLocal8Bit().data(), &ddROSStateSubscriber::messageHandler, this);
   }
 
   virtual void unsubscribe()//lcm::LCM* lcmHandle)
@@ -194,10 +207,13 @@ protected slots:
 protected:
 
   void updateState(const quadruped_msgs::QuadrupedState& message){
+
+    mRobotPosition.resize(3);
     mRobotPosition[0] = message.pose.pose.position.x;
     mRobotPosition[1] = message.pose.pose.position.y;
     mRobotPosition[2] = message.pose.pose.position.z;
 
+    mRobotOrientation.resize(4);
     mRobotOrientation[0] = message.pose.pose.orientation.w;
     mRobotOrientation[1] = message.pose.pose.orientation.x;
     mRobotOrientation[2] = message.pose.pose.orientation.y;

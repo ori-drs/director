@@ -18,11 +18,11 @@ double ddLCMSubscriber::getMessageRate();
 ddLCMSubscriber::~ddLCMSubscriber();
 
 
-ddROSSubscriber::ddROSSubscriber(const QString&);
-ddROSSubscriber::ddROSSubscriber(const QString&, QObject*);
-QString ddROSSubscriber::channel() const;
-QVector<double> ddROSSubscriber::getJointPositions() const;
-QStringList ddROSSubscriber::getJointNames() const;
-QVector<double> ddROSSubscriber::getRobotPosition() const;
-QVector<double> ddROSSubscriber::getRobotOrientation() const;
-void ddROSSubscriber::setSpeedLimit(double);
+ddROSStateSubscriber::ddROSStateSubscriber(const QStringList&, const QString&);
+ddROSStateSubscriber::ddROSStateSubscriber(const QStringList&, const QString&, QObject*);
+QString ddROSStateSubscriber::channel() const;
+QVector<double> ddROSStateSubscriber::getJointPositions() const;
+QStringList ddROSStateSubscriber::getJointNames() const;
+QVector<double> ddROSStateSubscriber::getRobotPosition() const;
+QVector<double> ddROSStateSubscriber::getRobotOrientation() const;
+void ddROSStateSubscriber::setSpeedLimit(double);
