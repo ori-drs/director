@@ -38,7 +38,9 @@ public:
 
   static vtkRosDepthImageSubscriber *New();
 
-  void Start();
+  void Start(const std::string& image_topic_a, const std::string& image_a_transport,
+             const std::string& info_topic_a, const std::string& image_topic_b,
+             const std::string& image_b_transport, const std::string& info_topic_b);
 
   void Stop();
 
@@ -47,6 +49,8 @@ public:
   void SetDecimate(int decimate);
 
   void SetRemoveSize(int size_threshold);
+
+  void SetRangeThreshold(float range_threshold);
 
 protected:
 

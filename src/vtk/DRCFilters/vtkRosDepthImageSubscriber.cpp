@@ -20,35 +20,11 @@ vtkRosDepthImageSubscriber::~vtkRosDepthImageSubscriber()
   ros::shutdown();
 }
 
-void vtkRosDepthImageSubscriber::Start()
+void vtkRosDepthImageSubscriber::Start(const std::string& image_topic_a, const std::string& image_a_transport,
+                                       const std::string& info_topic_a, const std::string& image_topic_b,
+                                       const std::string& image_b_transport, const std::string& info_topic_b)
 {
   ros::NodeHandle node;
-  std::string image_topic_a("/realsense_d435/color/image_raw"), image_topic_b("/realsense_d435/aligned_depth_to_color/image_raw");
-  std::string info_topic_a, info_topic_b;
-  std::string image_a_transport("compressed"), image_b_transport("compressedDepth");
-
-  /*if (!node.getParam("image_a_transport", image_a_transport))
-  {
-    ROS_ERROR("Could not read `image_a_transport`.");
-    exit(-1);
-  }
-  if (!node.getParam("image_b_transport", image_b_transport))
-  {
-    ROS_ERROR("Could not read `image_b_transport`.");
-    exit(-1);
-  }
-
-  if (!node.getParam("image_a_topic", image_topic_a))
-  {
-    ROS_ERROR("Could not read `image_topic_a`.");
-    exit(-1);
-  }
-  if (node.getParam("image_b_topic", image_topic_b)) {
-    ROS_ERROR("Could not read `image_topic_b`.");
-    exit(-1);
-  }*/
-  info_topic_a = "/realsense_d435/color/camera_info";
-  info_topic_b = "/realsense_d435/aligned_depth_to_color/camera_info";
 
   image_a_sub_ = boost::make_shared<image_transport::SubscriberFilter>();
   image_b_sub_ = boost::make_shared<image_transport::SubscriberFilter>();
@@ -88,20 +64,9 @@ void vtkRosDepthImageSubscriber::DepthImageCallback(const sensor_msgs::ImageCons
                                                     const sensor_msgs::ImageConstPtr& image_b,
                                                     const sensor_msgs::CameraInfoConstPtr& info_b)
 {
-  double rangeThreshold = 5.0;
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
   utils_.unpackImage(image_a, info_a, image_b, info_b, cloud);
 
-  if (rangeThreshold >= 0) {
-    pcl::PassThrough<pcl::PointXYZRGB> pass;
-    pass.setInputCloud (cloud);
-    pass.setFilterFieldName ("z");
-    pass.setFilterLimits (0.0, rangeThreshold);
-    pass.filter(*cloud);
-  }
-
-  //std::lock_guard<std::mutex> lock(mutex_);
-  //dataset_ = transformPolyDataUtils::PolyDataFromPointCloud(cloud);
   //
   std::string frame_id = image_b->header.frame_id;
   vtkSmartPointer<vtkTransform> sensorToLocalTransform = vtkSmartPointer<vtkTransform>::New();
@@ -146,4 +111,9 @@ void vtkRosDepthImageSubscriber::SetDecimate(int decimate)
 void vtkRosDepthImageSubscriber::SetRemoveSize(int size_threshold)
 {
   utils_.SetRemoveSize(size_threshold);
+}
+
+void vtkRosDepthImageSubscriber::SetRangeThreshold(float range_threshold)
+{
+  utils_.SetRangeThreshold(range_threshold);
 }

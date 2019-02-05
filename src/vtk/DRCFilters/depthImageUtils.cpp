@@ -5,7 +5,7 @@
 DepthImageUtils::DepthImageUtils()
 {
   decimate_ = 2;
-
+  range_threshold_ = 5.0;
   size_threshold_ = 1000; // in pixels
   depth_threshold_ = 1000.0; // in m
 }
@@ -46,22 +46,26 @@ void DepthImageUtils::unpackImage(const sensor_msgs::ImageConstPtr& image_a, con
   Q(0,3) = -cx;
   Q(1,3) = -cy;
   Q(2,3) = f;
-  /*Q(0,3) = -317.176025390625;
-  Q(1,3) = -246.1299743652344;
-  Q(2,3) = 618.7470092773438;*/
   Q(3,3) = 0;//(stereo_params_.right.cx - stereo_params_.left.cx ) / baseline;
 
   depth_buf_ = const_cast<uint8_t*>(&image_depth->data[0]);
   rgb_buf_ = const_cast<uint8_t*>(&image_rgb->data[0]);
 
-  unpackMultisense(depth_buf_, rgb_buf_, image_a->height, image_a->width, Q, cloud);
+  unpackMultisense(depth_buf_, rgb_buf_, image_a->height, image_a->width, Q, cloud, true, 1);
+
+  if (range_threshold_ >= 0) {
+    pcl::PassThrough<pcl::PointXYZRGB> pass;
+    pass.setInputCloud(cloud);
+    pass.setFilterFieldName("z");
+    pass.setFilterLimits(0.0, range_threshold_);
+    pass.filter(*cloud);
+  }
 }
 
 //untouched
 void DepthImageUtils::unpackMultisense(const uint8_t* depth_data, const uint8_t* color_data, int h, int w, cv::Mat_<double> repro_matrix,
                                        pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud, bool is_rgb, int depth_type)
 {
-  depth_type = 1; // TODO change
   if (depth_type==0) {
 
     // Convert Carnegie disparity format into floating point disparity. Store in local buffer
@@ -110,7 +114,7 @@ void DepthImageUtils::unpackMultisense(const uint8_t* depth_data, const uint8_t*
           cloud->points[j2].y = points(v,u)[1];
           cloud->points[j2].z = points(v,u)[2];
           int pixel =v*w + u;
-          if (1==0){//color_provided){ // Assumed gray: //TODO strange
+          if (!is_rgb){//color_provided){ // Assumed gray:
             cloud->points[j2].r =color_data[pixel];
             cloud->points[j2].g =color_data[pixel];
             cloud->points[j2].b =color_data[pixel];
@@ -153,7 +157,7 @@ void DepthImageUtils::unpackMultisense(const uint8_t* depth_data, const uint8_t*
           cloud->points[j2].y =( z * (v  - cy))/ fy ;
           cloud->points[j2].z =z;
 
-          if (1==0){//color_provided){ // Assumed gray:
+          if (!is_rgb){//color_provided){ // Assumed gray:
             cloud->points[j2].r =color_data[pixel];
             cloud->points[j2].g =color_data[pixel];
             cloud->points[j2].b =color_data[pixel];
@@ -177,8 +181,13 @@ void DepthImageUtils::SetDecimate(int decimate)
 {
   decimate_ = decimate;
 }
-// Set to
+
 void DepthImageUtils::SetRemoveSize(int size_threshold)
 {
   size_threshold_ = size_threshold;
+}
+
+void DepthImageUtils::SetRangeThreshold(float range_threshold)
+{
+  range_threshold_ = range_threshold;
 }

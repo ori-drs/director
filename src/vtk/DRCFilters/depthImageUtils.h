@@ -35,6 +35,8 @@ public:
 
   void SetRemoveSize(int size_threshold);
 
+  void SetRangeThreshold(float range_threshold);
+
 private:
 
   int decimate_;
@@ -42,6 +44,7 @@ private:
   // Disconnected/Small components filtering:
   int size_threshold_; // in pixels
   float depth_threshold_; // in m, not exposed yet
+  float range_threshold_;
 
   uint8_t* rgb_buf_ ;
   uint8_t* depth_buf_;
