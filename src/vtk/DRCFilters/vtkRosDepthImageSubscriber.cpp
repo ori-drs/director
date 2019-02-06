@@ -12,7 +12,9 @@ vtkRosDepthImageSubscriber::vtkRosDepthImageSubscriber()
   }
   tf_listener_ = boost::make_shared<tf::TransformListener>();
   dataset_ = vtkSmartPointer<vtkPolyData>::New();
-
+  fixed_frame_ = "odom"; // or "map"
+  sec_ = 0;
+  nsec_ = 0;
 }
 
 vtkRosDepthImageSubscriber::~vtkRosDepthImageSubscriber()
@@ -64,6 +66,9 @@ void vtkRosDepthImageSubscriber::DepthImageCallback(const sensor_msgs::ImageCons
                                                     const sensor_msgs::ImageConstPtr& image_b,
                                                     const sensor_msgs::CameraInfoConstPtr& info_b)
 {
+  sec_ = image_a->header.stamp.sec;
+  nsec_ = image_a->header.stamp.nsec;
+
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
   utils_.unpackImage(image_a, info_a, image_b, info_b, cloud);
 
@@ -72,9 +77,9 @@ void vtkRosDepthImageSubscriber::DepthImageCallback(const sensor_msgs::ImageCons
   vtkSmartPointer<vtkTransform> sensorToLocalTransform = vtkSmartPointer<vtkTransform>::New();
   tf::StampedTransform transform;
   ros::Time time = image_a->header.stamp;
-  tf_listener_->waitForTransform("/map", frame_id, time, ros::Duration(2.0));
+  tf_listener_->waitForTransform(fixed_frame_, frame_id, time, ros::Duration(2.0));
   try {
-    tf_listener_->lookupTransform("/map", frame_id, time, transform);
+    tf_listener_->lookupTransform(fixed_frame_, frame_id, time, transform);
     sensorToLocalTransform = transformPolyDataUtils::transformFromPose(transform);
   }
   catch (tf::TransformException& ex){

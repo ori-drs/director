@@ -52,6 +52,13 @@ public:
 
   void SetRangeThreshold(float range_threshold);
 
+  long GetSec(){
+    return sec_;
+  }
+  long GetNsec(){
+    return nsec_;
+  }
+
 protected:
 
   vtkRosDepthImageSubscriber();
@@ -72,6 +79,9 @@ private:
   vtkSmartPointer<vtkPolyData> dataset_;
   boost::shared_ptr<tf::TransformListener> tf_listener_;
   DepthImageUtils utils_;
+  std::string fixed_frame_;
+  long sec_;
+  long nsec_;
 
   boost::shared_ptr<image_transport::SubscriberFilter> image_a_sub_, image_b_sub_;
   boost::shared_ptr<message_filters::Subscriber<sensor_msgs::CameraInfo> > info_a_sub_, info_b_sub_;
