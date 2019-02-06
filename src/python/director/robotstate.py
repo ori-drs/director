@@ -78,6 +78,33 @@ def convertStateMessageToDrakePose(msg, strict=True):
     assert len(pose) == getNumPositions()
     return pose
 
+def convertStateMessageToDrakePoseBasic(trans, quat, jointNamesIn, jointPositionsIn, strict=True):
+    '''
+    If strict is true, then the state message must contain a joint_position
+    for each named joint in the drake pose joint names.  If strict is false,
+    then a default value of 0.0 is used to fill joint positions that are
+    not specified in the robot state msg argument.
+    This version is used for ROS messages
+    '''
+
+    jointMap = {}
+    for name, position in zip(jointNamesIn, jointPositionsIn):
+        jointMap[name] = position
+
+    jointPositions = []
+    for name in getDrakePoseJointNames()[6:]:
+        if strict:
+            jointPositions.append(jointMap[name])
+        else:
+            jointPositions.append(jointMap.get(name, 0.0))
+
+    rpy = transformUtils.quaternionToRollPitchYaw(quat)
+
+    pose = np.hstack((trans, rpy, jointPositions))
+    assert len(pose) == getNumPositions()
+    return pose
+
+
 def atlasCommandToDrakePose(msg):
     jointIndexMap = getRobotStateToDrakePoseJointMap()
     drakePose = np.zeros(len(getDrakePoseJointNames()))

@@ -16,6 +16,7 @@
     <depend>drc_lcmtypes</depend>
     <depend>maps_server</depend>
     <depend>multisense_utils</depend>
+    <depend>multisense_image_utils</depend>
     <depend>image_utils</depend>
     <depend>pcl_ros</depend>    
     <depend>pcl_plugin</depend>    
@@ -24,5 +25,6 @@
     <depend>qt_property_browser</depend>
     <depend>python_qt</depend>
     <depend>multi_gait_executor_msgs</depend>
+    <depend>quadruped_msgs</depend>
 </package>
 

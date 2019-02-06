@@ -20,6 +20,7 @@ from director.filterUtils import *
 from director.fieldcontainer import FieldContainer
 from director.segmentationroutines import *
 from director import cameraview
+import vtkDRCFiltersPython as drc
 
 from thirdparty import qhull_2d
 from thirdparty import min_bounding_rect
@@ -174,6 +175,21 @@ class DisparityPointCloudItem(vis.PolyDataItem):
         self.addProperty('Target FPS', 5.0, attributes=om.PropertyAttributes(decimals=1, minimum=0.1, maximum=30.0, singleStep=0.1))
         self.addProperty('Max Range', 5.0,  attributes=om.PropertyAttributes(decimals=2, minimum=0., maximum=30.0, singleStep=0.25))
 
+        self.reader = drc.vtkRosDepthImageSubscriber()
+        if cameraName == 'REALSENSE_FORWARD_CAMERA_LEFT':
+            self.reader.Start('/realsense_d435_forward/color/image_raw', 'compressed', '/realsense_d435_forward/color/camera_info',
+                              '/realsense_d435_forward/aligned_depth_to_color/image_raw', 'compressedDepth', '/realsense_d435_forward/aligned_depth_to_color/camera_info')
+        else:
+            self.reader.Start('/realsense_d435/color/image_raw', 'compressed', '/realsense_d435/color/camera_info',
+                              '/realsense_d435/aligned_depth_to_color/image_raw', 'compressedDepth', '/realsense_d435/aligned_depth_to_color/camera_info')
+
+        decimation = int(self.properties.getPropertyEnumValue('Decimation'))
+        removeSize = int(self.properties.getProperty('Remove Size'))
+        rangeThreshold = float(self.properties.getProperty('Max Range'))
+        self.reader.SetDecimate(int(decimation))
+        self.reader.SetRemoveSize(removeSize)
+        self.reader.SetRangeThreshold(rangeThreshold)
+
         self.timer = TimerCallback()
         self.timer.callback = self.update
         self.lastUtime = 0
@@ -193,8 +209,17 @@ class DisparityPointCloudItem(vis.PolyDataItem):
             else:
                 self.timer.stop()
 
-        elif propertyName in ('Decimation', 'Remove outliers', 'Max Range'):
+        if propertyName in ('Decimation', 'Remove outliers', 'Max Range'):
             self.lastUtime = 0
+        if propertyName == 'Decimation':
+            decimate = self.getPropertyEnumValue(propertyName)
+            self.reader.SetDecimate(int(decimate))
+        elif propertyName == 'Remove Size':
+            remove_size = self.getProperty(propertyName)
+            self.reader.SetRemoveSize(remove_size)
+        elif propertyName == 'Max Range':
+            max_range = self.getProperty(propertyName)
+            self.reader.SetRangeThreshold(max_range)
 
 
     def onRemoveFromObjectModel(self):
@@ -202,7 +227,9 @@ class DisparityPointCloudItem(vis.PolyDataItem):
         self.timer.stop()
 
     def update(self):
-        utime = self.imageManager.queue.getCurrentImageTime(self.cameraName)
+        #utime = self.imageManager.queue.getCurrentImageTime(self.cameraName)
+        utime =  self.sec *1E6 + round(self.nsec*1E-3)
+
         if utime == self.lastUtime:
             if self.getProperty('Remove Stale Data') and ((time.time()-self.lastDataReceivedTime) > self.getProperty('Stale Data Timeout')):
                 if self.polyData.GetNumberOfPoints() > 0:
@@ -214,11 +241,13 @@ class DisparityPointCloudItem(vis.PolyDataItem):
         elif (utime - self.lastUtime < 1E6/self.getProperty('Target FPS')):
             return
 
-        decimation = int(self.properties.getPropertyEnumValue('Decimation'))
-        removeSize = int(self.properties.getProperty('Remove Size'))
-        rangeThreshold = float(self.properties.getProperty('Max Range'))
-        polyData = getDisparityPointCloud(decimation, imagesChannel=self.getProperty('Channel'), cameraName=self.getProperty('Camera name'),
-                                          removeOutliers=False, removeSize=removeSize, rangeThreshold = rangeThreshold)
+        #decimation = int(self.properties.getPropertyEnumValue('Decimation'))
+        #removeSize = int(self.properties.getProperty('Remove Size'))
+        #rangeThreshold = float(self.properties.getProperty('Max Range'))
+        #polyData = getDisparityPointCloud(decimation, imagesChannel=self.getProperty('Channel'), cameraName=self.getProperty('Camera name'),
+        #                                  removeOutliers=False, removeSize=removeSize, rangeThreshold = rangeThreshold)
+        polyData = vtk.vtkPolyData()
+        self.reader.GetMesh(polyData)
 
         bodyToLocal = vtk.vtkTransform()
         self.imageManager.queue.getTransform('body', 'local', utime, bodyToLocal)

@@ -99,8 +99,9 @@ class RobotSystemFactory(object):
             else:
                 return (0, 0)
 
-        spindleMonitor = perception.SpindleMonitor(getSpindleAngleFunction)
-        robotSystem.robotStateModel.connectModelChanged(spindleMonitor.onRobotStateChanged)
+        spindleMonitor = None
+        #spindleMonitor = perception.SpindleMonitor(getSpindleAngleFunction)
+        #robotSystem.robotStateModel.connectModelChanged(spindleMonitor.onRobotStateChanged)
 
         return FieldContainer(multisenseDriver=multisenseDriver,
                                 mapServerSource=mapServerSource,

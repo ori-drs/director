@@ -1,9 +1,9 @@
 #include "vtkRosPointCloudSubscriber.h"
 
-#include "vtkTransform.h"
-#include "vtkTransformPolyDataFilter.h"
+#include <vtkTransform.h>
+#include <vtkTransformPolyDataFilter.h>
 #include <vtkImageData.h>
-#include "vtkNew.h"
+#include <vtkNew.h>
 
 #include <vtkIdList.h>
 #include <vtkCellArray.h>
@@ -13,8 +13,10 @@
 #include <vtkPointData.h>
 #include <vtkPolygon.h>
 #include <vtkTriangle.h>
-#include "vtkRosPointCloudConversions.h"
-#include "vtkObjectFactory.h"
+#include <vtkRosPointCloudConversions.h>
+#include <vtkObjectFactory.h>
+
+#include "transformPolyDataUtils.h"
 
 vtkStandardNewMacro(vtkRosPointCloudSubscriber);
 
@@ -26,6 +28,7 @@ vtkRosPointCloudSubscriber::vtkRosPointCloudSubscriber()
   tfListener_ = boost::make_shared<tf::TransformListener>();
   dataset_ = vtkSmartPointer<vtkPolyData>::New();
   frame_id_ = "no_frame";
+  fixed_frame_ = "odom"; // or "map"
   sec_ = 0;
   nsec_ = 0;
 }
@@ -51,33 +54,6 @@ void vtkRosPointCloudSubscriber::Stop() {
   spinner_.reset();
 }
 
-void transformPolyData(vtkPolyData* polyDataSrc, vtkPolyData* polyDataDst,
-                                               const vtkSmartPointer<vtkTransform>& transform)
-{
-  vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-  transformFilter->SetTransform(transform);
-  transformFilter->SetInputData(polyDataSrc);
-  transformFilter->Update();
-  polyDataDst->DeepCopy(transformFilter->GetOutput());
-}
-
-vtkSmartPointer<vtkTransform> transformFromPose(const tf::StampedTransform& rosTransform)
-{
-  vtkSmartPointer<vtkTransform> t = vtkSmartPointer<vtkTransform>::New();
-  //translation
-  tf::Vector3 origin = rosTransform.getOrigin();
-  double translation[3] = {origin.getX(), origin.getY(), origin.getZ()};
-  //rotation
-  double theta = rosTransform.getRotation().getAngle();
-  tf::Vector3 tfAxis= rosTransform.getRotation().getAxis();
-  double axis[3] = {tfAxis.getX(), tfAxis.getY(), tfAxis.getZ()};
-
-  t->Identity();
-  t->Translate(translation);
-  t->RotateWXYZ(theta * 180./M_PI, axis);
-  return t;
-}
-
 void vtkRosPointCloudSubscriber::PointCloudCallback(const sensor_msgs::PointCloud2Ptr& message) {
   input_ = message;
   frame_id_ = message->header.frame_id;
@@ -88,10 +64,10 @@ void vtkRosPointCloudSubscriber::PointCloudCallback(const sensor_msgs::PointClou
   vtkSmartPointer<vtkTransform> sensorToLocalTransform = vtkSmartPointer<vtkTransform>::New();
   tf::StampedTransform transform;
   ros::Time time = message->header.stamp;
-  tfListener_->waitForTransform("/map", frame_id_, time, ros::Duration(10.0));
+  tfListener_->waitForTransform(fixed_frame_, frame_id_, time, ros::Duration(10.0));
   try {
-    tfListener_->lookupTransform("/map", frame_id_, time, transform);
-    sensorToLocalTransform = transformFromPose(transform);
+    tfListener_->lookupTransform(fixed_frame_, frame_id_, time, transform);
+    sensorToLocalTransform = transformPolyDataUtils::transformFromPose(transform);
   }
   catch (tf::TransformException& ex){
     ROS_ERROR("%s",ex.what());
@@ -100,7 +76,7 @@ void vtkRosPointCloudSubscriber::PointCloudCallback(const sensor_msgs::PointClou
 
   std::lock_guard<std::mutex> lock(mutex_);
   vtkSmartPointer<vtkPolyData> polyData = ConvertPointCloud2ToVtk(input_);
-  transformPolyData(polyData, dataset_, sensorToLocalTransform);
+  transformPolyDataUtils::transformPolyData(polyData, dataset_, sensorToLocalTransform);
 }
 
 

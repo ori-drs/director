@@ -80,7 +80,8 @@ set(deps
 set(pkg_deps)
 
 find_package(catkin  REQUIRED COMPONENTS vs_lcmtypes bot_frames
-  grid_map_ros grid_map_msgs )
+  grid_map_ros grid_map_msgs multisense_image_utils image_transport)
+
 
 list(APPEND deps
   ${catkin_LIBRARIES}
@@ -123,8 +124,9 @@ if (USE_DRC_MAPS)
   find_package(PCL REQUIRED)
 
   list(APPEND sources
-    vtkRosGridMapSubscriber.cpp vtkRosPointCloudSubscriber.cpp
-    vtkRosInit.cpp)
+    vtkRosGridMapSubscriber.cpp vtkRosPointCloudSubscriber.cpp vtkRosDepthImageSubscriber.cpp
+    vtkRosInit.cpp depthImageUtils.cpp transformPolyDataUtils.cpp)
+
   include_directories(${PCL_INCLUDE_DIRS})
   #include_directories(${MAPS_INCLUDE_DIRS})
   list(APPEND deps ${PCL_LIBRARIES})#${MAPS_LIBRARIES}  ${MAPSLCM_LIBRARIES})

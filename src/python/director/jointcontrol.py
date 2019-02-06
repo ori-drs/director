@@ -8,6 +8,9 @@ from director import lcmUtils
 import bot_core
 import numpy as np
 
+import rospy
+from quadruped_msgs.msg import *
+import PythonQt
 
 class JointController(object):
 
@@ -92,8 +95,36 @@ class JointController(object):
             for model in self.models:
                 model.model.setJointPositions(jointPositions, jointNames)
 
-        self.subscriber = lcmUtils.addSubscriber(channelName, bot_core.robot_state_t, onRobotStateMessage)
-        self.subscriber.setSpeedLimit(60)
+        def onRobotStateMessageRos(msg):
+            channelName = "quadruped_state"
+
+            robotPosition = self.subscriberRos.getRobotPosition()
+            robotOrientation = self.subscriberRos.getRobotOrientation()
+            jointNamesIn = list(self.subscriberRos.getJointNames())
+            jointPositionsIn = self.subscriberRos.getJointPositions()
+
+            #if self.ignoreOldStateMessages and self.lastRobotStateMessage is not None and msg.utime < self.lastRobotStateMessage.utime:
+            #    return
+            poseName = channelName
+            pose = robotstate.convertStateMessageToDrakePoseBasic(robotPosition, robotOrientation, jointNamesIn, jointPositionsIn)
+            #self.lastRobotStateMessage = msg
+
+            # use joint name/positions from robot_state_t and append base_{x,y,z,roll,pitch,yaw}
+            jointPositions = np.hstack((jointPositionsIn, pose[:6]))
+            jointNames = jointNamesIn + robotstate.getDrakePoseJointNames()[:6]
+
+            self.setPose(poseName, pose, pushToModel=False)
+            for model in self.models:
+                model.model.setJointPositions(jointPositions, jointNames)
+
+
+        #self.subscriber = lcmUtils.addSubscriber(channelName, bot_core.robot_state_t, onRobotStateMessage)
+        #self.subscriber.setSpeedLimit(60)
+
+        self.subscriberRos = PythonQt.dd.ddROSStateSubscriber(sys.argv, "/state_estimator/quadruped_state")
+        self.subscriberRos.connect('messageReceived(const QString&)', onRobotStateMessageRos)
+        self.subscriberRos.setSpeedLimit(60)
+
 
     def removeLCMUpdater(self):
         lcmUtils.removeSubscriber(self.subscriber)
