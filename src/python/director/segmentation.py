@@ -20,6 +20,7 @@ from director.filterUtils import *
 from director.fieldcontainer import FieldContainer
 from director.segmentationroutines import *
 from director import cameraview
+from director import drcargs
 import vtkDRCFiltersPython as drc
 
 from thirdparty import qhull_2d
@@ -175,12 +176,23 @@ class DisparityPointCloudItem(vis.PolyDataItem):
         self.addProperty('Target FPS', 5.0, attributes=om.PropertyAttributes(decimals=1, minimum=0.1, maximum=30.0, singleStep=0.1))
         self.addProperty('Max Range', 5.0,  attributes=om.PropertyAttributes(decimals=2, minimum=0., maximum=30.0, singleStep=0.25))
 
+        isSimulation = drcargs.getDirectorConfig()['simulation']
         self.reader = drc.vtkRosDepthImageSubscriber()
-        if cameraName == 'REALSENSE_FORWARD_CAMERA_LEFT':
-            self.reader.Start('/realsense_d435_forward/color/image_raw', 'compressed', '/realsense_d435_forward/color/camera_info',
-                              '/realsense_d435_forward/aligned_depth_to_color/image_raw', 'compressedDepth', '/realsense_d435_forward/aligned_depth_to_color/camera_info')
+        if (isSimulation == 'True'):
+            #print "cameras in sim"
+            if cameraName == 'REALSENSE_FORWARD_CAMERA_LEFT':
+                self.reader.Start('/realsense_d435_forward/rgb/image_raw', 'raw', '/realsense_d435_forward/rgb/camera_info',
+                                  '/realsense_d435_forward/depth/image_raw', 'raw', '/realsense_d435_forward/depth/camera_info')
+            else:
+                self.reader.Start('/realsense_d435/rgb/image_raw', 'raw', '/realsense_d435/rgb/camera_info',
+                                  '/realsense_d435/depth/image_raw', 'raw', '/realsense_d435/depth/camera_info')
         else:
-            self.reader.Start('/realsense_d435/color/image_raw', 'compressed', '/realsense_d435/color/camera_info',
+            #print "cameras not in sim, real operation"
+            if cameraName == 'REALSENSE_FORWARD_CAMERA_LEFT':
+                self.reader.Start('/realsense_d435_forward/color/image_raw', 'compressed', '/realsense_d435_forward/color/camera_info',
+                                  '/realsense_d435_forward/aligned_depth_to_color/image_raw', 'compressedDepth', '/realsense_d435_forward/aligned_depth_to_color/camera_info')
+            else:
+                self.reader.Start('/realsense_d435/color/image_raw', 'compressed', '/realsense_d435/color/camera_info',
                               '/realsense_d435/aligned_depth_to_color/image_raw', 'compressedDepth', '/realsense_d435/aligned_depth_to_color/camera_info')
 
         decimation = int(self.properties.getPropertyEnumValue('Decimation'))

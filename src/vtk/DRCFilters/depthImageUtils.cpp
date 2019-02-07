@@ -51,7 +51,7 @@ void DepthImageUtils::unpackImage(const sensor_msgs::ImageConstPtr& image_a, con
   depth_buf_ = const_cast<uint8_t*>(&image_depth->data[0]);
   rgb_buf_ = const_cast<uint8_t*>(&image_rgb->data[0]);
 
-  unpackMultisense(depth_buf_, rgb_buf_, image_a->height, image_a->width, Q, cloud, true, 1);
+  unpackMultisense(depth_buf_, rgb_buf_, image_a->height, image_a->width, Q, cloud, true, image_depth->encoding);
 
   if (range_threshold_ >= 0) {
     pcl::PassThrough<pcl::PointXYZRGB> pass;
@@ -64,9 +64,10 @@ void DepthImageUtils::unpackImage(const sensor_msgs::ImageConstPtr& image_a, con
 
 //untouched
 void DepthImageUtils::unpackMultisense(const uint8_t* depth_data, const uint8_t* color_data, int h, int w, cv::Mat_<double> repro_matrix,
-                                       pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud, bool is_rgb, int depth_type)
+                                       pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud, bool is_rgb, std::string depth_encoding)
 {
-  if (depth_type==0) {
+
+  if (depth_encoding.compare("mono16") == 0){ // mfallon: I think this is what the Multisense disparity format is. Not 100%
 
     // Convert Carnegie disparity format into floating point disparity. Store in local buffer
     cv::Mat disparity_orig_temp = cv::Mat::zeros(h,w,CV_16UC1); // h,w
@@ -148,10 +149,12 @@ void DepthImageUtils::unpackMultisense(const uint8_t* depth_data, const uint8_t*
 
           int pixel = v*w +u;
           float z = 0;
-          if (depth_type==1) // mm
+          if (depth_encoding.compare("16UC1") == 0) // Depth images, in mm (real realsense data)
             z = (float) depths_short[pixel]/1000.0;
-          else // depth type 2 - m
+          else if (depth_encoding.compare("32FC1") == 0) // Depth images in m (simulated gazebo realsense data)
             z = (float) depths_float[pixel];
+          else // TODO: should this exit here?
+            std::cout << "ERROR: Encoding not understood: " << depth_encoding << "\n";
 
           cloud->points[j2].x =( z * (u  - cx))/ fx ;
           cloud->points[j2].y =( z * (v  - cy))/ fy ;
