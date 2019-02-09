@@ -763,7 +763,7 @@ def init(view):
 
     rosInit = RosInit(callbackFunc=view.render)
     rosInit.addToView(view)
-    om.addToObjectModel(rosInit, sensorsFolder)
+    #om.addToObjectModel(rosInit, sensorsFolder)
 
     rosGridMap = RosGridMap(callbackFunc=view.render)
     rosGridMap.addToView(view)
@@ -777,4 +777,4 @@ def init(view):
     spindleDebug.addToView(view)
     om.addToObjectModel(spindleDebug, sensorsFolder)
 
-    return multisenseDriver, mapServerSource
+    return multisenseDriver, rosInit, rosPointCloud, rosGridMap

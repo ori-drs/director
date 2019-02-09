@@ -23,6 +23,6 @@ ddROSStateSubscriber::ddROSStateSubscriber(const QStringList&, const QString&, Q
 QString ddROSStateSubscriber::channel() const;
 QVector<double> ddROSStateSubscriber::getJointPositions() const;
 QStringList ddROSStateSubscriber::getJointNames() const;
-QVector<double> ddROSStateSubscriber::getRobotPosition() const;
-QVector<double> ddROSStateSubscriber::getRobotOrientation() const;
+QVector<double> ddROSStateSubscriber::getRobotPose() const;
+QVector<double> ddROSStateSubscriber::getOdomInMap() const;
 void ddROSStateSubscriber::setSpeedLimit(double);

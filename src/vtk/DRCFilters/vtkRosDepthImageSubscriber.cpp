@@ -12,7 +12,7 @@ vtkRosDepthImageSubscriber::vtkRosDepthImageSubscriber()
   }
   tf_listener_ = boost::make_shared<tf::TransformListener>();
   dataset_ = vtkSmartPointer<vtkPolyData>::New();
-  fixed_frame_ = "odom"; // or "map"
+  fixed_frame_ = "map"; // or "map"
   sec_ = 0;
   nsec_ = 0;
 }
