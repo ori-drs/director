@@ -59,6 +59,10 @@ public:
     return nsec_;
   }
 
+  void SetFixedFrame(const std::string& fixed_frame_in){
+    fixed_frame_ = fixed_frame_in;
+  }
+
 protected:
 
   vtkRosDepthImageSubscriber();

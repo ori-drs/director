@@ -8,6 +8,7 @@
 
 #include <grid_map_ros/grid_map_ros.hpp>
 #include <ros/ros.h>
+#include <tf/transform_listener.h>
 
 #include <vtkDRCFiltersModule.h>
 #include <vtkPolyDataAlgorithm.h>
@@ -36,6 +37,10 @@ public:
   void GetPointCloud(vtkPolyData* polyData);
 
   void SetColorLayer(const std::string& colorLayer);
+
+  void SetFixedFrame(const std::string& fixed_frame_in){
+    fixed_frame_ = fixed_frame_in;
+  }
 
 protected:
 
@@ -67,7 +72,9 @@ private:
   static float clamp(float x, float lower, float upper);
 
   vtkSmartPointer<vtkPolyData> dataset_;
+  boost::shared_ptr<tf::TransformListener> tf_listener_;
   grid_map::GridMap inputMap_;
+  std::string fixed_frame_;
   std::string colorLayer_;
 
   boost::shared_ptr<ros::Subscriber> subscriber_;

@@ -88,7 +88,7 @@ class RobotSystemFactory(object):
         from director import robotstate
 
         #multisenseDriver, mapServerSource = perception.init(robotSystem.view)
-        multisenseDriver, rosInit, rosPointCloud, rosGridMap = perception.init(robotSystem.view)
+        multisenseDriver, rosInit, pointCloudSource, gridMapSource, headCameraPointCloudSource, groundCameraPointCloudSource = perception.init(robotSystem.view)
 
         spindleJoint = 'hokuyo_joint'
 
@@ -106,8 +106,10 @@ class RobotSystemFactory(object):
 
         return FieldContainer(multisenseDriver=multisenseDriver,
                                 rosInit=rosInit,
-                                rosPointCloud=rosPointCloud,
-                                rosGridMap=rosGridMap)
+                                pointCloudSource=pointCloudSource,
+                                gridMapSource=gridMapSource,
+                                headCameraPointCloudSource=headCameraPointCloudSource,
+                                groundCameraPointCloudSource=groundCameraPointCloudSource)
 
     def initHandDrivers(self, robotSystem):
 

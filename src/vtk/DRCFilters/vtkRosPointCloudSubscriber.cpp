@@ -28,7 +28,7 @@ vtkRosPointCloudSubscriber::vtkRosPointCloudSubscriber()
   tfListener_ = boost::make_shared<tf::TransformListener>();
   dataset_ = vtkSmartPointer<vtkPolyData>::New();
   frame_id_ = "no_frame";
-  fixed_frame_ = "map"; // or "map"
+  fixed_frame_ = "map"; // or "odom"
   sec_ = 0;
   nsec_ = 0;
 }
