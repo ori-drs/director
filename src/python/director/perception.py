@@ -742,8 +742,13 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
         self.addProperty('Max Range', 5.0,  attributes=om.PropertyAttributes(decimals=2, minimum=0., maximum=30.0, singleStep=0.25))
 
         isSimulation = drcargs.getDirectorConfig()['simulation']
+        if isSimulation == 'True':
+            isSimulation = True
+        else:
+            isSimulation = False
+
         self.reader = drc.vtkRosDepthImageSubscriber()
-        if (isSimulation == 'True'):
+        if (isSimulation):
             #print "cameras in sim"
             if cameraName == 'REALSENSE_FORWARD_CAMERA_LEFT':
                 self.reader.Start('/realsense_d435_forward/rgb/image_raw', 'raw', '/realsense_d435_forward/rgb/camera_info',
