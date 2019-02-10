@@ -92,7 +92,7 @@ void vtkRosDepthImageSubscriber::DepthImageCallback(const sensor_msgs::ImageCons
   transformPolyDataUtils::transformPolyData(polyData, dataset_, sensorToLocalTransform);
 }
 
-void vtkRosDepthImageSubscriber::GetMesh(vtkPolyData* poly_data)
+void vtkRosDepthImageSubscriber::GetPointCloud(vtkPolyData* poly_data)
 {
   if (!poly_data || !dataset_)
   {

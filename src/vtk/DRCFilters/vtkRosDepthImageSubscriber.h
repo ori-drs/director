@@ -44,7 +44,7 @@ public:
 
   void Stop();
 
-  void GetMesh(vtkPolyData* poly_data);
+  void GetPointCloud(vtkPolyData* poly_data);
 
   void SetDecimate(int decimate);
 

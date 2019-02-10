@@ -824,7 +824,7 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
         #polyData = getDisparityPointCloud(decimation, imagesChannel=self.getProperty('Channel'), cameraName=self.getProperty('Camera name'),
         #                                  removeOutliers=False, removeSize=removeSize, rangeThreshold = rangeThreshold)
         polyData = vtk.vtkPolyData()
-        self.reader.GetMesh(polyData)
+        self.reader.GetPointCloud(polyData)
 
         # currently disabled
         #bodyToLocal = vtk.vtkTransform()
