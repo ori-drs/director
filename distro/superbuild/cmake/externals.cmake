@@ -519,36 +519,4 @@ message(STATUS "extenrals $USE_DRC " ${USE_DRC})
 message(STATUS "extenrals $USE_COLLECTIONS " ${USE_COLLECTIONS})
 
 
-###############################################################################
-# director
 
-ExternalProject_Add(director
-  SOURCE_DIR ${Superbuild_SOURCE_DIR}/../..
-  DOWNLOAD_COMMAND ""
-  BUILD_ALWAYS 1
-  CMAKE_CACHE_ARGS
-
-    -DUSE_LCM:BOOL=${USE_LCM}
-    -DUSE_LCMGL:BOOL=${USE_LCMGL}
-    -DUSE_OCTOMAP:BOOL=${USE_OCTOMAP}
-    -DUSE_DRC:BOOL=${USE_DRC}
-    -DUSE_COLLECTIONS:BOOL=${USE_COLLECTIONS}
-    -DUSE_LIBBOT:BOOL=${USE_LIBBOT}
-    -DUSE_DRAKE:BOOL=${USE_DRAKE}
-    -DDD_QT_VERSION:STRING=${DD_QT_VERSION}
-    -DUSE_PERCEPTION:BOOL=${USE_PERCEPTION}
-    ${default_cmake_args}
-    ${boost_args}
-    ${flann_args}
-    ${vtk_args}
-    ${python_args}
-    ${qt_args}
-
-  DEPENDS
-
-    ${vtk_depends}
-    ${pcl_depends}
-    ${lcm_depends}
-    ${libbot_depends}
-    ${cvutils_depends}
-  )

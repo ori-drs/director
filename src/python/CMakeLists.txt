@@ -182,7 +182,7 @@ set(python_files
   )
 
 
-set(python_module_dir "${CMAKE_BINARY_DIR}/${DD_INSTALL_PYTHON_DIR}")
+set(python_module_dir "${CATKIN_DEVEL_PREFIX}/lib/${DD_INSTALL_PYTHON_DIR}")
 
 # Copy python files
 set(copied_python_files)
