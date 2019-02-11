@@ -704,6 +704,8 @@ class PointCloudSource(vis.PolyDataItem):
         self.reader.Start(topicName)
         self.addProperty('Updates Enabled', True)
         self.addProperty('Topic name', topicName)
+        self.addProperty('Number of Point Clouds', 10,
+                         attributes=om.PropertyAttributes(decimals=0, minimum=1, maximum=100, singleStep=1, hidden=False))
 
 
     def _onPropertyChanged(self, propertySet, propertyName):
@@ -717,6 +719,9 @@ class PointCloudSource(vis.PolyDataItem):
             topicName = self.getProperty(propertyName)
             self.reader.Stop()
             self.reader.Start(topicName)
+        elif propertyName == 'Number of Point Clouds':
+            numberOfPointCloud = self.getProperty(propertyName)
+            self.reader.SetNumberOfPointClouds(numberOfPointCloud)
 
     def getPointCloud(self):
         polyData = vtk.vtkPolyData()
