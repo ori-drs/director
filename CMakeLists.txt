@@ -25,7 +25,7 @@ endif()
 
 # declare options
 option(BUILD_SHARED_LIBS "Build director with shared libraries." ON)
-option(BUILD_TESTING "Build director with tests enabled." ON)
+option(BUILD_TESTING "Build director with tests enabled." OFF)
 
 # include cmake scripts
 include(cmake/dd-macros.cmake)
