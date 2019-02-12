@@ -672,9 +672,11 @@ class RosGridMap(vis.PolyDataItem):
 
     def getPointCloud(self):
         polyData = vtk.vtkPolyData()
-
         self.reader.GetPointCloud(polyData)
-        return polyData
+        if (polyData.GetNumberOfPoints() == 0):
+            return None
+        else:
+            return polyData
 
 
 class RosInit(vis.PolyDataItem):
@@ -716,10 +718,18 @@ class PointCloudSource(vis.PolyDataItem):
             self.reader.Stop()
             self.reader.Start(topicName)
 
-
-    def showPointCloud(self):
+    def getPointCloud(self):
         polyData = vtk.vtkPolyData()
         self.reader.GetPointCloud(polyData)
+        if (polyData.GetNumberOfPoints() == 0):
+            return None
+        else:
+            return polyData
+
+    def showPointCloud(self):
+        polyData = self.getPointCloud()
+        if (polyData is None):
+            return
 
         if self.callbackFunc:
             self.callbackFunc()
@@ -803,6 +813,13 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
             max_range = self.getProperty(propertyName)
             self.reader.SetRangeThreshold(max_range)
 
+    def getPointCloud(self):
+        polyData = vtk.vtkPolyData()
+        self.reader.GetPointCloud(polyData)
+        if (polyData.GetNumberOfPoints() == 0):
+            return None
+        else:
+            return polyData
 
     def onRemoveFromObjectModel(self):
         vis.PolyDataItem.onRemoveFromObjectModel(self)
