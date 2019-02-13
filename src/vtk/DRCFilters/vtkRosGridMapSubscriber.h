@@ -53,7 +53,16 @@ private:
 
   void GridMapCallback(const grid_map_msgs::GridMap& message);
 
+  /**
+   * @brief Convert the input grid_map_msgs::GridMap into a vtkPolyData
+   * @return the converted vtkPolyData
+   */
   vtkSmartPointer<vtkPolyData> ConvertMesh();
+
+  /**
+   * @brief Convert and transform the input grid_map_msgs::GridMap
+   */
+  void CreatePolyData();
 
   /**
   * @brief normalizeIntensity computes color value in the interval [0,1].
@@ -74,7 +83,8 @@ private:
   vtkSmartPointer<vtkPolyData> dataset_;
   boost::shared_ptr<tf::TransformListener> tf_listener_;
   grid_map::GridMap inputMap_;
-  std::string fixed_frame_;
+  std::string fixed_frame_; // the elevation map is transformed into this frame
+  vtkSmartPointer<vtkTransform> sensorToLocalTransform_;
   std::string colorLayer_;
 
   boost::shared_ptr<ros::Subscriber> subscriber_;
