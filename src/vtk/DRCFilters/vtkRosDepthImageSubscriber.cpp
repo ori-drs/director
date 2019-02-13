@@ -12,7 +12,7 @@ vtkRosDepthImageSubscriber::vtkRosDepthImageSubscriber()
   }
   tf_listener_ = boost::make_shared<tf::TransformListener>();
   dataset_ = vtkSmartPointer<vtkPolyData>::New();
-  fixed_frame_ = "odom"; // or "map"
+  fixed_frame_ = "map"; // or "odom"
   sec_ = 0;
   nsec_ = 0;
 }
@@ -92,7 +92,7 @@ void vtkRosDepthImageSubscriber::DepthImageCallback(const sensor_msgs::ImageCons
   transformPolyDataUtils::transformPolyData(polyData, dataset_, sensorToLocalTransform);
 }
 
-void vtkRosDepthImageSubscriber::GetMesh(vtkPolyData* poly_data)
+void vtkRosDepthImageSubscriber::GetPointCloud(vtkPolyData* poly_data)
 {
   if (!poly_data || !dataset_)
   {

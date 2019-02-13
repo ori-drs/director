@@ -5,6 +5,8 @@ from director.simpletimer import SimpleTimer
 from director import robotstate
 from director import getDRCBaseDir
 from director import lcmUtils
+from director import transformUtils
+from director import visualization as vis
 import bot_core
 import numpy as np
 
@@ -95,11 +97,28 @@ class JointController(object):
             for model in self.models:
                 model.model.setJointPositions(jointPositions, jointNames)
 
+        def convertRosTransformToVtk(rosTransform):
+            # rosTransform is x,y,z,qx,qy,qz,qw
+            quat_xyzw = rosTransform[3:7]
+            quat_wxyz = [quat_xyzw[3], quat_xyzw[0], quat_xyzw[1], quat_xyzw[2]]
+            return transformUtils.transformFromPose(rosTransform[0:3],quat_wxyz)
+
+
         def onRobotStateMessageRos(msg):
             channelName = "quadruped_state"
+            # this is base in odom
+            robotTransform = convertRosTransformToVtk(self.subscriberRos.getRobotPose())
 
-            robotPosition = self.subscriberRos.getRobotPosition()
-            robotOrientation = self.subscriberRos.getRobotOrientation()
+            if (self.fixedFrame is "map"):
+                odomInMapTransform = convertRosTransformToVtk(self.subscriberRos.getOdomInMap())
+                robotInMap = transformUtils.copyFrame(robotTransform)
+                robotInMap.PostMultiply()
+                robotInMap.Concatenate( odomInMapTransform )
+                robotPosition, robotOrientation = transformUtils.poseFromTransform(robotInMap)
+            else:
+                robotPosition, robotOrientation = transformUtils.poseFromTransform(robotTransform)
+
+
             jointNamesIn = list(self.subscriberRos.getJointNames())
             jointPositionsIn = self.subscriberRos.getJointPositions()
 
@@ -124,6 +143,7 @@ class JointController(object):
         self.subscriberRos = PythonQt.dd.ddROSStateSubscriber(sys.argv, "/state_estimator/quadruped_state")
         self.subscriberRos.connect('messageReceived(const QString&)', onRobotStateMessageRos)
         self.subscriberRos.setSpeedLimit(60)
+        self.fixedFrame = "map"
 
 
     def removeLCMUpdater(self):

@@ -8,6 +8,7 @@
 
 #include <grid_map_ros/grid_map_ros.hpp>
 #include <ros/ros.h>
+#include <tf/transform_listener.h>
 
 #include <vtkDRCFiltersModule.h>
 #include <vtkPolyDataAlgorithm.h>
@@ -37,6 +38,10 @@ public:
 
   void SetColorLayer(const std::string& colorLayer);
 
+  void SetFixedFrame(const std::string& fixed_frame_in){
+    fixed_frame_ = fixed_frame_in;
+  }
+
 protected:
 
   vtkRosGridMapSubscriber();
@@ -48,7 +53,16 @@ private:
 
   void GridMapCallback(const grid_map_msgs::GridMap& message);
 
+  /**
+   * @brief Convert the input grid_map_msgs::GridMap into a vtkPolyData
+   * @return the converted vtkPolyData
+   */
   vtkSmartPointer<vtkPolyData> ConvertMesh();
+
+  /**
+   * @brief Convert and transform the input grid_map_msgs::GridMap
+   */
+  void CreatePolyData();
 
   /**
   * @brief normalizeIntensity computes color value in the interval [0,1].
@@ -67,7 +81,10 @@ private:
   static float clamp(float x, float lower, float upper);
 
   vtkSmartPointer<vtkPolyData> dataset_;
+  boost::shared_ptr<tf::TransformListener> tf_listener_;
   grid_map::GridMap inputMap_;
+  std::string fixed_frame_; // the elevation map is transformed into this frame
+  vtkSmartPointer<vtkTransform> sensorToLocalTransform_;
   std::string colorLayer_;
 
   boost::shared_ptr<ros::Subscriber> subscriber_;

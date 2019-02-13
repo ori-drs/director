@@ -14,6 +14,7 @@
 
 #include <boost/shared_ptr.hpp>
 #include <ros/ros.h>
+#include <tf/transform_listener.h>
 
 #include "ddFPSCounter.h"
 #include "ddAppConfigure.h"
@@ -68,8 +69,9 @@ public:
     }
 
     ros::NodeHandle n;
-    subscriber_ = boost::make_shared<ros::Subscriber>(
+    mSubscriber = boost::make_shared<ros::Subscriber>(
     n.subscribe("/state_estimator/quadruped_state", 1000, &ddROSStateSubscriber::messageHandler, this));
+    mTfListener = boost::make_shared<tf::TransformListener>();
 
   }
 
@@ -77,16 +79,14 @@ public:
   {
   }
 
-  virtual void subscribe()//lcm::LCM* lcmHandle)
+  virtual void subscribe()
   {
-
-    //mSubscription = lcmHandle->subscribe(mChannel.toLocal8Bit().data(), &ddROSStateSubscriber::messageHandler, this);
+    // Used to contain LCM subscribe
   }
 
-  virtual void unsubscribe()//lcm::LCM* lcmHandle)
+  virtual void unsubscribe()
   {
-    //lcmHandle->unsubscribe(mSubscription);
-    //mSubscription = 0;
+    // Used to contain LCM unsubscribe
   }
 
   const QString& channel() const
@@ -105,14 +105,61 @@ public:
     return mJointPositions;
   }
 
-  QVector<double> getRobotPosition() const
+  QVector<double> getRobotPose() const
   {
-    return mRobotPosition;
+    // returns base_in_odom in x,y,z,qx,qy,qz,qw
+    // note the ordering matches ROS
+    return mRobotPose;
   }
 
-  QVector<double> getRobotOrientation() const
+  QVector<double> getOdomInMap() const
   {
-    return mRobotOrientation;
+    // returns odom_in_map in x,y,z,qx,qy,qz,qw
+    // note the ordering matches ROS
+    QVector<double> mapInOdomTranslation;
+    mapInOdomTranslation.resize(7);
+    mapInOdomTranslation[0] = 0;
+    mapInOdomTranslation[1] = 0;
+    mapInOdomTranslation[2] = 0;
+    mapInOdomTranslation[3] = 0;
+    mapInOdomTranslation[4] = 0;
+    mapInOdomTranslation[5] = 0;
+    mapInOdomTranslation[6] = 1;
+
+    tf::StampedTransform transform;
+    ros::Time time = ros::Time(mSec, mNsec);
+    mTfListener->waitForTransform("map", "odom", time, ros::Duration(2.0));
+    try {
+      mTfListener->lookupTransform("map", "odom", time, transform);
+    }
+    catch (tf::TransformException& ex){
+      ROS_ERROR("%s",ex.what());
+      return mapInOdomTranslation; // this isnt correct
+    }
+
+    tf::Vector3 origin = transform.getOrigin();
+    tf::Quaternion quaternion = transform.getRotation();
+
+    mapInOdomTranslation[0] = origin.getX();
+    mapInOdomTranslation[1] = origin.getY();
+    mapInOdomTranslation[2] = origin.getZ();
+    mapInOdomTranslation[3] = quaternion.x();
+    mapInOdomTranslation[4] = quaternion.y();
+    mapInOdomTranslation[5] = quaternion.z();
+    mapInOdomTranslation[6] = quaternion.w();
+
+    /*
+    std::cout << mSec << ":" << mNsec << " - "
+              << mapInOdomTranslation[0] << ", "
+              << mapInOdomTranslation[1] << ", "
+              << mapInOdomTranslation[2] << ", "
+              << mapInOdomTranslation[3] << ", "
+              << mapInOdomTranslation[4] << ", "
+              << mapInOdomTranslation[5] << ", "
+              << mapInOdomTranslation[6] << "\n";
+    */
+
+    return mapInOdomTranslation;
   }
 
   void setCallbackEnabled(bool enabled)
@@ -191,7 +238,6 @@ public:
 
 signals:
 
-  //void messageReceived(const QByteArray& messageData, const QString& channel);
   void messageReceived(const QString& channel);
   void messageReceivedInQueue(const QString& channel);
 
@@ -199,7 +245,6 @@ protected slots:
 
   void onMessageInQueue(const QString& channel)
   {
-    //QByteArray msg = this->getNextMessage(0);
     emit this->messageReceived(channel);
   }
 
@@ -207,17 +252,17 @@ protected slots:
 protected:
 
   void updateState(const quadruped_msgs::QuadrupedState& message){
+    mSec = message.header.stamp.sec;
+    mNsec = message.header.stamp.nsec;
 
-    mRobotPosition.resize(3);
-    mRobotPosition[0] = message.pose.pose.position.x;
-    mRobotPosition[1] = message.pose.pose.position.y;
-    mRobotPosition[2] = message.pose.pose.position.z;
-
-    mRobotOrientation.resize(4);
-    mRobotOrientation[0] = message.pose.pose.orientation.w;
-    mRobotOrientation[1] = message.pose.pose.orientation.x;
-    mRobotOrientation[2] = message.pose.pose.orientation.y;
-    mRobotOrientation[3] = message.pose.pose.orientation.z;
+    mRobotPose.resize(7);
+    mRobotPose[0] = message.pose.pose.position.x;
+    mRobotPose[1] = message.pose.pose.position.y;
+    mRobotPose[2] = message.pose.pose.position.z;
+    mRobotPose[3] = message.pose.pose.orientation.x;
+    mRobotPose[4] = message.pose.pose.orientation.y;
+    mRobotPose[5] = message.pose.pose.orientation.z;
+    mRobotPose[6] = message.pose.pose.orientation.w;
 
     int numJoints = message.joints.name.size();
     mJointPositions.resize(numJoints);
@@ -229,7 +274,8 @@ protected:
        mJointPositions[i] = message.joints.position[i];
        names.append(QString( message.joints.name[i].c_str()  ));
     }
-    mJointNames = names;    
+    mJointNames = names;
+
   }
 
   void messageHandler(const quadruped_msgs::QuadrupedState& message) {
@@ -280,14 +326,16 @@ protected:
   ddFPSCounter mFPSCounter;
   QTime mTimer;
   QString mChannel;
-  //lcm::Subscription* mSubscription;
 
-  boost::shared_ptr<ros::Subscriber> subscriber_;
+  boost::shared_ptr<ros::Subscriber> mSubscriber;
+  boost::shared_ptr<tf::TransformListener> mTfListener;
 
-  QVector<double> mRobotPosition;
-  QVector<double> mRobotOrientation;
+  QVector<double> mRobotPose;
   QVector<double> mJointPositions;
   QList<QString> mJointNames;
+  long mSec;
+  long mNsec;
+
 
 };
 

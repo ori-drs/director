@@ -232,32 +232,6 @@ if usePerception:
         app.removeToolbarMacro('ActionMultisensePanel')
 
 
-    depthCameras = drcargs.getDirectorConfig()['depthCameras']
-    depthCamerasShortName = drcargs.getDirectorConfig()['depthCamerasShortName']
-
-
-    mainDisparityPointCloud = None
-    for i in range( len(depthCameras)):
-        depthCamera = depthCameras[i]
-        depthCameraShortName = depthCamerasShortName[i]
-        disparityPointCloud = segmentation.DisparityPointCloudItem(depthCameraShortName, depthCamera, str(depthCamera + '_LEFT'), cameraview.imageManager)
-        disparityPointCloud.addToView(view)
-        om.addToObjectModel(disparityPointCloud, parentObj=om.findObjectByName('sensors'))
-
-        if (i==0):
-            mainDisparityPointCloud = disparityPointCloud
-
-
-    def createPointerTracker():
-        return trackers.PointerTracker(robotStateModel, mainDisparityPointCloud)
-
-
-if useOpenniDepthImage:
-    openniDepthPointCloud = segmentation.DisparityPointCloudItem('openni point cloud', 'OPENNI_FRAME', 'OPENNI_FRAME_LEFT', cameraview.imageManager)
-    openniDepthPointCloud.addToView(view)
-    om.addToObjectModel(openniDepthPointCloud, parentObj=om.findObjectByName('sensors'))
-
-
 if useGrid:
     grid = vis.showGrid(view, color=[0,0,0], alpha=0.1)
     grid.setProperty('Surface Mode', 'Surface with edges')

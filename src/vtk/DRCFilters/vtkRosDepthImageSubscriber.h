@@ -44,7 +44,7 @@ public:
 
   void Stop();
 
-  void GetMesh(vtkPolyData* poly_data);
+  void GetPointCloud(vtkPolyData* poly_data);
 
   void SetDecimate(int decimate);
 
@@ -57,6 +57,10 @@ public:
   }
   long GetNsec(){
     return nsec_;
+  }
+
+  void SetFixedFrame(const std::string& fixed_frame_in){
+    fixed_frame_ = fixed_frame_in;
   }
 
 protected:

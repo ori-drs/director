@@ -2,9 +2,11 @@ import os
 import sys
 import vtk
 import math
+import time
 import PythonQt
 from PythonQt import QtCore, QtGui
 import director.objectmodel as om
+from director import cameraview
 from director import drcargs
 from director import robotstate
 from director.timercallback import TimerCallback
@@ -670,9 +672,11 @@ class RosGridMap(vis.PolyDataItem):
 
     def getPointCloud(self):
         polyData = vtk.vtkPolyData()
-
         self.reader.GetPointCloud(polyData)
-        return polyData
+        if (polyData.GetNumberOfPoints() == 0):
+            return None
+        else:
+            return polyData
 
 
 class RosInit(vis.PolyDataItem):
@@ -687,7 +691,7 @@ class RosInit(vis.PolyDataItem):
         self.reader.Start()
 
 
-class RosPointCloud(vis.PolyDataItem):
+class PointCloudSource(vis.PolyDataItem):
 
     def __init__(self, callbackFunc=None):
         vis.PolyDataItem.__init__(self, 'PointCloud', vtk.vtkPolyData(), view=None)
@@ -714,16 +718,148 @@ class RosPointCloud(vis.PolyDataItem):
             self.reader.Stop()
             self.reader.Start(topicName)
 
-
-    def showPointCloud(self):
+    def getPointCloud(self):
         polyData = vtk.vtkPolyData()
         self.reader.GetPointCloud(polyData)
+        if (polyData.GetNumberOfPoints() == 0):
+            return None
+        else:
+            return polyData
+
+    def showPointCloud(self):
+        polyData = self.getPointCloud()
+        if (polyData is None):
+            return
 
         if self.callbackFunc:
             self.callbackFunc()
         #update view
         self.setPolyData(polyData)
 
+
+
+class DepthImagePointCloudSource(vis.PolyDataItem):
+
+    def __init__(self, name, imagesChannel, cameraName, imageManager):
+        vis.PolyDataItem.__init__(self, name, vtk.vtkPolyData(), view=None)
+
+        self.addProperty('Channel', imagesChannel)
+        self.addProperty('Camera name', cameraName)
+
+        self.addProperty('Decimation', 1, attributes=om.PropertyAttributes(enumNames=['1', '2', '4', '8', '16']))
+        self.addProperty('Remove Size', 1000, attributes=om.PropertyAttributes(decimals=0, minimum=0, maximum=100000.0, singleStep=1000))
+        self.addProperty('Target FPS', 5.0, attributes=om.PropertyAttributes(decimals=1, minimum=0.1, maximum=30.0, singleStep=0.1))
+        self.addProperty('Max Range', 5.0,  attributes=om.PropertyAttributes(decimals=2, minimum=0., maximum=30.0, singleStep=0.25))
+
+        isSimulation = drcargs.getDirectorConfig()['simulation']
+        if isSimulation == 'True':
+            isSimulation = True
+        else:
+            isSimulation = False
+
+        self.reader = drc.vtkRosDepthImageSubscriber()
+        if (isSimulation):
+            #print "cameras in sim"
+            if cameraName == 'REALSENSE_FORWARD_CAMERA_LEFT':
+                self.reader.Start('/realsense_d435_forward/rgb/image_raw', 'raw', '/realsense_d435_forward/rgb/camera_info',
+                                  '/realsense_d435_forward/depth/image_raw', 'raw', '/realsense_d435_forward/depth/camera_info')
+            else:
+                self.reader.Start('/realsense_d435/rgb/image_raw', 'raw', '/realsense_d435/rgb/camera_info',
+                                  '/realsense_d435/depth/image_raw', 'raw', '/realsense_d435/depth/camera_info')
+        else:
+            #print "cameras not in sim, real operation"
+            if cameraName == 'REALSENSE_FORWARD_CAMERA_LEFT':
+                self.reader.Start('/realsense_d435_forward/color/image_raw', 'compressed', '/realsense_d435_forward/color/camera_info',
+                                  '/realsense_d435_forward/aligned_depth_to_color/image_raw', 'compressedDepth', '/realsense_d435_forward/aligned_depth_to_color/camera_info')
+            else:
+                self.reader.Start('/realsense_d435/color/image_raw', 'compressed', '/realsense_d435/color/camera_info',
+                              '/realsense_d435/aligned_depth_to_color/image_raw', 'compressedDepth', '/realsense_d435/aligned_depth_to_color/camera_info')
+
+        decimation = int(self.properties.getPropertyEnumValue('Decimation'))
+        removeSize = int(self.properties.getProperty('Remove Size'))
+        rangeThreshold = float(self.properties.getProperty('Max Range'))
+        self.reader.SetDecimate(int(decimation))
+        self.reader.SetRemoveSize(removeSize)
+        self.reader.SetRangeThreshold(rangeThreshold)
+
+        self.timer = TimerCallback()
+        self.timer.callback = self.update
+        self.lastUtime = 0
+        self.imageManager = imageManager
+        self.cameraName = cameraName
+        self.setProperty('Visible', True)
+        self.addProperty('Remove Stale Data', False)
+        self.addProperty('Stale Data Timeout', 5.0, attributes=om.PropertyAttributes(decimals=1, minimum=0.1, maximum=30.0, singleStep=0.1))
+        self.lastDataReceivedTime = time.time()
+
+    def _onPropertyChanged(self, propertySet, propertyName):
+        vis.PolyDataItem._onPropertyChanged(self, propertySet, propertyName)
+
+        if propertyName == 'Visible':
+            if self.getProperty(propertyName):
+                self.timer.start()
+            else:
+                self.timer.stop()
+
+        if propertyName in ('Decimation', 'Remove outliers', 'Max Range'):
+            self.lastUtime = 0
+        if propertyName == 'Decimation':
+            decimate = self.getPropertyEnumValue(propertyName)
+            self.reader.SetDecimate(int(decimate))
+        elif propertyName == 'Remove Size':
+            remove_size = self.getProperty(propertyName)
+            self.reader.SetRemoveSize(remove_size)
+        elif propertyName == 'Max Range':
+            max_range = self.getProperty(propertyName)
+            self.reader.SetRangeThreshold(max_range)
+
+    def getPointCloud(self):
+        polyData = vtk.vtkPolyData()
+        self.reader.GetPointCloud(polyData)
+        if (polyData.GetNumberOfPoints() == 0):
+            return None
+        else:
+            return polyData
+
+    def onRemoveFromObjectModel(self):
+        vis.PolyDataItem.onRemoveFromObjectModel(self)
+        self.timer.stop()
+
+    def update(self):
+        #utime = self.imageManager.queue.getCurrentImageTime(self.cameraName)
+        utime =  self.reader.GetSec() *1E6 + round( self.reader.GetNsec() *1E-3)
+
+        if utime == self.lastUtime:
+            if self.getProperty('Remove Stale Data') and ((time.time()-self.lastDataReceivedTime) > self.getProperty('Stale Data Timeout')):
+                if self.polyData.GetNumberOfPoints() > 0:
+                    self.setPolyData(vtk.vtkPolyData())
+            return
+
+        if (utime < self.lastUtime):
+            temp=0 # dummy
+        elif (utime - self.lastUtime < 1E6/self.getProperty('Target FPS')):
+            return
+
+        #decimation = int(self.properties.getPropertyEnumValue('Decimation'))
+        #removeSize = int(self.properties.getProperty('Remove Size'))
+        #rangeThreshold = float(self.properties.getProperty('Max Range'))
+        #polyData = getDisparityPointCloud(decimation, imagesChannel=self.getProperty('Channel'), cameraName=self.getProperty('Camera name'),
+        #                                  removeOutliers=False, removeSize=removeSize, rangeThreshold = rangeThreshold)
+        polyData = vtk.vtkPolyData()
+        self.reader.GetPointCloud(polyData)
+
+        # currently disabled
+        #bodyToLocal = vtk.vtkTransform()
+        #self.imageManager.queue.getTransform('body', 'local', utime, bodyToLocal)
+        #bodyHeight = bodyToLocal.GetPosition()[2]
+
+        bodyHeight = 0
+        self.setRangeMap('z',[bodyHeight-0.5, bodyHeight+0.5])
+        self._updateColorBy()
+
+        self.setPolyData(polyData)
+        self.lastDataReceivedTime = time.time()
+        self.lastUtime = utime
 
 
 def init(view):
@@ -763,18 +899,36 @@ def init(view):
 
     rosInit = RosInit(callbackFunc=view.render)
     rosInit.addToView(view)
-    om.addToObjectModel(rosInit, sensorsFolder)
+    #om.addToObjectModel(rosInit, sensorsFolder)
 
-    rosGridMap = RosGridMap(callbackFunc=view.render)
-    rosGridMap.addToView(view)
-    om.addToObjectModel(rosGridMap, sensorsFolder)
+    gridMapSource = RosGridMap(callbackFunc=view.render)
+    gridMapSource.addToView(view)
+    om.addToObjectModel(gridMapSource, sensorsFolder)
 
-    rosPointCloud = RosPointCloud(callbackFunc=view.render)
-    rosPointCloud.addToView(view)
-    om.addToObjectModel(rosPointCloud, sensorsFolder)
+    pointCloudSource = PointCloudSource(callbackFunc=view.render)
+    pointCloudSource.addToView(view)
+    om.addToObjectModel(pointCloudSource, sensorsFolder)
+
+    depthCameras = drcargs.getDirectorConfig()['depthCameras']
+    depthCamerasShortName = drcargs.getDirectorConfig()['depthCamerasShortName']
+
+    headCameraPointCloudSource = DepthImagePointCloudSource(depthCamerasShortName[0], depthCameras[0], str(depthCameras[0] + '_LEFT'), None)
+    headCameraPointCloudSource.addToView(view)
+    om.addToObjectModel(headCameraPointCloudSource, parentObj=om.findObjectByName('sensors'))
+
+    groundCameraPointCloudSource = DepthImagePointCloudSource(depthCamerasShortName[1], depthCameras[1], str(depthCameras[1] + '_LEFT'), None)
+    groundCameraPointCloudSource.addToView(view)
+    om.addToObjectModel(groundCameraPointCloudSource, parentObj=om.findObjectByName('sensors'))
+
+    #if (i==0):
+    #    mainDisparityPointCloud = disparityPointCloud
+
+    #def createPointerTracker():
+    #    return trackers.PointerTracker(robotStateModel, mainDisparityPointCloud)
+
 
     spindleDebug = SpindleAxisDebug(multisenseDriver)
     spindleDebug.addToView(view)
     om.addToObjectModel(spindleDebug, sensorsFolder)
 
-    return multisenseDriver, mapServerSource
+    return multisenseDriver, rosInit, pointCloudSource, gridMapSource, headCameraPointCloudSource, groundCameraPointCloudSource
