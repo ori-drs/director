@@ -79,7 +79,7 @@ void vtkRosPointCloudSubscriber::PointCloudCallback(const sensor_msgs::PointClou
   vtkSmartPointer<vtkPolyData> poly_data = ConvertPointCloud2ToVtk(input_);
   vtkSmartPointer<vtkPolyData> transformed_poly_data = vtkSmartPointer<vtkPolyData>::New();
   transformPolyDataUtils::transformPolyData(poly_data, transformed_poly_data, sensorToLocalTransform);
-  addPointCloud(poly_data);
+  addPointCloud(transformed_poly_data);
 }
 
 

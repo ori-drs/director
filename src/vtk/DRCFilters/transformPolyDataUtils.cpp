@@ -14,6 +14,22 @@ void transformPolyDataUtils::transformPolyData(vtkPolyData* polyDataSrc, vtkPoly
   transformFilter->SetInputData(polyDataSrc);
   transformFilter->Update();
   polyDataDst->DeepCopy(transformFilter->GetOutput());
+  // transform z array
+  vtkAbstractArray* array = polyDataDst->GetPointData()->GetAbstractArray("z");
+  if(array)
+  {
+    vtkFloatArray* z = dynamic_cast<vtkFloatArray*>(array);
+    if( !z )
+    {
+      return;
+    }
+    double pos[3];
+    transform->GetPosition(pos);
+    for(int i = 0; i < z->GetSize(); ++i)
+    {
+      z->SetValue(i, z->GetValue(i) + pos[2]);
+    }
+  }
 }
 
 vtkSmartPointer<vtkTransform> transformPolyDataUtils::transformFromPose(const tf::StampedTransform& rosTransform)

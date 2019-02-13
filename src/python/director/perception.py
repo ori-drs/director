@@ -693,8 +693,9 @@ class RosInit(vis.PolyDataItem):
 
 class PointCloudSource(vis.PolyDataItem):
 
-    def __init__(self, callbackFunc=None):
+    def __init__(self, robotStateJointController, callbackFunc=None):
         vis.PolyDataItem.__init__(self, 'PointCloud', vtk.vtkPolyData(), view=None)
+        self.robotStateJointController = robotStateJointController
         self.timer = TimerCallback()
         self.timer.callback = self.showPointCloud
         self.timer.start()
@@ -736,10 +737,14 @@ class PointCloudSource(vis.PolyDataItem):
         if (polyData is None):
             return
 
+        bodyHeight = self.robotStateJointController.q[2]
+        self.setRangeMap('z', [bodyHeight-0.5, bodyHeight+0.5])
+
         if self.callbackFunc:
             self.callbackFunc()
         #update view
         self.setPolyData(polyData)
+
 
 
 
@@ -867,7 +872,8 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
         self.lastUtime = utime
 
 
-def init(view):
+
+def init(view, robotStateJointController):
     global _multisenseItem
     global multisenseDriver
 
@@ -931,6 +937,9 @@ def init(view):
     #def createPointerTracker():
     #    return trackers.PointerTracker(robotStateModel, mainDisparityPointCloud)
 
+    rosPointCloud = RosPointCloud(robotStateJointController, callbackFunc=view.render)
+    rosPointCloud.addToView(view)
+    om.addToObjectModel(rosPointCloud, sensorsFolder)
 
     spindleDebug = SpindleAxisDebug(multisenseDriver)
     spindleDebug.addToView(view)
