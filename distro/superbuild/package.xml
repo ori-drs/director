@@ -14,7 +14,6 @@
     <depend>bot_frames</depend>
     <depend>maps_lcmtypes</depend>
     <depend>drc_lcmtypes</depend>
-    <depend>maps_server</depend>
     <depend>multisense_utils</depend>
     <depend>multisense_image_utils</depend>
     <depend>image_utils</depend>

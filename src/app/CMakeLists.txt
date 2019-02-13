@@ -21,7 +21,7 @@ check_vtk_qt_version()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-include_directories(${CMAKE_SOURCE_DIR}/src/common)
+include_directories(${CMAKE_DIRECTOR_SOURCE_DIR}/src/common)
 include_directories(${PYTHON_INCLUDE_DIRS})
 
 set(decorator_file ${CMAKE_CURRENT_BINARY_DIR}/ddPythonQtDecorators.h)

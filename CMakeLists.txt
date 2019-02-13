@@ -2,8 +2,9 @@ cmake_minimum_required(VERSION 2.8.7)
 
 # Drake Designer
 project(DD)
+set(CMAKE_DIRECTOR_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_DIRECTOR_SOURCE_DIR}/cmake/modules")
 
 # set project variables
 set(DD_INSTALL_BIN_DIR bin)
@@ -24,7 +25,7 @@ endif()
 
 # declare options
 option(BUILD_SHARED_LIBS "Build director with shared libraries." ON)
-option(BUILD_TESTING "Build director with tests enabled." ON)
+option(BUILD_TESTING "Build director with tests enabled." OFF)
 
 # include cmake scripts
 include(cmake/dd-macros.cmake)

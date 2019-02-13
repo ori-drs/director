@@ -14,7 +14,7 @@ set(DD_LIBRARIES
 
 export(TARGETS ${DD_LIBRARIES} FILE "${CMAKE_BINARY_DIR}/${DD_TARGETS_NAME}.cmake")
 
-configure_file("${CMAKE_SOURCE_DIR}/cmake/director-config.cmake.in" "${CMAKE_BINARY_DIR}/director-config.cmake" @ONLY)
+configure_file("${CMAKE_DIRECTOR_SOURCE_DIR}/cmake/director-config.cmake.in" "${CMAKE_BINARY_DIR}/director-config.cmake" @ONLY)
 #configure_file("${CMAKE_SOURCE_DIR}/cmake/director-build-config.cmake.in" "${DD_BINARY_DIR}/director-build-config.cmake" @ONLY)
 
 install(FILES "${CMAKE_BINARY_DIR}/director-config.cmake" DESTINATION ${DD_INSTALL_CONFIG_DIR})

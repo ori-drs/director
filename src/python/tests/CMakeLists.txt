@@ -99,7 +99,7 @@ if (USE_DRAKE AND NOT USE_DRC)
 endif()
 
 
-set(python_exe ${CMAKE_INSTALL_PREFIX}/bin/directorPython)
+set(python_exe ${CATKIN_DEVEL_PREFIX}/lib/director/directorPython)
 
 set(wrap_vfb)
 if(NOT APPLE AND NOT WIN32 AND NOT DEFINED ENV{DISPLAY})
