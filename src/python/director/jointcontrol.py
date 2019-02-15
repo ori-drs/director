@@ -136,11 +136,21 @@ class JointController(object):
             for model in self.models:
                 model.model.setJointPositions(jointPositions, jointNames)
 
+        def remove_launchfile_generated_args(arg_strings):
+            # remove args created by ROS
+            new_arg_strings = []
+            for arg_string in arg_strings:
+                if not arg_string.startswith('__name:=') and not arg_string.startswith('__log:='):
+                    if "director/director" not in arg_string: # application name
+                        new_arg_strings.append(arg_string)
+            return new_arg_strings
 
         #self.subscriber = lcmUtils.addSubscriber(channelName, bot_core.robot_state_t, onRobotStateMessage)
         #self.subscriber.setSpeedLimit(60)
 
-        self.subscriberRos = PythonQt.dd.ddROSStateSubscriber(sys.argv, "/state_estimator/quadruped_state")
+
+        new_arg_strings = remove_launchfile_generated_args(sys.argv)
+        self.subscriberRos = PythonQt.dd.ddROSStateSubscriber(new_arg_strings, "/state_estimator/quadruped_state")
         self.subscriberRos.connect('messageReceived(const QString&)', onRobotStateMessageRos)
         self.subscriberRos.setSpeedLimit(60)
         self.fixedFrame = "map"

@@ -111,7 +111,8 @@ import numpy as np
 from director.debugVis import DebugData
 from director import ioUtils as io
 
-drcargs.requireStrict()
+# remove feb 2019, when moving to roslaunch
+#drcargs.requireStrict()
 drcargs.args()
 app.startup(globals())
 om.init(app.getMainWindow().objectTree(), app.getMainWindow().propertiesPanel())
