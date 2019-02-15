@@ -14,8 +14,10 @@ void transformPolyDataUtils::transformPolyData(vtkPolyData* polyDataSrc, vtkPoly
   transformFilter->SetInputData(polyDataSrc);
   transformFilter->Update();
   polyDataDst->DeepCopy(transformFilter->GetOutput());
+
   // transform z array
   vtkAbstractArray* array = polyDataDst->GetPointData()->GetAbstractArray("z");
+  //vtkAbstractArray* tmp = polyDataDst->GetPointData()->GetAbstractArray("elevation");
   if(array)
   {
     vtkFloatArray* z = dynamic_cast<vtkFloatArray*>(array);
@@ -29,6 +31,9 @@ void transformPolyDataUtils::transformPolyData(vtkPolyData* polyDataSrc, vtkPoly
     {
       z->SetValue(i, z->GetValue(i) + pos[2]);
     }
+    /*if(tmp) {
+      std::cout << "pos " << pos[2] << std::endl;
+    }*/
   }
 }
 

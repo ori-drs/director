@@ -159,6 +159,12 @@ vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMesh()
     }
   }
 
+  // initialize z layer
+  vtkSmartPointer<vtkFloatArray> z_array = vtkSmartPointer<vtkFloatArray>::New();
+  z_array->SetName("z");
+  z_array->SetNumberOfValues(numPoints);
+
+
   // populating the cells, the following code is equivalent to
   /*vtkSmartPointer<vtkTriangle> triangle = vtkSmartPointer<vtkTriangle>::New();
   triangle->GetPointIds()->SetId(0, count_point);
@@ -185,12 +191,12 @@ vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMesh()
     if (vertices[j].size() > 2) {
       for (size_t m = 1; m < vertices[j].size() - 1; m++) {
         points->SetPoint(count_point, vertices[j][m-1](0), vertices[j][m-1](1), vertices[j][m-1](2));
-        points->SetPoint(count_point+1, vertices[j][m](0), vertices[j][m](1), vertices[j][m](2));
-        points->SetPoint(count_point+2, vertices[j][m+1](0), vertices[j][m+1](1), vertices[j][m+1](2));
+        points->SetPoint(count_point + 1, vertices[j][m](0), vertices[j][m](1), vertices[j][m](2));
+        points->SetPoint(count_point + 2, vertices[j][m+1](0), vertices[j][m+1](1), vertices[j][m+1](2));
 
-        count_point += 3;
         //colors
-        if( hasColorLayer && ptrColor != 0) {
+        if( hasColorLayer && ptrColor != 0)
+        {
           getInterpolatedColor(inputMap_, colorLayer_, indexes[j][m-1],
               minIntensity, maxIntensity, color);
           //colors[i]->InsertNextTupleValue(color);
@@ -208,7 +214,16 @@ vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMesh()
           *(ptrColor + 7) = color[1];
           *(ptrColor + 8) = color[2];
           ptrColor += 9;
+        } else if (colorLayer_ == "z")
+        {
+          double elevation = inputMap_[elevationLayer](indexes[j][m-1](0), indexes[j][m-1](1));
+          z_array->SetValue(count_point, elevation);
+          elevation = inputMap_[elevationLayer](indexes[j][m](0), indexes[j][m](1));
+          z_array->SetValue(count_point + 1, elevation);
+          elevation = inputMap_[elevationLayer](indexes[j][m+1](0), indexes[j][m+1](1));
+          z_array->SetValue(count_point + 2, elevation);
         }
+        count_point += 3;
 
       }
     }
@@ -218,6 +233,7 @@ vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMesh()
   for(int i = 0; i< layers.size(); ++i) {
     polyData->GetPointData()->AddArray(colors[i]);
   }
+  polyData->GetPointData()->AddArray(z_array);
   polyData->SetPolys(cellArray);
 
   return polyData;

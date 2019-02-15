@@ -637,8 +637,10 @@ class SpindleMonitor(object):
 
 class RosGridMap(vis.PolyDataItem):
 
-    def __init__(self, callbackFunc=None):
+    def __init__(self, robotStateJointController, callbackFunc=None):
         vis.PolyDataItem.__init__(self, 'elevation map', vtk.vtkPolyData(), view=None)
+        self.firstData = True
+        self.robotStateJointController = robotStateJointController
         self.timer = TimerCallback()
         self.timer.callback = self.showMap
         self.timer.start()
@@ -662,18 +664,28 @@ class RosGridMap(vis.PolyDataItem):
 
     def showMap(self):
         polyData = vtk.vtkPolyData()
-
         self.reader.GetMesh(polyData)
+        if polyData.GetNumberOfPoints() == 0:
+            return
+
+        bodyHeight = self.robotStateJointController.q[2]
+        self.setRangeMap('z', [bodyHeight-0.5, bodyHeight+0.5])
 
         if self.callbackFunc:
             self.callbackFunc()
         #update view
         self.setPolyData(polyData)
 
+        if self.firstData:
+            self.firstData = False
+            zIndex = self.properties.getPropertyAttribute('Color By', 'enumNames').index('z')
+            self.properties.setProperty('Color By', zIndex)
+
+
     def getPointCloud(self):
         polyData = vtk.vtkPolyData()
         self.reader.GetPointCloud(polyData)
-        if (polyData.GetNumberOfPoints() == 0):
+        if polyData.GetNumberOfPoints() == 0:
             return None
         else:
             return polyData
@@ -695,6 +707,7 @@ class PointCloudSource(vis.PolyDataItem):
 
     def __init__(self, robotStateJointController, callbackFunc=None):
         vis.PolyDataItem.__init__(self, 'PointCloud', vtk.vtkPolyData(), view=None)
+        self.firstData = True
         self.robotStateJointController = robotStateJointController
         self.timer = TimerCallback()
         self.timer.callback = self.showPointCloud
@@ -727,14 +740,14 @@ class PointCloudSource(vis.PolyDataItem):
     def getPointCloud(self):
         polyData = vtk.vtkPolyData()
         self.reader.GetPointCloud(polyData)
-        if (polyData.GetNumberOfPoints() == 0):
+        if polyData.GetNumberOfPoints() == 0:
             return None
         else:
             return polyData
 
     def showPointCloud(self):
         polyData = self.getPointCloud()
-        if (polyData is None):
+        if polyData is None:
             return
 
         bodyHeight = self.robotStateJointController.q[2]
@@ -745,6 +758,10 @@ class PointCloudSource(vis.PolyDataItem):
         #update view
         self.setPolyData(polyData)
 
+        if self.firstData:
+            self.firstData = False
+            zIndex = self.properties.getPropertyAttribute('Color By', 'enumNames').index('z')
+            self.properties.setProperty('Color By', zIndex)
 
 
 
@@ -912,11 +929,11 @@ def init(view, robotStateJointController):
     rosInit.addToView(view)
     #om.addToObjectModel(rosInit, sensorsFolder)
 
-    gridMapSource = RosGridMap(callbackFunc=view.render)
+    gridMapSource = RosGridMap(robotStateJointController, callbackFunc=view.render)
     gridMapSource.addToView(view)
     om.addToObjectModel(gridMapSource, sensorsFolder)
 
-    pointCloudSource = PointCloudSource(callbackFunc=view.render)
+    pointCloudSource = PointCloudSource(robotStateJointController, callbackFunc=view.render)
     pointCloudSource.addToView(view)
     om.addToObjectModel(pointCloudSource, sensorsFolder)
 
@@ -936,10 +953,6 @@ def init(view, robotStateJointController):
 
     #def createPointerTracker():
     #    return trackers.PointerTracker(robotStateModel, mainDisparityPointCloud)
-
-    rosPointCloud = RosPointCloud(robotStateJointController, callbackFunc=view.render)
-    rosPointCloud.addToView(view)
-    om.addToObjectModel(rosPointCloud, sensorsFolder)
 
     spindleDebug = SpindleAxisDebug(multisenseDriver)
     spindleDebug.addToView(view)
