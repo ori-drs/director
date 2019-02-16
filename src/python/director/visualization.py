@@ -85,6 +85,7 @@ class PolyDataItem(om.ObjectModelItem):
 
     def setRangeMap(self, key, value):
         self.rangeMap[key] = value
+        self._updateColorBy()
 
     def getArrayNames(self):
         pointData = self.polyData.GetPointData()

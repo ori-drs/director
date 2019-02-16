@@ -767,9 +767,10 @@ class PointCloudSource(vis.PolyDataItem):
 
 class DepthImagePointCloudSource(vis.PolyDataItem):
 
-    def __init__(self, name, imagesChannel, cameraName, imageManager):
+    def __init__(self, name, imagesChannel, cameraName, imageManager, robotStateJointController):
         vis.PolyDataItem.__init__(self, name, vtk.vtkPolyData(), view=None)
 
+        self.robotStateJointController = robotStateJointController
         self.addProperty('Channel', imagesChannel)
         self.addProperty('Camera name', cameraName)
 
@@ -805,6 +806,7 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
         decimation = int(self.properties.getPropertyEnumValue('Decimation'))
         removeSize = int(self.properties.getProperty('Remove Size'))
         rangeThreshold = float(self.properties.getProperty('Max Range'))
+        self.firstData = True
         self.reader.SetDecimate(int(decimation))
         self.reader.SetRemoveSize(removeSize)
         self.reader.SetRangeThreshold(rangeThreshold)
@@ -872,19 +874,25 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
         #rangeThreshold = float(self.properties.getProperty('Max Range'))
         #polyData = getDisparityPointCloud(decimation, imagesChannel=self.getProperty('Channel'), cameraName=self.getProperty('Camera name'),
         #                                  removeOutliers=False, removeSize=removeSize, rangeThreshold = rangeThreshold)
-        polyData = vtk.vtkPolyData()
-        self.reader.GetPointCloud(polyData)
+        polyData = self.getPointCloud()
+        if polyData is None:
+            return
 
         # currently disabled
         #bodyToLocal = vtk.vtkTransform()
         #self.imageManager.queue.getTransform('body', 'local', utime, bodyToLocal)
         #bodyHeight = bodyToLocal.GetPosition()[2]
 
-        bodyHeight = 0
+        bodyHeight = self.robotStateJointController.q[2]
         self.setRangeMap('z',[bodyHeight-0.5, bodyHeight+0.5])
-        self._updateColorBy()
 
         self.setPolyData(polyData)
+
+        if self.firstData:
+            self.firstData = False
+            zIndex = self.properties.getPropertyAttribute('Color By', 'enumNames').index('z')
+            self.properties.setProperty('Color By', zIndex)
+
         self.lastDataReceivedTime = time.time()
         self.lastUtime = utime
 
@@ -940,11 +948,13 @@ def init(view, robotStateJointController):
     depthCameras = drcargs.getDirectorConfig()['depthCameras']
     depthCamerasShortName = drcargs.getDirectorConfig()['depthCamerasShortName']
 
-    headCameraPointCloudSource = DepthImagePointCloudSource(depthCamerasShortName[0], depthCameras[0], str(depthCameras[0] + '_LEFT'), None)
+    headCameraPointCloudSource = DepthImagePointCloudSource(depthCamerasShortName[0], depthCameras[0], str(depthCameras[0] + '_LEFT'), None,
+                                 robotStateJointController)
     headCameraPointCloudSource.addToView(view)
     om.addToObjectModel(headCameraPointCloudSource, parentObj=om.findObjectByName('sensors'))
 
-    groundCameraPointCloudSource = DepthImagePointCloudSource(depthCamerasShortName[1], depthCameras[1], str(depthCameras[1] + '_LEFT'), None)
+    groundCameraPointCloudSource = DepthImagePointCloudSource(depthCamerasShortName[1], depthCameras[1], str(depthCameras[1] + '_LEFT'), None,
+                                                              robotStateJointController)
     groundCameraPointCloudSource.addToView(view)
     om.addToObjectModel(groundCameraPointCloudSource, parentObj=om.findObjectByName('sensors'))
 

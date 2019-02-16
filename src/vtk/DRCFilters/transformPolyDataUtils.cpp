@@ -15,25 +15,19 @@ void transformPolyDataUtils::transformPolyData(vtkPolyData* polyDataSrc, vtkPoly
   transformFilter->Update();
   polyDataDst->DeepCopy(transformFilter->GetOutput());
 
-  // transform z array
-  vtkAbstractArray* array = polyDataDst->GetPointData()->GetAbstractArray("z");
-  //vtkAbstractArray* tmp = polyDataDst->GetPointData()->GetAbstractArray("elevation");
-  if(array)
+  //add z array
+  vtkPoints* points = polyDataDst->GetPoints();
+  vtkIdType num_points = points->GetNumberOfPoints();
+  vtkSmartPointer<vtkFloatArray> z = vtkSmartPointer<vtkFloatArray>::New();
+  z->SetName("z");
+  z->SetNumberOfValues(num_points);
+  polyDataDst->GetPointData()->AddArray(z);
+
+  for(vtkIdType i = 0; i < num_points; ++i)
   {
-    vtkFloatArray* z = dynamic_cast<vtkFloatArray*>(array);
-    if( !z )
-    {
-      return;
-    }
-    double pos[3];
-    transform->GetPosition(pos);
-    for(int i = 0; i < z->GetSize(); ++i)
-    {
-      z->SetValue(i, z->GetValue(i) + pos[2]);
-    }
-    /*if(tmp) {
-      std::cout << "pos " << pos[2] << std::endl;
-    }*/
+    double pt[3];
+    points->GetPoint(i, pt);
+    z->SetValue(i, pt[2]);
   }
 }
 

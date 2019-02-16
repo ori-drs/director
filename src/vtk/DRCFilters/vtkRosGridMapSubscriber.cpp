@@ -159,12 +159,6 @@ vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMesh()
     }
   }
 
-  // initialize z layer
-  vtkSmartPointer<vtkFloatArray> z_array = vtkSmartPointer<vtkFloatArray>::New();
-  z_array->SetName("z");
-  z_array->SetNumberOfValues(numPoints);
-
-
   // populating the cells, the following code is equivalent to
   /*vtkSmartPointer<vtkTriangle> triangle = vtkSmartPointer<vtkTriangle>::New();
   triangle->GetPointIds()->SetId(0, count_point);
@@ -214,14 +208,6 @@ vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMesh()
           *(ptrColor + 7) = color[1];
           *(ptrColor + 8) = color[2];
           ptrColor += 9;
-        } else if (colorLayer_ == "z")
-        {
-          double elevation = inputMap_[elevationLayer](indexes[j][m-1](0), indexes[j][m-1](1));
-          z_array->SetValue(count_point, elevation);
-          elevation = inputMap_[elevationLayer](indexes[j][m](0), indexes[j][m](1));
-          z_array->SetValue(count_point + 1, elevation);
-          elevation = inputMap_[elevationLayer](indexes[j][m+1](0), indexes[j][m+1](1));
-          z_array->SetValue(count_point + 2, elevation);
         }
         count_point += 3;
 
@@ -233,7 +219,6 @@ vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMesh()
   for(int i = 0; i< layers.size(); ++i) {
     polyData->GetPointData()->AddArray(colors[i]);
   }
-  polyData->GetPointData()->AddArray(z_array);
   polyData->SetPolys(cellArray);
 
   return polyData;

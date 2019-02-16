@@ -55,23 +55,16 @@ vtkPolyData* ConvertPointCloud2ToVtk(const sensor_msgs::PointCloud2Ptr& msg) {
   ring->SetNumberOfValues(numberOfPoints);
   polyData->GetPointData()->AddArray(ring);
 
-  vtkSmartPointer<vtkFloatArray> z = vtkSmartPointer<vtkFloatArray>::New();
-  z->SetName("z");
-  z->SetNumberOfValues(numberOfPoints);
-  polyData->GetPointData()->AddArray(z);
-
 
   sensor_msgs::PointCloud2Iterator<float> iter_x(*msg, "x");
-  sensor_msgs::PointCloud2Iterator<float> iter_z(*msg, "z");
   sensor_msgs::PointCloud2Iterator<float> iter_i(*msg, "intensity");
   sensor_msgs::PointCloud2Iterator<int> iter_r(*msg, "ring");
 
-  for (size_t i = 0; i < numberOfPoints; ++i, ++iter_x, ++iter_i, ++iter_r, ++iter_z)
+  for (size_t i = 0; i < numberOfPoints; ++i, ++iter_x, ++iter_i, ++iter_r)
   {
     points->InsertNextPoint(&iter_x[0]);
     intensity->SetValue(i, iter_i[0]);
     ring->SetValue(i, iter_r[0]);
-    z->SetValue(i, iter_z[0]);
   }
 
   return polyData;
