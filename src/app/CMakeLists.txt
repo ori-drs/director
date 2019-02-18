@@ -189,6 +189,7 @@ if (USE_LCM)
     ddLCMSubscriber.h
     ddLCMThread.h
     ddROSStateSubscriber.h
+    ddROSSubscriber.h
   )
 
   list(APPEND srcs

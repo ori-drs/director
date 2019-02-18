@@ -1,9 +1,8 @@
 #include "transformPolyDataUtils.h"
+#include "vtkRosPointCloudConversions.h"
 
 #include <vtkPointData.h>
 #include <vtkPoints.h>
-
-#include <vtkMultisenseUtils.h>
 
 
 void transformPolyDataUtils::transformPolyData(vtkPolyData* polyDataSrc, vtkPolyData* polyDataDst,
