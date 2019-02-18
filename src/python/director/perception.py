@@ -784,7 +784,7 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
 
         cameraMode = drcargs.getDirectorConfig()['cameraMode']
 
-        self.reader = drc.vtkRosDepthImageSubscriber()
+        self.reader = vtkRos.vtkRosDepthImageSubscriber()
         if (cameraMode == "simulation"):
             print "configure cameras for sim"
             if cameraName == 'REALSENSE_FORWARD_CAMERA_LEFT':
