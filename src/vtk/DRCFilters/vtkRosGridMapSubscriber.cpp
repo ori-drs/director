@@ -1,5 +1,6 @@
 #include "vtkRosGridMapSubscriber.h"
 #include <transformPolyDataUtils.h>
+#include "vtkRosPointCloudConversions.h"
 
 #include "vtkTransform.h"
 #include "vtkTransformPolyDataFilter.h"
@@ -14,7 +15,6 @@
 #include <vtkPointData.h>
 #include <vtkPolygon.h>
 #include <vtkTriangle.h>
-#include <vtkMultisenseUtils.h>
 #include "vtkObjectFactory.h"
 
 vtkStandardNewMacro(vtkRosGridMapSubscriber);
