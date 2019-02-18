@@ -637,8 +637,10 @@ class SpindleMonitor(object):
 
 class RosGridMap(vis.PolyDataItem):
 
-    def __init__(self, callbackFunc=None):
+    def __init__(self, robotStateJointController, callbackFunc=None):
         vis.PolyDataItem.__init__(self, 'elevation map', vtk.vtkPolyData(), view=None)
+        self.firstData = True
+        self.robotStateJointController = robotStateJointController
         self.timer = TimerCallback()
         self.timer.callback = self.showMap
         self.timer.start()
@@ -662,18 +664,28 @@ class RosGridMap(vis.PolyDataItem):
 
     def showMap(self):
         polyData = vtk.vtkPolyData()
-
         self.reader.GetMesh(polyData)
+        if polyData.GetNumberOfPoints() == 0:
+            return
+
+        bodyHeight = self.robotStateJointController.q[2]
+        self.setRangeMap('z', [bodyHeight-0.5, bodyHeight+0.5])
 
         if self.callbackFunc:
             self.callbackFunc()
         #update view
         self.setPolyData(polyData)
 
+        if self.firstData:
+            self.firstData = False
+            zIndex = self.properties.getPropertyAttribute('Color By', 'enumNames').index('z')
+            self.properties.setProperty('Color By', zIndex)
+
+
     def getPointCloud(self):
         polyData = vtk.vtkPolyData()
         self.reader.GetPointCloud(polyData)
-        if (polyData.GetNumberOfPoints() == 0):
+        if polyData.GetNumberOfPoints() == 0:
             return None
         else:
             return polyData
@@ -693,8 +705,10 @@ class RosInit(vis.PolyDataItem):
 
 class PointCloudSource(vis.PolyDataItem):
 
-    def __init__(self, callbackFunc=None):
+    def __init__(self, robotStateJointController, callbackFunc=None):
         vis.PolyDataItem.__init__(self, 'PointCloud', vtk.vtkPolyData(), view=None)
+        self.firstData = True
+        self.robotStateJointController = robotStateJointController
         self.timer = TimerCallback()
         self.timer.callback = self.showPointCloud
         self.timer.start()
@@ -704,6 +718,8 @@ class PointCloudSource(vis.PolyDataItem):
         self.reader.Start(topicName)
         self.addProperty('Updates Enabled', True)
         self.addProperty('Topic name', topicName)
+        self.addProperty('Number of Point Clouds', 10,
+                         attributes=om.PropertyAttributes(decimals=0, minimum=1, maximum=100, singleStep=1, hidden=False))
 
 
     def _onPropertyChanged(self, propertySet, propertyName):
@@ -717,32 +733,44 @@ class PointCloudSource(vis.PolyDataItem):
             topicName = self.getProperty(propertyName)
             self.reader.Stop()
             self.reader.Start(topicName)
+        elif propertyName == 'Number of Point Clouds':
+            numberOfPointCloud = self.getProperty(propertyName)
+            self.reader.SetNumberOfPointClouds(numberOfPointCloud)
 
     def getPointCloud(self):
         polyData = vtk.vtkPolyData()
         self.reader.GetPointCloud(polyData)
-        if (polyData.GetNumberOfPoints() == 0):
+        if polyData.GetNumberOfPoints() == 0:
             return None
         else:
             return polyData
 
     def showPointCloud(self):
         polyData = self.getPointCloud()
-        if (polyData is None):
+        if polyData is None:
             return
+
+        bodyHeight = self.robotStateJointController.q[2]
+        self.setRangeMap('z', [bodyHeight-0.5, bodyHeight+0.5])
 
         if self.callbackFunc:
             self.callbackFunc()
         #update view
         self.setPolyData(polyData)
 
+        if self.firstData:
+            self.firstData = False
+            zIndex = self.properties.getPropertyAttribute('Color By', 'enumNames').index('z')
+            self.properties.setProperty('Color By', zIndex)
+
 
 
 class DepthImagePointCloudSource(vis.PolyDataItem):
 
-    def __init__(self, name, imagesChannel, cameraName, imageManager):
+    def __init__(self, name, imagesChannel, cameraName, imageManager, robotStateJointController):
         vis.PolyDataItem.__init__(self, name, vtk.vtkPolyData(), view=None)
 
+        self.robotStateJointController = robotStateJointController
         self.addProperty('Channel', imagesChannel)
         self.addProperty('Camera name', cameraName)
 
@@ -778,6 +806,7 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
         decimation = int(self.properties.getPropertyEnumValue('Decimation'))
         removeSize = int(self.properties.getProperty('Remove Size'))
         rangeThreshold = float(self.properties.getProperty('Max Range'))
+        self.firstData = True
         self.reader.SetDecimate(int(decimation))
         self.reader.SetRemoveSize(removeSize)
         self.reader.SetRangeThreshold(rangeThreshold)
@@ -845,24 +874,31 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
         #rangeThreshold = float(self.properties.getProperty('Max Range'))
         #polyData = getDisparityPointCloud(decimation, imagesChannel=self.getProperty('Channel'), cameraName=self.getProperty('Camera name'),
         #                                  removeOutliers=False, removeSize=removeSize, rangeThreshold = rangeThreshold)
-        polyData = vtk.vtkPolyData()
-        self.reader.GetPointCloud(polyData)
+        polyData = self.getPointCloud()
+        if polyData is None:
+            return
 
         # currently disabled
         #bodyToLocal = vtk.vtkTransform()
         #self.imageManager.queue.getTransform('body', 'local', utime, bodyToLocal)
         #bodyHeight = bodyToLocal.GetPosition()[2]
 
-        bodyHeight = 0
+        bodyHeight = self.robotStateJointController.q[2]
         self.setRangeMap('z',[bodyHeight-0.5, bodyHeight+0.5])
-        self._updateColorBy()
 
         self.setPolyData(polyData)
+
+        if self.firstData:
+            self.firstData = False
+            zIndex = self.properties.getPropertyAttribute('Color By', 'enumNames').index('z')
+            self.properties.setProperty('Color By', zIndex)
+
         self.lastDataReceivedTime = time.time()
         self.lastUtime = utime
 
 
-def init(view):
+
+def init(view, robotStateJointController):
     global _multisenseItem
     global multisenseDriver
 
@@ -901,22 +937,24 @@ def init(view):
     rosInit.addToView(view)
     #om.addToObjectModel(rosInit, sensorsFolder)
 
-    gridMapSource = RosGridMap(callbackFunc=view.render)
+    gridMapSource = RosGridMap(robotStateJointController, callbackFunc=view.render)
     gridMapSource.addToView(view)
     om.addToObjectModel(gridMapSource, sensorsFolder)
 
-    pointCloudSource = PointCloudSource(callbackFunc=view.render)
+    pointCloudSource = PointCloudSource(robotStateJointController, callbackFunc=view.render)
     pointCloudSource.addToView(view)
     om.addToObjectModel(pointCloudSource, sensorsFolder)
 
     depthCameras = drcargs.getDirectorConfig()['depthCameras']
     depthCamerasShortName = drcargs.getDirectorConfig()['depthCamerasShortName']
 
-    headCameraPointCloudSource = DepthImagePointCloudSource(depthCamerasShortName[0], depthCameras[0], str(depthCameras[0] + '_LEFT'), None)
+    headCameraPointCloudSource = DepthImagePointCloudSource(depthCamerasShortName[0], depthCameras[0], str(depthCameras[0] + '_LEFT'), None,
+                                 robotStateJointController)
     headCameraPointCloudSource.addToView(view)
     om.addToObjectModel(headCameraPointCloudSource, parentObj=om.findObjectByName('sensors'))
 
-    groundCameraPointCloudSource = DepthImagePointCloudSource(depthCamerasShortName[1], depthCameras[1], str(depthCameras[1] + '_LEFT'), None)
+    groundCameraPointCloudSource = DepthImagePointCloudSource(depthCamerasShortName[1], depthCameras[1], str(depthCameras[1] + '_LEFT'), None,
+                                                              robotStateJointController)
     groundCameraPointCloudSource.addToView(view)
     om.addToObjectModel(groundCameraPointCloudSource, parentObj=om.findObjectByName('sensors'))
 
@@ -925,7 +963,6 @@ def init(view):
 
     #def createPointerTracker():
     #    return trackers.PointerTracker(robotStateModel, mainDisparityPointCloud)
-
 
     spindleDebug = SpindleAxisDebug(multisenseDriver)
     spindleDebug.addToView(view)

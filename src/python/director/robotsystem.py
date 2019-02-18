@@ -87,8 +87,9 @@ class RobotSystemFactory(object):
         from director import perception
         from director import robotstate
 
-        #multisenseDriver, mapServerSource = perception.init(robotSystem.view)
-        multisenseDriver, rosInit, pointCloudSource, gridMapSource, headCameraPointCloudSource, groundCameraPointCloudSource = perception.init(robotSystem.view)
+
+        multisenseDriver, rosInit, pointCloudSource, gridMapSource, headCameraPointCloudSource, groundCameraPointCloudSource = perception.init(robotSystem.view,  robotSystem.robotStateJointController)
+
 
         spindleJoint = 'hokuyo_joint'
 

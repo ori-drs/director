@@ -15,6 +15,7 @@
 #include <vtkTriangle.h>
 #include <vtkRosPointCloudConversions.h>
 #include <vtkObjectFactory.h>
+#include <vtkAppendPolyData.h>
 
 #include "transformPolyDataUtils.h"
 
@@ -26,11 +27,11 @@ vtkRosPointCloudSubscriber::vtkRosPointCloudSubscriber()
     std::cout << "WARNING: vtkRosGridMapSubscriber: ROS not Initialized\n";
   }
   tfListener_ = boost::make_shared<tf::TransformListener>();
-  dataset_ = vtkSmartPointer<vtkPolyData>::New();
   frame_id_ = "no_frame";
   fixed_frame_ = "map"; // or "odom"
   sec_ = 0;
   nsec_ = 0;
+  number_of_point_clouds_ = 10;
 }
 
 vtkRosPointCloudSubscriber::~vtkRosPointCloudSubscriber() {
@@ -75,22 +76,45 @@ void vtkRosPointCloudSubscriber::PointCloudCallback(const sensor_msgs::PointClou
   }
 
   std::lock_guard<std::mutex> lock(mutex_);
-  vtkSmartPointer<vtkPolyData> polyData = ConvertPointCloud2ToVtk(input_);
-  transformPolyDataUtils::transformPolyData(polyData, dataset_, sensorToLocalTransform);
+  vtkSmartPointer<vtkPolyData> poly_data = ConvertPointCloud2ToVtk(input_);
+  vtkSmartPointer<vtkPolyData> transformed_poly_data = vtkSmartPointer<vtkPolyData>::New();
+  transformPolyDataUtils::transformPolyData(poly_data, transformed_poly_data, sensorToLocalTransform);
+  addPointCloud(transformed_poly_data);
 }
 
 
 
 void vtkRosPointCloudSubscriber::GetPointCloud(vtkPolyData* polyData)
 {
-  if (!polyData || !dataset_)
+  if (!polyData || !dataset_.size())
   {
     return;
   }
 
   //we can't copy dataset_ if it's being modified in PointCloudCallback
   std::lock_guard<std::mutex> lock(mutex_);
-  polyData->DeepCopy(dataset_);
+  vtkSmartPointer<vtkAppendPolyData> append_poly_data = vtkSmartPointer<vtkAppendPolyData>::New();
+  for(auto &data : dataset_)
+  {
+    append_poly_data->AddInputData(data);
+  }
+  append_poly_data->Update();
+  polyData->DeepCopy(append_poly_data->GetOutput());
+}
+
+void vtkRosPointCloudSubscriber::addPointCloud(const vtkSmartPointer<vtkPolyData>& poly_data)
+{
+  dataset_.push_back(poly_data);
+
+  while(dataset_.size() > number_of_point_clouds_)
+  {
+    dataset_.pop_front();
+  }
+}
+
+void vtkRosPointCloudSubscriber::SetNumberOfPointClouds(int number_of_point_clouds)
+{
+  number_of_point_clouds_ = number_of_point_clouds;
 }
 
 void vtkRosPointCloudSubscriber::PrintSelf(ostream& os, vtkIndent indent)

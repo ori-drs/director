@@ -45,9 +45,13 @@ public:
     return nsec_;
   }
 
+
   void SetFixedFrame(const std::string& fixed_frame_in){
     fixed_frame_ = fixed_frame_in;
   }
+
+  void SetNumberOfPointClouds(int number_of_point_clouds);
+
 
 protected:
 
@@ -60,11 +64,14 @@ private:
 
   void PointCloudCallback(const sensor_msgs::PointCloud2Ptr& message);
 
-  vtkSmartPointer<vtkPolyData> dataset_;
+  void addPointCloud(const vtkSmartPointer<vtkPolyData>& poly_data);
+
+  std::deque<vtkSmartPointer<vtkPolyData> > dataset_;
   std::string frame_id_;
   std::string fixed_frame_;
   long sec_;
   long nsec_;
+  int number_of_point_clouds_;
   sensor_msgs::PointCloud2Ptr input_;
 
   boost::shared_ptr<ros::Subscriber> subscriber_;

@@ -185,12 +185,12 @@ vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMesh()
     if (vertices[j].size() > 2) {
       for (size_t m = 1; m < vertices[j].size() - 1; m++) {
         points->SetPoint(count_point, vertices[j][m-1](0), vertices[j][m-1](1), vertices[j][m-1](2));
-        points->SetPoint(count_point+1, vertices[j][m](0), vertices[j][m](1), vertices[j][m](2));
-        points->SetPoint(count_point+2, vertices[j][m+1](0), vertices[j][m+1](1), vertices[j][m+1](2));
+        points->SetPoint(count_point + 1, vertices[j][m](0), vertices[j][m](1), vertices[j][m](2));
+        points->SetPoint(count_point + 2, vertices[j][m+1](0), vertices[j][m+1](1), vertices[j][m+1](2));
 
-        count_point += 3;
         //colors
-        if( hasColorLayer && ptrColor != 0) {
+        if( hasColorLayer && ptrColor != 0)
+        {
           getInterpolatedColor(inputMap_, colorLayer_, indexes[j][m-1],
               minIntensity, maxIntensity, color);
           //colors[i]->InsertNextTupleValue(color);
@@ -209,6 +209,7 @@ vtkSmartPointer<vtkPolyData> vtkRosGridMapSubscriber::ConvertMesh()
           *(ptrColor + 8) = color[2];
           ptrColor += 9;
         }
+        count_point += 3;
 
       }
     }
