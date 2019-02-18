@@ -716,7 +716,7 @@ class PointCloudSource(vis.PolyDataItem):
         self.timer.start()
         self.callbackFunc = callbackFunc
         self.reader = vtkRos.vtkRosPointCloudSubscriber()
-        self.reader = vtkRos.SetNumberOfPointClouds(10)
+        self.reader.SetNumberOfPointClouds(10)
         topicName = '/velodyne/point_cloud_filtered'
         self.reader.Start(topicName)
         self.addProperty('Updates Enabled', True)
