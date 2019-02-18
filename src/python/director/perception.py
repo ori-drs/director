@@ -751,29 +751,35 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
         self.addProperty('Target FPS', 5.0, attributes=om.PropertyAttributes(decimals=1, minimum=0.1, maximum=30.0, singleStep=0.1))
         self.addProperty('Max Range', 5.0,  attributes=om.PropertyAttributes(decimals=2, minimum=0., maximum=30.0, singleStep=0.25))
 
-        isSimulation = drcargs.getDirectorConfig()['simulation']
-        if isSimulation == 'True':
-            isSimulation = True
-        else:
-            isSimulation = False
+        cameraMode = drcargs.getDirectorConfig()['cameraMode']
 
         self.reader = drc.vtkRosDepthImageSubscriber()
-        if (isSimulation):
-            #print "cameras in sim"
+        if (cameraMode == "simulation"):
+            print "configure cameras for sim"
             if cameraName == 'REALSENSE_FORWARD_CAMERA_LEFT':
                 self.reader.Start('/realsense_d435_forward/rgb/image_raw', 'raw', '/realsense_d435_forward/rgb/camera_info',
                                   '/realsense_d435_forward/depth/image_raw', 'raw', '/realsense_d435_forward/depth/camera_info')
             else:
                 self.reader.Start('/realsense_d435/rgb/image_raw', 'raw', '/realsense_d435/rgb/camera_info',
                                   '/realsense_d435/depth/image_raw', 'raw', '/realsense_d435/depth/camera_info')
-        else:
-            #print "cameras not in sim, real operation"
+        elif (cameraMode == "wifi"):
+            print "configure cameras for real data. wifi"
+            if cameraName == 'REALSENSE_FORWARD_CAMERA_LEFT':
+                self.reader.Start('/wifi/realsense_d435_forward/color/image_raw', 'compressed', '/wifi/realsense_d435_forward/color/camera_info',
+                                  '/wifi/realsense_d435_forward/aligned_depth_to_color/image_raw', 'compressedDepth', '/wifi/realsense_d435_forward/aligned_depth_to_color/camera_info')
+            else:
+                self.reader.Start('/wifi/realsense_d435/color/image_raw', 'compressed', '/wifi/realsense_d435/color/camera_info',
+                              '/wifi/realsense_d435/aligned_depth_to_color/image_raw', 'compressedDepth', '/wifi/realsense_d435/aligned_depth_to_color/camera_info')
+        elif (cameraMode == "wired"):
+            print "configure cameras for real data. wired"
             if cameraName == 'REALSENSE_FORWARD_CAMERA_LEFT':
                 self.reader.Start('/realsense_d435_forward/color/image_raw', 'compressed', '/realsense_d435_forward/color/camera_info',
                                   '/realsense_d435_forward/aligned_depth_to_color/image_raw', 'compressedDepth', '/realsense_d435_forward/aligned_depth_to_color/camera_info')
             else:
                 self.reader.Start('/realsense_d435/color/image_raw', 'compressed', '/realsense_d435/color/camera_info',
-                              '/realsense_d435/aligned_depth_to_color/image_raw', 'compressedDepth', '/realsense_d435/aligned_depth_to_color/camera_info')
+                                  '/realsense_d435/aligned_depth_to_color/image_raw', 'compressedDepth', '/realsense_d435/aligned_depth_to_color/camera_info')
+        else:
+            print "camera mode not understood"
 
         decimation = int(self.properties.getPropertyEnumValue('Decimation'))
         removeSize = int(self.properties.getProperty('Remove Size'))
