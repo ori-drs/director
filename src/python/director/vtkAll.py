@@ -1,4 +1,5 @@
 from vtk import *
+from vtkRosPython import *
 from vtkDRCFiltersPython import *
 
 try:

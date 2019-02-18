@@ -5,13 +5,13 @@ Listens to the Elevation Map and writes the first one to file (as a point cloud)
 
 from director import vtkAll as vtk
 from director import ioUtils
-from director import vtkDRCFiltersPython as drc
+import vtkRosPython as vtkRos
 from director.shallowCopy import shallowCopy
 
-vtkRos= drc.vtkRosInit()
+vtkRos= vtkRos.vtkRosInit()
 vtkRos.Start()
 
-reader= drc.vtkRosGridMapSubscriber()
+reader= vtkRos.vtkRosGridMapSubscriber()
 reader.Start()
 print reader
 

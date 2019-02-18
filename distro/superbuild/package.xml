@@ -25,5 +25,6 @@
     <depend>python_qt</depend>
     <depend>multi_gait_executor_msgs</depend>
     <depend>quadruped_msgs</depend>
+    <depend>vtk_ros</depend>
 </package>
 

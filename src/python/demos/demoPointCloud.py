@@ -7,13 +7,13 @@ from director import segmentation
 from director.consoleapp import ConsoleApp
 from director import drcargs
 from director import vtkAll as vtk
-from director import vtkDRCFiltersPython as drc
+import vtkRosPython as vtkRos
 
 from director import applogic
 from director import visualization as vis
 from director.timercallback import TimerCallback
 
-reader= drc.vtkRosPointCloudSubscriber()
+reader= vtkRos.vtkRosPointCloudSubscriber()
 reader.Start("/velodyne/point_cloud_filtered")
 print reader
 

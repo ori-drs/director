@@ -13,6 +13,7 @@ from director.timercallback import TimerCallback
 from director.utime import getUtime
 from director.simpletimer import MovingAverageComputer
 import vtkDRCFiltersPython as drc
+import vtkRosPython as vtkRos
 from director.debugVis import DebugData
 import director.visualization as vis
 from director import vtkNumpy as vnp
@@ -645,7 +646,7 @@ class RosGridMap(vis.PolyDataItem):
         self.timer.callback = self.showMap
         self.timer.start()
         self.callbackFunc = callbackFunc
-        self.reader = drc.vtkRosGridMapSubscriber()
+        self.reader = vtkRos.vtkRosGridMapSubscriber()
         self.reader.Start()
 
 
@@ -678,7 +679,8 @@ class RosGridMap(vis.PolyDataItem):
 
         if self.firstData:
             self.firstData = False
-            zIndex = self.properties.getPropertyAttribute('Color By', 'enumNames').index('z')
+            colorList = self.properties.getPropertyAttribute('Color By', 'enumNames')
+            zIndex = colorList.index('z') if 'z' in colorList else 0
             self.properties.setProperty('Color By', zIndex)
 
 
@@ -696,7 +698,7 @@ class RosInit(vis.PolyDataItem):
     def __init__(self, callbackFunc=None):
         vis.PolyDataItem.__init__(self, 'RosInit', vtk.vtkPolyData(), view=None)
         self.callbackFunc = callbackFunc
-        self.reader = drc.vtkRosInit()
+        self.reader = vtkRos.vtkRosInit()
         for this_arg in sys.argv:
             self.reader.AddArg(this_arg)
         # This actually calls roscpp
@@ -713,7 +715,7 @@ class PointCloudSource(vis.PolyDataItem):
         self.timer.callback = self.showPointCloud
         self.timer.start()
         self.callbackFunc = callbackFunc
-        self.reader = drc.vtkRosPointCloudSubscriber()
+        self.reader = vtkRos.vtkRosPointCloudSubscriber()
         topicName = '/velodyne/point_cloud_filtered'
         self.reader.Start(topicName)
         self.addProperty('Updates Enabled', True)
@@ -760,7 +762,8 @@ class PointCloudSource(vis.PolyDataItem):
 
         if self.firstData:
             self.firstData = False
-            zIndex = self.properties.getPropertyAttribute('Color By', 'enumNames').index('z')
+            colorList = self.properties.getPropertyAttribute('Color By', 'enumNames')
+            zIndex = colorList.index('z') if 'z' in colorList else 0
             self.properties.setProperty('Color By', zIndex)
 
 
@@ -896,7 +899,8 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
 
         if self.firstData:
             self.firstData = False
-            zIndex = self.properties.getPropertyAttribute('Color By', 'enumNames').index('z')
+            colorList = self.properties.getPropertyAttribute('Color By', 'enumNames')
+            zIndex = colorList.index('z') if 'z' in colorList else 0
             self.properties.setProperty('Color By', zIndex)
 
         self.lastDataReceivedTime = time.time()

@@ -21,7 +21,6 @@ from director.fieldcontainer import FieldContainer
 from director.segmentationroutines import *
 from director import cameraview
 from director import drcargs
-import vtkDRCFiltersPython as drc
 
 from thirdparty import qhull_2d
 from thirdparty import min_bounding_rect
