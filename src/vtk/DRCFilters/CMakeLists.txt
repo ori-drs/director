@@ -118,19 +118,6 @@ if (USE_DRC)
 
 endif()
 
-if (USE_DRC_MAPS)
-  #find_package(Maps REQUIRED)
-  #find_package(MapsLcm REQUIRED)
-  find_package(PCL REQUIRED)
-
-  list(APPEND sources
-    vtkRosGridMapSubscriber.cpp vtkRosPointCloudSubscriber.cpp vtkRosDepthImageSubscriber.cpp
-    vtkRosInit.cpp depthImageUtils.cpp transformPolyDataUtils.cpp)
-
-  include_directories(${PCL_INCLUDE_DIRS})
-  #include_directories(${MAPS_INCLUDE_DIRS})
-  list(APPEND deps ${PCL_LIBRARIES})#${MAPS_LIBRARIES}  ${MAPSLCM_LIBRARIES})
-endif()
 
 if (USE_DRC_PLANE_SEG)
   find_package(PlaneSeg REQUIRED)

@@ -7,12 +7,12 @@ project(director)
 # is used elsewhere
 find_package(catkin  REQUIRED COMPONENTS bot_core_lcmtypes drc_lcmtypes
     multisense_utils image_utils bot_frames
-    vs_lcmtypes multi_gait_executor_msgs quadruped_msgs)
+    vs_lcmtypes multi_gait_executor_msgs quadruped_msgs vtk_ros)
 
 catkin_package(
 CATKIN_DEPENDS bot_core_lcmtypes vs_lcmtypes bot_core bot_param bot_frames maps_lcmtypes drc_lcmtypes multisense_utils
 multisense_image_utils image_utils pcl_ros pcl_plugin forward_kinematics ctk_python_console  qt_property_browser python_qt
-multi_gait_executor_msgs quadruped_msgs)
+multi_gait_executor_msgs quadruped_msgs vtk_ros)
 
 
 # set a default build type if none was specified
