@@ -44,8 +44,6 @@ public:
 
   void GetImage(vtkImageData* image);
 
-  void GetTransform(const std::string& from_frame, const std::string& to_frame, vtkTransform* transform);
-
   void ComputeTextureCoords(const std::string& camera_name, vtkPolyData* poly_data) const;
 
   void GetBodyToCameraTransform(vtkTransform* transform) const;

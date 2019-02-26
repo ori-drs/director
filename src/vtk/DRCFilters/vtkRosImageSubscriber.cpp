@@ -93,28 +93,6 @@ void vtkRosImageSubscriber::GetImage(vtkImageData* image)
   image->DeepCopy(dataset_);
 }
 
-void vtkRosImageSubscriber::GetTransform(const std::string& from_frame, const std::string& to_frame, vtkTransform* transform)
-{
-
-}
-/*
-std::string vtkRosImageSubscriber::GetFrameNames() const
-{
-
-  std::vector<std::string> ids;
-  tf_listener_->getFrameStrings(ids);
-  std::string list;
-  for(auto i = 0; i < ids.size(); ++i)
-  {
-    list += ids[i];
-    if(i < ids.size() - 1)
-    {
-      list += ",";
-    }
-  }
-  return list;
-}*/
-
 void vtkRosImageSubscriber::ComputeTextureCoords(const std::string& camera_name, vtkPolyData* poly_data) const
 {
   std::lock_guard<std::mutex> lock(mutex_);
@@ -187,6 +165,7 @@ void vtkRosImageSubscriber::GetBodyToCameraTransform(vtkTransform* transform) co
   {
     return;
   }
+
   std::lock_guard<std::mutex> lock(mutex_);
   transform->DeepCopy(body_to_camera_transform_);
 }

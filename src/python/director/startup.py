@@ -657,9 +657,6 @@ if useDataFiles:
     for filename in drcargs.args().data_files:
         actionhandlers.onOpenFile(filename)
 
-if useCameraFrustumVisualizer and cameraview.CameraFrustumVisualizer.isCompatibleWithConfig():
-    depthCameras = drcargs.getDirectorConfig()['depthCameras']
-    cameraFrustumVisualizer = cameraview.CameraFrustumVisualizer(robotStateModel, cameraview.imageManager, str(depthCameras[0] + '_LEFT') )
 
 class ImageOverlayManager(object):
 
@@ -800,29 +797,6 @@ def sendMatlabSigint():
 
 
 #app.addToolbarMacro('Ctrl+C MATLAB', sendMatlabSigint)
-
-class AffordanceTextureUpdater(object):
-
-    def __init__(self, affordanceManager):
-        self.affordanceManager = affordanceManager
-        self.timer = TimerCallback(targetFps=10)
-        self.timer.callback = self.updateTextures
-        self.timer.start()
-
-    def updateTexture(self, obj):
-        if obj.getProperty('Camera Texture Enabled'):
-            cameraview.applyCameraTexture(obj, cameraview.imageManager)
-        else:
-            cameraview.disableCameraTexture(obj)
-        obj._renderAllViews()
-
-    def updateTextures(self):
-
-        for aff in affordanceManager.getAffordances():
-            self.updateTexture(aff)
-
-
-affordanceTextureUpdater = AffordanceTextureUpdater(affordanceManager)
 
 
 def drawCenterOfMass(model):
