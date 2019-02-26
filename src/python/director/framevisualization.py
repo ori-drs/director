@@ -133,9 +133,6 @@ class BotFrameUpdater(FrameUpdater):
         cameraview.imageManager.queue.getTransform(frameName, 'local', t)
         return t
 
-    def getFramesNames(self):
-        return cameraview.imageManager.queue.getBotFrameNames()
-
 
 class LinkFrameUpdater(FrameUpdater):
 

@@ -10,6 +10,7 @@ from director import vtkNumpy
 from director import objectmodel as om
 import director.vtkAll as vtk
 from director.debugVis import DebugData
+import vtkDRCFiltersPython as drc
 
 import PythonQt
 from PythonQt import QtCore, QtGui
@@ -113,8 +114,15 @@ class ImageManager(object):
         self.textures = {}
         self.imageRotations180 = {}
 
-        self.queue = PythonQt.dd.ddBotImageQueue(lcmUtils.getGlobalLCMThread())
-        self.queue.init(lcmUtils.getGlobalLCMThread(), drcargs.args().config_file)
+        self.queue = {}
+
+    #def getFrameNames(self):
+    #    if len(self.queue) == 0:
+    #        return
+    #    else:
+    #        key = next(iter(self.queue))
+    #        frames = self.queue[key].GetFrameNames()
+    #        return frames.split(',')
 
 
     def addImage(self, name):
@@ -133,6 +141,26 @@ class ImageManager(object):
         self.textures[name] = tex
         self.imageRotations180[name] = False
 
+        cameraMode = drcargs.getDirectorConfig()['cameraMode']
+        self.queue[name] = drc.vtkRosImageSubscriber()
+        if cameraMode == "simulation":        
+            if name == 'REALSENSE_FORWARD_CAMERA_LEFT':
+                self.queue[name].Start('/realsense_d435_forward/rgb/image_raw', 'raw', '/realsense_d435_forward/rgb/camera_info')
+            else:
+                self.queue[name].Start('/realsense_d435/rgb/image_raw', 'raw', '/realsense_d435/rgb/camera_info')
+        elif cameraMode == "wifi":
+            if name == 'REALSENSE_FORWARD_CAMERA_LEFT':
+                self.queue[name].Start('/wifi/realsense_d435_forward/color/image_raw', 'compressed', '/wifi/realsense_d435_forward/color/camera_info')
+            else:
+                self.queue[name].Start('/wifi/realsense_d435/color/image_raw', 'compressed', '/wifi/realsense_d435/color/camera_info')
+        elif cameraMode == "wired":
+            if name == 'REALSENSE_FORWARD_CAMERA_LEFT':
+                self.queue[name].Start('/realsense_d435_forward/color/image_raw', 'compressed', '/realsense_d435_forward/color/camera_info')
+            else:
+                self.queue[name].Start('/realsense_d435/color/image_raw', 'compressed', '/realsense_d435/color/camera_info')
+        else:
+            print "camera mode not understood"
+
     def writeImage(self, imageName, outFile):
         writer = vtk.vtkPNGWriter()
         writer.SetInput(self.images[imageName])
@@ -140,10 +168,10 @@ class ImageManager(object):
         writer.Write()
 
     def updateImage(self, imageName):
-        imageUtime = self.queue.getCurrentImageTime(imageName)
+        imageUtime = self.queue[imageName].GetCurrentImageTime()
         if imageUtime != self.imageUtimes[imageName]:
             image = self.images[imageName]
-            self.imageUtimes[imageName] = self.queue.getImage(imageName, image)
+            self.imageUtimes[imageName] = self.queue[imageName].GetImage(image)
 
             if self.imageRotations180[imageName]:
                 self.images[imageName].ShallowCopy(filterUtils.rotateImage180(image))
@@ -177,7 +205,7 @@ def disableCameraTexture(obj):
     obj.actor.GetProperty().SetColor(obj.getProperty('Color'))
 
 def applyCameraTexture(obj, imageManager, imageName='MULTISENSE_CAMERA_LEFT'):
-
+    return # currently disabled
     imageUtime = imageManager.getUtime(imageName)
     if not imageUtime:
         return
@@ -188,7 +216,7 @@ def applyCameraTexture(obj, imageManager, imageName='MULTISENSE_CAMERA_LEFT'):
     pd = filterUtils.transformPolyData(obj.polyData, obj.actor.GetUserTransform())
     pd = filterUtils.transformPolyData(pd, cameraToLocal.GetLinearInverse())
 
-    imageManager.queue.computeTextureCoords(imageName, pd)
+    imageManager.queue[imageName].ComputeTextureCoords(imageName, pd)
 
     tcoordsArrayName = 'tcoords_%s' % imageName
     tcoords = pd.GetPointData().GetArray(tcoordsArrayName)
@@ -311,7 +339,7 @@ class CameraView(object):
         sphereRadii = 20
 
         geometry = makeSphere(sphereRadii, sphereResolution)
-        self.imageManager.queue.computeTextureCoords(imageName, geometry)
+        self.imageManager.queue[imageName].ComputeTextureCoords(imageName, geometry)
 
         tcoordsArrayName = 'tcoords_%s' % imageName
         vtkNumpy.addNumpyToVtk(geometry, vtkNumpy.getNumpyFromVtk(geometry, tcoordsArrayName)[:,0].copy(), 'tcoords_U')
@@ -339,7 +367,7 @@ class CameraView(object):
                 continue
 
             transform = vtk.vtkTransform()
-            self.imageManager.queue.getBodyToCameraTransform(imageName, transform)
+            self.imageManager.queue[imageName].GetBodyToCameraTransform(transform)
             sphereObj.actor.SetUserTransform(transform.GetLinearInverse())
 
     def updateImages(self):
@@ -673,7 +701,8 @@ class CameraFrustumVisualizer(object):
         '''
         headToLocal = self.robotModel.getLinkFrame( self.robotModel.getHeadLink() )
         cameraToHead = vtk.vtkTransform()
-        self.imageManager.queue.getTransform(self.cameraName, self.robotModel.getHeadLink(), 0, cameraToHead)
+        #disabled
+        #self.imageManager.queue.GetTransform(self.cameraName, self.robotModel.getHeadLink(), 0, cameraToHead)
         return transformUtils.concatenateTransforms([cameraToHead, headToLocal])
 
     def getCameraFrustumRays(self):
@@ -714,6 +743,8 @@ class CameraFrustumVisualizer(object):
         return d.getPolyData()
 
     def update(self, robotModel):
+        #disabled
+        return
         name = 'camera frustum %s' % self.robotModel.getProperty('Name')
         obj = om.findObjectByName(name)
 
@@ -729,18 +760,6 @@ views = {}
 
 def addCameraView(channel, viewName=None, cameraName=None, imageType=-1, addToView=True):
     cameraName = cameraName or channel
-    if cameraName not in imageManager.queue.getCameraNames():
-        import warnings
-        warnings.warn(cameraName + " is not defined in the bot config")
-
-    imageManager.queue.addCameraStream(channel, cameraName, imageType)
-
-    depthCameras = drcargs.getDirectorConfig()['depthCameras']
-    if (cameraName.find('_LEFT') > -1): # found
-        imagesChannel = cameraName.replace('_LEFT','')
-        import bot_core as lcmbotcore
-        imageManager.queue.addCameraStream(
-            imagesChannel, cameraName, lcmbotcore.images_t.LEFT)
 
     if (addToView):
         #print "will add to view", cameraName
@@ -758,7 +777,7 @@ def getStereoPointCloud(decimation=4, imagesChannel='MULTISENSE_CAMERA', cameraN
 
     q = imageManager.queue
 
-    utime = q.getCurrentImageTime(cameraName)
+    utime = q.GetCurrentImageTime(cameraName)
     if utime == 0:
         return None
 
@@ -794,7 +813,7 @@ class KintinuousMapping(object):
     def getStereoPointCloudElapsed(self,decimation=4, imagesChannel='MULTISENSE_CAMERA', cameraName='MULTISENSE_CAMERA_LEFT', removeSize=0):
         q = imageManager.queue
 
-        utime = q.getCurrentImageTime(cameraName)
+        utime = q.GetCurrentImageTime(cameraName)
         if utime == 0:
             return None, None, None
 
@@ -831,7 +850,7 @@ class KintinuousMapping(object):
 
         q = imageManager.queue
         cameraToLocalNow = vtk.vtkTransform()
-        utime = q.getCurrentImageTime('CAMERA_TSDF')
+        utime = q.GetCurrentImageTime('CAMERA_TSDF')
 
         q.getTransform('MULTISENSE_CAMERA_LEFT','local', utime,cameraToLocalNow)
         cameraToLocalFusedNow = vtk.vtkTransform()
@@ -895,7 +914,7 @@ def init(view=None,addToView=True):
 
     if "modelName" in drcargs.getDirectorConfig():
         _modelName = drcargs.getDirectorConfig()['modelName']
-        cameraNames = imageManager.queue.getCameraNames()
+        cameraNames = imageManager.images
 
         monoCameras = drcargs.getDirectorConfig()['monoCameras']
         monoCamerasShortName = drcargs.getDirectorConfig()['monoCamerasShortName']
@@ -906,6 +925,4 @@ def init(view=None,addToView=True):
             if monoCamera in cameraNames:
                 addCameraView(monoCamera, monoCameraShortName, addToView=addToView)
 
-        #import bot_core as lcmbotcore
-        #addCameraView('MULTISENSE_CAMERA', 'Head camera right', 'MULTISENSE_CAMERA_RIGHT', lcmbotcore.images_t.RIGHT)
-        #addCameraView('MULTISENSE_CAMERA', 'Head camera depth', 'MULTISENSE_CAMERA_DISPARITY', lcmbotcore.images_t.DISPARITY_ZIPPED)
+

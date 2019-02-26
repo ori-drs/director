@@ -102,14 +102,20 @@ if (USE_DRC)
   find_package(LCM REQUIRED)
   include_directories(${LCM_INCLUDE_DIRS})
 
+  find_package(PCL REQUIRED)
+  include_directories(${PCL_INCLUDE_DIRS})  
+  include_directories(${vtk_ros_INCLUDE_DIRS})  
+
   list(APPEND sources
     vtkMultisenseSource.cxx
     vtkLidarSource.cxx
+    vtkRosImageSubscriber.cpp
   )
 
   list(APPEND deps
   #  ${LIBBOT_LIBRARIES}
     ${LCM_LIBRARIES}
+    ${vtk_ros_LIBRARIES}
   )
 
   #list(APPEND pkg_deps
@@ -166,7 +172,6 @@ if (USE_COLLECTIONS)
   #  lcmtypes_visualization
   #)
 endif()
-
 
 set(library_name vtkDRCFilters)
 add_library(${library_name} ${sources} ${EXTRA_SRCS})
