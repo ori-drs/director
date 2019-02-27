@@ -276,7 +276,7 @@ class ImageBasedAffordanceFit(object):
         self.imageView = imageView or cameraview.CameraImageView(cameraview.imageManager, self.getImageChannel(), 'image view')
         self.imagePicker = ImagePointPicker(self.imageView, numberOfPoints=numberOfPoints)
         self.imagePicker.connectDoubleClickEvent(self.onImageViewDoubleClick)
-        self.imagePicker.annotationFunc = self.onImageAnnotation
+        #self.imagePicker.annotationFunc = self.onImageAnnotation #disabled
         self.imagePicker.start()
 
         self.pointCloudSource = 'lidar'

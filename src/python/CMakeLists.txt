@@ -22,7 +22,6 @@ set(python_files
   director/cameracontrol.py
   director/cameracontrolpanel.py
   director/cameraview.py
-  director/colorize.py
   director/componentgraph.py
   director/consoleapp.py
   director/continuouswalkingdemo.py

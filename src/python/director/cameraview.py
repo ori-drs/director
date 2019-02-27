@@ -10,6 +10,7 @@ from director import vtkNumpy
 from director import objectmodel as om
 import director.vtkAll as vtk
 from director.debugVis import DebugData
+import vtkRosPython as vtkRos
 
 import PythonQt
 from PythonQt import QtCore, QtGui
@@ -52,9 +53,6 @@ def makeSphere(radius, resolution):
     return shallowCopy(s.GetOutput())
 
 
-def colorizePoints(polyData, cameraName='MULTISENSE_CAMERA_LEFT'):
-    imageManager.queue.colorizePoints(cameraName, polyData)
-
 
 
 def sendFOVRequest(channel, imagePoints):
@@ -88,13 +86,6 @@ def sendFOVRequest(channel, imagePoints):
     lcmUtils.publish(requestChannel, message)
 
 
-def testColorize():
-    radius = 10
-    resolution = 400
-    s = makeSphere(radius, resolution)
-    cameraView.queue.colorizePoints(s)
-    showPolyData(p, 'sphere', colorByName='rgb')
-
 
 def rayDebug(position, ray):
     d = DebugData()
@@ -113,8 +104,15 @@ class ImageManager(object):
         self.textures = {}
         self.imageRotations180 = {}
 
-        self.queue = PythonQt.dd.ddBotImageQueue(lcmUtils.getGlobalLCMThread())
-        self.queue.init(lcmUtils.getGlobalLCMThread(), drcargs.args().config_file)
+        self.queue = {}
+
+    #def getFrameNames(self):
+    #    if len(self.queue) == 0:
+    #        return
+    #    else:
+    #        key = next(iter(self.queue))
+    #        frames = self.queue[key].GetFrameNames()
+    #        return frames.split(',')
 
 
     def addImage(self, name):
@@ -133,6 +131,26 @@ class ImageManager(object):
         self.textures[name] = tex
         self.imageRotations180[name] = False
 
+        cameraMode = drcargs.getDirectorConfig()['cameraMode']
+        self.queue[name] = vtkRos.vtkRosImageSubscriber()
+        if cameraMode == "simulation":        
+            if name == 'REALSENSE_FORWARD_CAMERA_LEFT':
+                self.queue[name].Start('/realsense_d435_forward/rgb/image_raw', 'raw', '/realsense_d435_forward/rgb/camera_info')
+            else:
+                self.queue[name].Start('/realsense_d435/rgb/image_raw', 'raw', '/realsense_d435/rgb/camera_info')
+        elif cameraMode == "wifi":
+            if name == 'REALSENSE_FORWARD_CAMERA_LEFT':
+                self.queue[name].Start('/wifi/realsense_d435_forward/color/image_raw', 'compressed', '/wifi/realsense_d435_forward/color/camera_info')
+            else:
+                self.queue[name].Start('/wifi/realsense_d435/color/image_raw', 'compressed', '/wifi/realsense_d435/color/camera_info')
+        elif cameraMode == "wired":
+            if name == 'REALSENSE_FORWARD_CAMERA_LEFT':
+                self.queue[name].Start('/realsense_d435_forward/color/image_raw', 'compressed', '/realsense_d435_forward/color/camera_info')
+            else:
+                self.queue[name].Start('/realsense_d435/color/image_raw', 'compressed', '/realsense_d435/color/camera_info')
+        else:
+            print "camera mode not understood"
+
     def writeImage(self, imageName, outFile):
         writer = vtk.vtkPNGWriter()
         writer.SetInput(self.images[imageName])
@@ -140,10 +158,10 @@ class ImageManager(object):
         writer.Write()
 
     def updateImage(self, imageName):
-        imageUtime = self.queue.getCurrentImageTime(imageName)
+        imageUtime = self.queue[imageName].GetCurrentImageTime()
         if imageUtime != self.imageUtimes[imageName]:
             image = self.images[imageName]
-            self.imageUtimes[imageName] = self.queue.getImage(imageName, image)
+            self.imageUtimes[imageName] = self.queue[imageName].GetImage(image)
 
             if self.imageRotations180[imageName]:
                 self.images[imageName].ShallowCopy(filterUtils.rotateImage180(image))
@@ -176,32 +194,6 @@ def disableCameraTexture(obj):
     obj.actor.GetProperty().LightingOn()
     obj.actor.GetProperty().SetColor(obj.getProperty('Color'))
 
-def applyCameraTexture(obj, imageManager, imageName='MULTISENSE_CAMERA_LEFT'):
-
-    imageUtime = imageManager.getUtime(imageName)
-    if not imageUtime:
-        return
-
-    cameraToLocal = vtk.vtkTransform()
-    imageManager.queue.getTransform(imageName, 'local', imageUtime, cameraToLocal)
-
-    pd = filterUtils.transformPolyData(obj.polyData, obj.actor.GetUserTransform())
-    pd = filterUtils.transformPolyData(pd, cameraToLocal.GetLinearInverse())
-
-    imageManager.queue.computeTextureCoords(imageName, pd)
-
-    tcoordsArrayName = 'tcoords_%s' % imageName
-    tcoords = pd.GetPointData().GetArray(tcoordsArrayName)
-    assert tcoords
-
-    obj.polyData.GetPointData().SetTCoords(None)
-    obj.polyData.GetPointData().SetTCoords(tcoords)
-    obj._updateColorByProperty()
-
-    obj.actor.SetTexture(imageManager.getTexture(imageName))
-    obj.actor.GetProperty().LightingOff()
-    obj.actor.GetProperty().SetColor([1,1,1])
-
 
 class CameraView(object):
 
@@ -226,36 +218,9 @@ class CameraView(object):
         self.timerCallback.callback = self.updateView
         self.timerCallback.start()
 
-    def onViewDoubleClicked(self, displayPoint):
-
-        obj, pickedPoint = vis.findPickedObject(displayPoint, self.view)
-
-        if pickedPoint is None or not obj:
-            return
-
-        imageName = obj.getProperty('Name')
-        imageUtime = self.imageManager.getUtime(imageName)
-
-        cameraToLocal = vtk.vtkTransform()
-        self.imageManager.queue.getTransform(imageName, 'local', imageUtime, cameraToLocal)
-
-        utorsoToLocal = vtk.vtkTransform()
-        self.imageManager.queue.getTransform('utorso', 'local', imageUtime, utorsoToLocal)
-
-        p = range(3)
-        utorsoToLocal.TransformPoint(pickedPoint, p)
-
-        ray = np.array(p) - np.array(cameraToLocal.GetPosition())
-        ray /= np.linalg.norm(ray)
-
-        if self.rayCallback:
-            self.rayCallback(np.array(cameraToLocal.GetPosition()), ray)
 
     def filterEvent(self, obj, event):
-        if event.type() == QtCore.QEvent.MouseButtonDblClick:
-            self.eventFilter.setEventHandlerResult(True)
-            self.onViewDoubleClicked(vis.mapMousePosition(obj, event))
-        elif event.type() == QtCore.QEvent.KeyPress:
+        if event.type() == QtCore.QEvent.KeyPress:
             if str(event.text()).lower() == 'p':
                 self.eventFilter.setEventHandlerResult(True)
             elif str(event.text()).lower() == 'r':
@@ -311,7 +276,7 @@ class CameraView(object):
         sphereRadii = 20
 
         geometry = makeSphere(sphereRadii, sphereResolution)
-        self.imageManager.queue.computeTextureCoords(imageName, geometry)
+        self.imageManager.queue[imageName].ComputeTextureCoords(imageName, geometry)
 
         tcoordsArrayName = 'tcoords_%s' % imageName
         vtkNumpy.addNumpyToVtk(geometry, vtkNumpy.getNumpyFromVtk(geometry, tcoordsArrayName)[:,0].copy(), 'tcoords_U')
@@ -339,7 +304,7 @@ class CameraView(object):
                 continue
 
             transform = vtk.vtkTransform()
-            self.imageManager.queue.getBodyToCameraTransform(imageName, transform)
+            self.imageManager.queue[imageName].GetBodyToCameraTransform(transform)
             sphereObj.actor.SetUserTransform(transform.GetLinearInverse())
 
     def updateImages(self):
@@ -495,6 +460,8 @@ class CameraImageView(object):
 
 
     def getWorldPositionAndRay(self, imagePixel, imageUtime=None):
+        #disabled
+        return np.array([0, 0, 0]), np.array([0, 0, 0])
         '''
         Given an XY image pixel, computes an equivalent ray in the world
         coordinate system using the camera to local transform at the given
@@ -652,76 +619,6 @@ class CameraImageView(object):
                 self.imageInitialized = True
 
 
-class CameraFrustumVisualizer(object):
-
-    def __init__(self, robotModel, imageManager, cameraName):
-        self.robotModel = robotModel
-        self.cameraName = cameraName
-        self.imageManager = imageManager
-        self.rayLength = 2.0
-        robotModel.connectModelChanged(self.update)
-        self.update(robotModel)
-
-    @staticmethod
-    def isCompatibleWithConfig():
-        return 'headLink' in drcargs.getDirectorConfig()
-
-    def getCameraToLocal(self):
-        '''
-        Returns cameraToLocal.  cameraToHead is pulled from bot frames while
-        headToLocal is pulled from the robot model forward kinematics.
-        '''
-        headToLocal = self.robotModel.getLinkFrame( self.robotModel.getHeadLink() )
-        cameraToHead = vtk.vtkTransform()
-        self.imageManager.queue.getTransform(self.cameraName, self.robotModel.getHeadLink(), 0, cameraToHead)
-        return transformUtils.concatenateTransforms([cameraToHead, headToLocal])
-
-    def getCameraFrustumRays(self):
-        '''
-        Returns (cameraPositions, rays)
-        cameraPosition is in world frame.
-        rays are four unit length vectors in world frame that point in the
-        direction of the camera frustum edges
-        '''
-
-        cameraToLocal = self.getCameraToLocal()
-        cameraPos = np.array(cameraToLocal.GetPosition())
-
-        camRays = []
-        rays = np.array(self.imageManager.queue.getCameraFrustumBounds(self.cameraName))
-        for i in xrange(4):
-            ray = np.array(cameraToLocal.TransformVector(rays[i*3:i*3+3]))
-            ray /= np.linalg.norm(ray)
-            camRays.append(ray)
-
-        return cameraPos, camRays
-
-    def getCameraFrustumGeometry(self, rayLength):
-
-        camPos, rays = self.getCameraFrustumRays()
-
-        rays = [rayLength*r for r in rays]
-
-        d = DebugData()
-        d.addLine(camPos, camPos+rays[0])
-        d.addLine(camPos, camPos+rays[1])
-        d.addLine(camPos, camPos+rays[2])
-        d.addLine(camPos, camPos+rays[3])
-        d.addLine(camPos+rays[0], camPos+rays[1])
-        d.addLine(camPos+rays[1], camPos+rays[2])
-        d.addLine(camPos+rays[2], camPos+rays[3])
-        d.addLine(camPos+rays[3], camPos+rays[0])
-        return d.getPolyData()
-
-    def update(self, robotModel):
-        name = 'camera frustum %s' % self.robotModel.getProperty('Name')
-        obj = om.findObjectByName(name)
-
-        if obj and not obj.getProperty('Visible'):
-            return
-
-        vis.updatePolyData(self.getCameraFrustumGeometry(self.rayLength), name, parent=self.robotModel, visible=False)
-
 
 
 views = {}
@@ -729,18 +626,6 @@ views = {}
 
 def addCameraView(channel, viewName=None, cameraName=None, imageType=-1, addToView=True):
     cameraName = cameraName or channel
-    if cameraName not in imageManager.queue.getCameraNames():
-        import warnings
-        warnings.warn(cameraName + " is not defined in the bot config")
-
-    imageManager.queue.addCameraStream(channel, cameraName, imageType)
-
-    depthCameras = drcargs.getDirectorConfig()['depthCameras']
-    if (cameraName.find('_LEFT') > -1): # found
-        imagesChannel = cameraName.replace('_LEFT','')
-        import bot_core as lcmbotcore
-        imageManager.queue.addCameraStream(
-            imagesChannel, cameraName, lcmbotcore.images_t.LEFT)
 
     if (addToView):
         #print "will add to view", cameraName
@@ -754,136 +639,7 @@ def addCameraView(channel, viewName=None, cameraName=None, imageType=-1, addToVi
         return None
 
 
-def getStereoPointCloud(decimation=4, imagesChannel='MULTISENSE_CAMERA', cameraName='MULTISENSE_CAMERA_LEFT', removeSize=0, rangeThreshold = -1):
 
-    q = imageManager.queue
-
-    utime = q.getCurrentImageTime(cameraName)
-    if utime == 0:
-        return None
-
-    p = vtk.vtkPolyData()
-    cameraToLocal = vtk.vtkTransform()
-
-    q.getPointCloudFromImages(imagesChannel, p, decimation, removeSize, rangeThreshold)
-
-    if (p.GetNumberOfPoints() > 0):
-      q.getTransform(cameraName, 'local', utime, cameraToLocal)
-      p = filterUtils.transformPolyData(p, cameraToLocal)
-
-    # add x,y,z labels
-    points = vtkNumpy.getNumpyFromVtk(p, 'Points')
-    vtkNumpy.addNumpyToVtk(p, points[:,0].copy(), 'x')
-    vtkNumpy.addNumpyToVtk(p, points[:,1].copy(), 'y')
-    vtkNumpy.addNumpyToVtk(p, points[:,2].copy(), 'z')
-
-    return p
-
-
-class KintinuousMapping(object):
-
-    def __init__(self):
-
-        self.lastUtime = 0
-        self.lastCameraToLocal = vtk.vtkTransform()
-
-        self.cameraToLocalFusedTransforms = []
-        self.cameraToLocalTransforms = []
-        self.pointClouds = []
-
-    def getStereoPointCloudElapsed(self,decimation=4, imagesChannel='MULTISENSE_CAMERA', cameraName='MULTISENSE_CAMERA_LEFT', removeSize=0):
-        q = imageManager.queue
-
-        utime = q.getCurrentImageTime(cameraName)
-        if utime == 0:
-            return None, None, None
-
-        if (utime - self.lastUtime < 1E6):
-            return None, None, None
-
-        p = vtk.vtkPolyData()
-        cameraToLocalFused = vtk.vtkTransform()
-        q.getTransform('MULTISENSE_CAMERA_LEFT_ALT', 'local', utime, cameraToLocalFused)
-        cameraToLocal = vtk.vtkTransform()
-        q.getTransform('MULTISENSE_CAMERA_LEFT', 'local', utime, cameraToLocal)
-        prevToCurrentCameraTransform = vtk.vtkTransform()
-        prevToCurrentCameraTransform.PostMultiply()
-        prevToCurrentCameraTransform.Concatenate( cameraToLocal )
-        prevToCurrentCameraTransform.Concatenate( self.lastCameraToLocal.GetLinearInverse() )
-        distTravelled = np.linalg.norm( prevToCurrentCameraTransform.GetPosition() )
-
-        # 0.2 heavy overlap
-        # 0.5 quite a bit of overlap
-        # 1.0 is good
-        if (distTravelled  < 0.2 ):
-            return None, None, None
-
-        q.getPointCloudFromImages(imagesChannel, p, decimation, removeSize, removeThreshold = -1)
-
-        self.lastCameraToLocal = cameraToLocal
-        self.lastUtime = utime
-        return p, cameraToLocalFused, cameraToLocal
-
-
-    def showFusedMaps(self):
-        om.removeFromObjectModel(om.findObjectByName('stereo'))
-        om.getOrCreateContainer('stereo')
-
-        q = imageManager.queue
-        cameraToLocalNow = vtk.vtkTransform()
-        utime = q.getCurrentImageTime('CAMERA_TSDF')
-
-        q.getTransform('MULTISENSE_CAMERA_LEFT','local', utime,cameraToLocalNow)
-        cameraToLocalFusedNow = vtk.vtkTransform()
-        q.getTransform('MULTISENSE_CAMERA_LEFT_ALT','local', utime,cameraToLocalFusedNow)
-
-        for i in range(len(self.pointClouds)):
-
-            fusedNowToLocalNow = vtk.vtkTransform()
-            fusedNowToLocalNow.PreMultiply()
-            fusedNowToLocalNow.Concatenate( cameraToLocalNow)
-            fusedNowToLocalNow.Concatenate( cameraToLocalFusedNow.GetLinearInverse() )
-
-
-            fusedTransform = vtk.vtkTransform()
-            fusedTransform.PreMultiply()
-            fusedTransform.Concatenate( fusedNowToLocalNow)
-            fusedTransform.Concatenate( self.cameraToLocalFusedTransforms[i] )
-
-            pd = filterUtils.transformPolyData(self.pointClouds[i], fusedTransform)
-            vis.showFrame(fusedTransform, ('cloud frame ' + str(i)), visible=True, scale=0.2, parent='stereo')
-            vis.showPolyData(pd, ('stereo ' + str(i)), parent='stereo', colorByName='rgb_colors')
-
-            # Without compensation for fusion motion estimation:
-            #pd = filterUtils.transformPolyData(self.pointClouds[i], self.cameraToLocalTransforms[i])
-            #vis.showFrame(self.cameraToLocalTransforms[i], ('cloud frame ' + str(i)), visible=True, scale=0.2)
-            #vis.showPolyData(pd, ('stereo ' + str(i)) )
-
-            # in fusion coordinate frame:
-            #pd = filterUtils.transformPolyData(self.pointClouds[i], self.cameraToLocalFusedTransforms[i])
-            #vis.showFrame(self.cameraToLocalFusedTransforms[i], ('cloud frame ' + str(i)), visible=True, scale=0.2)
-            #vis.showPolyData(pd, ('stereo ' + str(i)) )
-
-    def cameraFusedCallback(self):
-        #pd = cameraview.getStereoPointCloud(2,"CAMERA_FUSED")
-        pd, cameraToLocalFused, cameraToLocal = self.getStereoPointCloudElapsed(2,"CAMERA_FUSED")
-        #vis.updateFrame(cameraToLocal, 'cloud frame now', visible=True, scale=0.2)
-
-        if (pd is None):
-            return
-
-        self.pointClouds.append(pd)
-        self.cameraToLocalFusedTransforms.append( cameraToLocalFused )
-        self.cameraToLocalTransforms.append( cameraToLocal )
-
-        #pdCopy = vtk.vtkPolyData()
-        #pdCopy.DeepCopy(pd)
-        #cameraToLocalCopy = transformUtils.copyFrame(cameraToLocalFused)
-        #pdCopy = filterUtils.transformPolyData(pdCopy, cameraToLocalCopy)
-        #vis.showFrame(cameraToLocalCopy, 'cloud frame', visible=True, scale=0.2)
-        #vis.showPolyData(pdCopy,'stereo')
-
-        self.showFusedMaps()
 
 
 def init(view=None,addToView=True):
@@ -895,7 +651,7 @@ def init(view=None,addToView=True):
 
     if "modelName" in drcargs.getDirectorConfig():
         _modelName = drcargs.getDirectorConfig()['modelName']
-        cameraNames = imageManager.queue.getCameraNames()
+        cameraNames = imageManager.images
 
         monoCameras = drcargs.getDirectorConfig()['monoCameras']
         monoCamerasShortName = drcargs.getDirectorConfig()['monoCamerasShortName']
@@ -906,6 +662,4 @@ def init(view=None,addToView=True):
             if monoCamera in cameraNames:
                 addCameraView(monoCamera, monoCameraShortName, addToView=addToView)
 
-        #import bot_core as lcmbotcore
-        #addCameraView('MULTISENSE_CAMERA', 'Head camera right', 'MULTISENSE_CAMERA_RIGHT', lcmbotcore.images_t.RIGHT)
-        #addCameraView('MULTISENSE_CAMERA', 'Head camera depth', 'MULTISENSE_CAMERA_DISPARITY', lcmbotcore.images_t.DISPARITY_ZIPPED)
+
