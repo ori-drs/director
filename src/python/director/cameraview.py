@@ -10,7 +10,7 @@ from director import vtkNumpy
 from director import objectmodel as om
 import director.vtkAll as vtk
 from director.debugVis import DebugData
-import vtkDRCFiltersPython as drc
+import vtkRosPython as vtkRos
 
 import PythonQt
 from PythonQt import QtCore, QtGui
@@ -132,7 +132,7 @@ class ImageManager(object):
         self.imageRotations180[name] = False
 
         cameraMode = drcargs.getDirectorConfig()['cameraMode']
-        self.queue[name] = drc.vtkRosImageSubscriber()
+        self.queue[name] = vtkRos.vtkRosImageSubscriber()
         if cameraMode == "simulation":        
             if name == 'REALSENSE_FORWARD_CAMERA_LEFT':
                 self.queue[name].Start('/realsense_d435_forward/rgb/image_raw', 'raw', '/realsense_d435_forward/rgb/camera_info')

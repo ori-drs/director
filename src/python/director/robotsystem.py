@@ -88,7 +88,7 @@ class RobotSystemFactory(object):
         from director import robotstate
 
 
-        multisenseDriver, rosInit, pointCloudSource, gridMapSource, headCameraPointCloudSource, groundCameraPointCloudSource = perception.init(robotSystem.view,  robotSystem.robotStateJointController)
+        rosInit, pointCloudSource, gridMapSource, headCameraPointCloudSource, groundCameraPointCloudSource = perception.init(robotSystem.view,  robotSystem.robotStateJointController)
 
 
         spindleJoint = 'hokuyo_joint'
@@ -105,8 +105,7 @@ class RobotSystemFactory(object):
         #spindleMonitor = perception.SpindleMonitor(getSpindleAngleFunction)
         #robotSystem.robotStateModel.connectModelChanged(spindleMonitor.onRobotStateChanged)
 
-        return FieldContainer(multisenseDriver=multisenseDriver,
-                                rosInit=rosInit,
+        return FieldContainer(  rosInit=rosInit,
                                 pointCloudSource=pointCloudSource,
                                 gridMapSource=gridMapSource,
                                 headCameraPointCloudSource=headCameraPointCloudSource,

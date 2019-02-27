@@ -89,41 +89,6 @@ list(APPEND deps
 
 include_directories(${catkin_INCLUDE_DIRS})
 
-if (USE_DRC)
-
-  # requires libbot, lcm, eigen, drc lcmtypes
-
-  #find_package(LibBot REQUIRED MODULE)
-  #include_directories(${LIBBOT_INCLUDE_DIRS})
-
-  find_package(Eigen REQUIRED)
-  include_directories(${EIGEN_INCLUDE_DIRS})
-
-  find_package(LCM REQUIRED)
-  include_directories(${LCM_INCLUDE_DIRS})
-
-  find_package(PCL REQUIRED)
-  include_directories(${PCL_INCLUDE_DIRS})  
-  include_directories(${vtk_ros_INCLUDE_DIRS})  
-
-  list(APPEND sources
-    vtkMultisenseSource.cxx
-    vtkLidarSource.cxx
-    vtkRosImageSubscriber.cpp
-  )
-
-  list(APPEND deps
-  #  ${LIBBOT_LIBRARIES}
-    ${LCM_LIBRARIES}
-    ${vtk_ros_LIBRARIES}
-  )
-
-  #list(APPEND pkg_deps
-  #   drc-lcmtypes lcmtypes_maps
-  #)
-
-endif()
-
 
 if (USE_DRC_PLANE_SEG)
   find_package(PlaneSeg REQUIRED)

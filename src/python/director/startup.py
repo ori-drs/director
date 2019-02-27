@@ -45,7 +45,6 @@ from director import skybox
 from director import perception
 from director import segmentation
 from director import cameraview
-from director import colorize
 from director import drakevisualizer
 from director.fieldcontainer import FieldContainer
 from director import robotstate
@@ -223,13 +222,10 @@ else:
 if usePerception:
     segmentationpanel.init()
     cameraview.init()
-    colorize.init()
 
     cameraview.cameraView.rayCallback = segmentation.extractPointsAlongClickRay
 
-    if useMultisense:
-        multisensepanel.init(perception.multisenseDriver)
-    else:
+    if not useMultisense:
         app.removeToolbarMacro('ActionMultisensePanel')
 
 
