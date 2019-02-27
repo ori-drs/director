@@ -28,7 +28,7 @@ from director import planplayback
 
 from director import segmentationpanel
 
-import drc as lcmdrc
+#import drc as lcmdrc
 import copy
 
 from PythonQt import QtCore, QtGui

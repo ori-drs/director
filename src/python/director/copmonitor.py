@@ -7,7 +7,7 @@ from director.utime import getUtime
 from director import visualization as vis
 from director.debugVis import DebugData
 from scipy.spatial import Delaunay
-import drc as lcmdrc
+#import drc as lcmdrc
 import numpy as np
 import math
 from time import time

@@ -5,15 +5,21 @@ project(director)
 
 # I don't know if this function is used. Another call to find catkin
 # is used elsewhere
-find_package(catkin  REQUIRED COMPONENTS bot_core_lcmtypes drc_lcmtypes
-    multisense_utils image_utils bot_frames
-    vs_lcmtypes multi_gait_executor_msgs quadruped_msgs vtk_ros)
+find_package(catkin  REQUIRED COMPONENTS 
+     multi_gait_executor_msgs quadruped_msgs vtk_ros)
+# bot_core_lcmtypes drc_lcmtypes
+# vs_lcmtypes multisense_utils image_utils bot_frames
+
 
 catkin_package(
-CATKIN_DEPENDS bot_core_lcmtypes vs_lcmtypes bot_core bot_param bot_frames maps_lcmtypes drc_lcmtypes multisense_utils
-multisense_image_utils image_utils pcl_ros pcl_plugin forward_kinematics ctk_python_console  qt_property_browser python_qt
+CATKIN_DEPENDS  
+ pcl_ros pcl_plugin forward_kinematics ctk_python_console  qt_property_browser python_qt
 multi_gait_executor_msgs quadruped_msgs vtk_ros)
 
+# bot_core_lcmtypes vs_lcmtypes bot_core bot_param 
+#bot_frames maps_lcmtypes drc_lcmtypes
+# multisense_image_utils image_utils
+# multisense_utils
 
 # set a default build type if none was specified
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)

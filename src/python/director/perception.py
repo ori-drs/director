@@ -19,10 +19,10 @@ import director.visualization as vis
 from director import vtkNumpy as vnp
 import numpy as np
 
-import drc as lcmdrc
-import bot_core as lcmbotcore
+#import drc as lcmdrc
+#import bot_core as lcmbotcore
 
-import lcmUtils
+#import lcmUtils
 
 
 class MultisenseItem(om.ObjectModelItem):
@@ -711,28 +711,28 @@ def init(view, robotStateJointController):
     sensorsFolder = om.getOrCreateContainer('sensors')
 
 
-    queue = PythonQt.dd.ddPointCloudLCM(lcmUtils.getGlobalLCMThread())
-    queue.init(lcmUtils.getGlobalLCMThread(), drcargs.args().config_file)
-    lidarNames = queue.getLidarNames()
-    for lidar in lidarNames:
-        if queue.displayLidar(lidar):
-            
-            l = LidarSource(view, queue.getLidarChannelName(lidar), queue.getLidarCoordinateFrame(lidar), queue.getLidarFriendlyName(lidar), queue.getLidarIntensity(lidar))
-            l.start()
-            lidarDriver = l
-            _lidarItem = LidarItem(l)
-            om.addToObjectModel(_lidarItem, sensorsFolder)
+    #queue = PythonQt.dd.ddPointCloudLCM(lcmUtils.getGlobalLCMThread())
+    #queue.init(lcmUtils.getGlobalLCMThread(), drcargs.args().config_file)
+    #lidarNames = queue.getLidarNames()
+    #for lidar in lidarNames:
+    #    if queue.displayLidar(lidar):
+    #        
+    #        l = LidarSource(view, queue.getLidarChannelName(lidar), queue.getLidarCoordinateFrame(lidar), queue.getLidarFriendlyName(lidar), queue.getLidarIntensity(lidar))
+    #        l.start()
+    #        lidarDriver = l
+    #        _lidarItem = LidarItem(l)
+    #        om.addToObjectModel(_lidarItem, sensorsFolder)
 
 
-    useMapServer = hasattr(drc, 'vtkMapServerSource')
-    if useMapServer:
-        mapServerSource = MapServerSource(view, callbackFunc=view.render)
-        mapsServerContainer = om.ObjectModelItem('Map Server', icon=om.Icons.Robot)
-        mapsServerContainer.source = mapServerSource
-        om.addToObjectModel(mapsServerContainer, parentObj=sensorsFolder)
-        mapServerSource.start()
-    else:
-        mapServerSource = None
+    #useMapServer = hasattr(drc, 'vtkMapServerSource')
+    #if useMapServer:
+    #    mapServerSource = MapServerSource(view, callbackFunc=view.render)
+    #    mapsServerContainer = om.ObjectModelItem('Map Server', icon=om.Icons.Robot)
+    #    mapsServerContainer.source = mapServerSource
+    #    om.addToObjectModel(mapsServerContainer, parentObj=sensorsFolder)
+    #    mapServerSource.start()
+    #else:
+    #    mapServerSource = None
 
     rosInit = RosInit(callbackFunc=view.render)
     rosInit.addToView(view)

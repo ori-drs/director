@@ -12,7 +12,7 @@ from director import lcmUtils
 from director import objectmodel as om
 from director import visualization as vis
 
-import drc as lcmdrc
+#import drc as lcmdrc
 
 
 class Gamepad(object):
