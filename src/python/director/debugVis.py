@@ -108,6 +108,16 @@ class DebugData(object):
             self.addCone(origin=end, normal=normal, radius=headRadius,
                          height=headLength, color=color, fill=True)
 
+    def addArrowWithFrame(self, start, scale, **kwargs):
+        # Draw an arrow at 'start' (a Transform), of length 'scale'
+        # TODO: use "kwargs"?
+        origin = np.array([0.0, 0.0, 0.0])
+        start.TransformPoint(origin, origin)
+        axis = [scale, 0.0, 0.0]
+        start.TransformVector(axis, axis)
+        origin, origin+axis
+        self.addArrow(origin, origin+axis, **kwargs)
+
     def addSphere(self, center, radius=0.05, color=[1,1,1], resolution=24):
 
         sphere = vtk.vtkSphereSource()
