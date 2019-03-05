@@ -166,13 +166,14 @@ class FootstepsPanel(object):
             onFramePropertyModified(frameObj, 'Edit')
 
         frameObj.connectFrameModified(self.onWalkingGoalModified)
-        self.onWalkingGoalModified(frameObj)
+        #depreciated
+        #self.onWalkingGoalModified(frameObj)
 
     def onWalkingGoalModified(self, frame):
 
         om.removeFromObjectModel(om.findObjectByName('footstep widget'))
-        request = self.driver.constructFootstepPlanRequest(self.jointController.q, frame.transform)
-        self.driver.sendFootstepPlanRequest(request)
+        #request = self.driver.constructFootstepPlanRequest(self.jointController.q, frame.transform)
+        #self.driver.sendFootstepPlanRequest(request)
 
     def onExecute(self):
         self.driver.commitFootstepPlan(self.driver.lastFootstepPlan)
