@@ -13,7 +13,7 @@ from director import sitstandplanner
 from director.timercallback import TimerCallback
 from director import visualization as vis
 from director import planplayback
-from director import lcmUtils
+#from director import lcmUtils
 from director.uuidutil import newUUID
 
 import os
@@ -21,7 +21,7 @@ import functools
 import numpy as np
 import scipy.io
 import vtkAll as vtk
-import bot_core as lcmbotcore
+#import bot_core as lcmbotcore
 from director.tasks.taskuserpanel import TaskUserPanel
 import director.tasks.robottasks as rt
 from director import filterUtils

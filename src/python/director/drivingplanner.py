@@ -1,8 +1,8 @@
 import director
 import math
 import textwrap
-import drc as lcmdrc
-import bot_core as lcmbotcore
+#import drc as lcmdrc
+#import bot_core as lcmbotcore
 import vtkAll as vtk
 from director import transformUtils
 from director import visualization as vis
@@ -21,7 +21,7 @@ import director.tasks.robottasks as rt
 from director.ikparameters import IkParameters
 from director.timercallback import TimerCallback
 
-import bot_core
+#import bot_core
 import os
 import functools
 import numpy as np

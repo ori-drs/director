@@ -19,8 +19,8 @@ import math
 import numpy as np
 from numpy import linalg as npla
 import types
-import lcm
-from bot_core.pose_t import pose_t
+#import lcm
+#from bot_core.pose_t import pose_t
 
 from director import propertyset
 from director.debugVis import DebugData

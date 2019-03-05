@@ -21,7 +21,7 @@ import functools
 import numpy as np
 import scipy.io
 import vtkAll as vtk
-import bot_core as lcmbotcore
+#import bot_core as lcmbotcore
 from director.tasks.taskuserpanel import TaskUserPanel
 import director.tasks.robottasks as rt
 from director import filterUtils

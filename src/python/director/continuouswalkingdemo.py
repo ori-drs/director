@@ -6,7 +6,7 @@ import vtkAll as vtk
 import vtkNumpy
 import functools
 
-from director import lcmUtils
+#from director import lcmUtils
 from director import ioUtils
 from director import segmentation
 from director import objectmodel as om
@@ -18,13 +18,13 @@ from director.debugVis import DebugData
 from director import ikplanner
 from director import applogic
 from director.tasks.taskuserpanel import TaskUserPanel
-from director.lcmframe import positionMessageFromFrame
+#from director.lcmframe import positionMessageFromFrame
 
 import director.terrain
 import director.tasks.robottasks as rt
 
-import drc as lcmdrc
-import bot_core
+#import drc as lcmdrc
+#import bot_core
 #import atlas
 #import ihmc
 

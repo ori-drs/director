@@ -24,7 +24,7 @@ from director import drcargs
 from director import ikconstraints
 from director.ikparameters import IkParameters
 
-import bot_core as lcmbotcore
+#import bot_core as lcmbotcore
 import json
 
 import PythonQt

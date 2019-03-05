@@ -15,14 +15,14 @@ from director import visualization as vis
 from director import packagepath
 from director.fieldcontainer import FieldContainer
 
-import bot_core as lcmbot
+#import bot_core as lcmbot
 
 # Currently, viewer lcm message types are in bot_core_lcmtypes and
 # robotlocomotion-lcmtypes, but drake only builds bot_core_lcmtypes.
 # When drake starts using robotlocomotion-lcmtypes, then the following
 # import can be used instead of getting viewer messages from bot_core_lcmtypes.
 #import robotlocomotion as lcmrl
-lcmrl = lcmbot
+#lcmrl = lcmbot
 
 from PythonQt import QtGui
 

@@ -16,7 +16,7 @@ from director import packagepath
 from director import transformUtils
 
 
-import bot_core
+#import bot_core
 import math
 import numpy as np
 import json
@@ -301,10 +301,10 @@ def onModelPublisherString(msg):
         jointController.push()
 
 
-def startModelPublisherListener(modelsToReload):
-    global _modelsToReload
-    _modelsToReload = modelsToReload
-    lcmUtils.addSubscriber('ROBOT_MODEL', bot_core.robot_urdf_t, onModelPublisherString)
+#def startModelPublisherListener(modelsToReload):
+#    global _modelsToReload
+#    _modelsToReload = modelsToReload
+#    lcmUtils.addSubscriber('ROBOT_MODEL', bot_core.robot_urdf_t, onModelPublisherString)
 
 
 

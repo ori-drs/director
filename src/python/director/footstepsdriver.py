@@ -8,7 +8,7 @@ from director import ioUtils
 from director import robotstate
 from director import applogic as app
 from director import vtkAll as vtk
-from director.lcmframe import frameFromPositionMessage, positionMessageFromFrame
+#from director.lcmframe import frameFromPositionMessage, positionMessageFromFrame
 from director.simpletimer import SimpleTimer
 from director.shallowCopy import shallowCopy
 from director import roboturdf
@@ -19,9 +19,9 @@ import os
 import math
 import numpy as np
 from director import drcargs
-import drc as lcmdrc
-from bot_core.pose_t import pose_t
-from bot_core.robot_state_t import robot_state_t
+#import drc as lcmdrc
+#from bot_core.pose_t import pose_t
+#from bot_core.robot_state_t import robot_state_t
 import functools
 import json
 
@@ -146,7 +146,7 @@ DEFAULT_STEP_PARAMS['Stairs'].update({'Drake Min Hold Time': 2.0,
                                       'Max Num Steps': 8,
                                       'Min Num Steps': 8,
                                       'Drake Swing Speed': 0.6,
-                                      'Support Contact Groups': lcmdrc.footstep_params_t.SUPPORT_GROUPS_MIDFOOT_TOE,
+                                      'Support Contact Groups': 0,#lcmdrc.footstep_params_t.SUPPORT_GROUPS_MIDFOOT_TOE,
                                       'Map Mode': 2})
 
 DEFAULT_STEP_PARAMS['Polaris Platform'] = DEFAULT_STEP_PARAMS['Drake Nominal'].copy()
@@ -266,8 +266,8 @@ class FootstepsDriver(object):
         #enable this to used the alt model to render a different state
         #self.altJointController.addLCMUpdater("EST_ROBOT_STATE_ALT")
 
-        self._setupSubscriptions()
-        self._setupProperties()
+        #self._setupSubscriptions()
+        #self._setupProperties()
 
         # mfallon disabled the toolbar
         #self.showToolbarWidget()
@@ -584,7 +584,7 @@ class FootstepsDriver(object):
         d_obj.actor.SetUserTransform(obj.actor.GetUserTransform())
 
     @staticmethod
-    def getContactPts(support_contact_groups = lcmdrc.footstep_params_t.SUPPORT_GROUPS_HEEL_TOE):
+    def getContactPts(support_contact_groups = 0):#lcmdrc.footstep_params_t.SUPPORT_GROUPS_HEEL_TOE):
         '''
         hard coded Location of the Drake contact points relative to foot frame. this should be read from URDF
         '''
@@ -655,23 +655,23 @@ class FootstepsDriver(object):
             contact_pts_right = contact_pts_left.copy()
 
         elif (_modelName == "anymal"):  #anymal fake
-            if support_contact_groups == lcmdrc.footstep_params_t.SUPPORT_GROUPS_HEEL_TOE:
-                contact_pts_left[0,:] = [-0.038,  0.055, -0.09]
-                contact_pts_left[1,:] = [-0.038, -0.055, -0.09]
-                contact_pts_left[2,:] = [0.172,   0.055, -0.09]
-                contact_pts_left[3,:] = [0.172,  -0.055, -0.09]
-            elif support_contact_groups == lcmdrc.footstep_params_t.SUPPORT_GROUPS_MIDFOOT_TOE:
-                contact_pts_left[0,:] = [0.032,  0.055, -0.09]
-                contact_pts_left[1,:] = [0.032, -0.055, -0.09]
-                contact_pts_left[2,:] = [0.172,   0.055, -0.09]
-                contact_pts_left[3,:] = [0.172,  -0.055, -0.09]
-            elif support_contact_groups == lcmdrc.footstep_params_t.SUPPORT_GROUPS_HEEL_MIDFOOT:
-                contact_pts_left[0,:] = [-0.038,  0.055, -0.09]
-                contact_pts_left[1,:] = [-0.038, -0.055, -0.09]
-                contact_pts_left[2,:] = [0.102,   0.055, -0.09]
-                contact_pts_left[3,:] = [0.102,  -0.055, -0.09]
-            else:
-                raise ValueError("Unrecognized support contact group: {:d}".format(support_contact_groups))
+            #if support_contact_groups == lcmdrc.footstep_params_t.SUPPORT_GROUPS_HEEL_TOE:
+            contact_pts_left[0,:] = [-0.038,  0.055, -0.09]
+            contact_pts_left[1,:] = [-0.038, -0.055, -0.09]
+            contact_pts_left[2,:] = [0.172,   0.055, -0.09]
+            contact_pts_left[3,:] = [0.172,  -0.055, -0.09]
+            #elif support_contact_groups == lcmdrc.footstep_params_t.SUPPORT_GROUPS_MIDFOOT_TOE:
+            #    contact_pts_left[0,:] = [0.032,  0.055, -0.09]
+            #    contact_pts_left[1,:] = [0.032, -0.055, -0.09]
+            #    contact_pts_left[2,:] = [0.172,   0.055, -0.09]
+            #    contact_pts_left[3,:] = [0.172,  -0.055, -0.09]
+            #elif support_contact_groups == lcmdrc.footstep_params_t.SUPPORT_GROUPS_HEEL_MIDFOOT:
+            #    contact_pts_left[0,:] = [-0.038,  0.055, -0.09]
+            #    contact_pts_left[1,:] = [-0.038, -0.055, -0.09]
+            #    contact_pts_left[2,:] = [0.102,   0.055, -0.09]
+            #    contact_pts_left[3,:] = [0.102,  -0.055, -0.09]
+            #else:
+            #    raise ValueError("Unrecognized support contact group: {:d}".format(support_contact_groups))
 
             contact_pts_right = contact_pts_left.copy()
 

@@ -79,9 +79,9 @@ set(deps
 
 set(pkg_deps)
 
-find_package(catkin  REQUIRED COMPONENTS vs_lcmtypes bot_frames
+find_package(catkin  REQUIRED COMPONENTS 
   grid_map_ros grid_map_msgs multisense_image_utils image_transport)
-
+# vs_lcmtypes bot_frames
 
 list(APPEND deps
   ${catkin_LIBRARIES}
@@ -129,6 +129,8 @@ if(USE_OCTOMAP)
 endif()
 
 if (USE_COLLECTIONS)
+  find_package(catkin  REQUIRED COMPONENTS vs_lcmtypes)
+
 
   list(APPEND sources vtkCollections.cxx)
   list(APPEND deps ${OPENGL_LIBRARIES})

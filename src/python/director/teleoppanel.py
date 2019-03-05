@@ -19,8 +19,8 @@ import functools
 import math
 import numpy as np
 import types
-import lcm
-import bot_core as lcmbotcore
+#import lcm
+#import bot_core as lcmbotcore
 
 def addWidgetsToDict(widgets, d):
 

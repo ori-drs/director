@@ -3,7 +3,7 @@ from __future__ import division
 import numpy as np
 from scipy.spatial import ConvexHull
 
-from director.irisUtils import SafeTerrainRegion
+#from director.irisUtils import SafeTerrainRegion
 from director import transformUtils
 #from irispy.utils import sample_convex_polytope
 #import polyhedron._cdd

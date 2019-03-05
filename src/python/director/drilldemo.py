@@ -37,7 +37,7 @@ from director.tasks.taskuserpanel import ImageBasedAffordanceFit
 import director.tasks.robottasks as rt
 import director.tasks.taskmanagerwidget as tmw
 
-import drc as lcmdrc
+#import drc as lcmdrc
 import copy
 
 from PythonQt import QtCore, QtGui

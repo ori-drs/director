@@ -1,11 +1,11 @@
 import PythonQt
 from PythonQt import QtCore, QtGui, QtUiTools
 import director
-from director import lcmUtils
+#from director import lcmUtils
 from director import applogic as app
 from director.utime import getUtime
 from director.timercallback import TimerCallback
-from director.lcmframe import positionMessageFromFrame
+#from director.lcmframe import positionMessageFromFrame
 
 import numpy as np
 import math
@@ -27,7 +27,7 @@ from director import segmentation
 
 
 # lcmtypes:
-import drc as lcmdrc
+#import drc as lcmdrc
 #from pronto.indexed_measurement_t import indexed_measurement_t
 
 

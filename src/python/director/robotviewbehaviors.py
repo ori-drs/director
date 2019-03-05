@@ -30,7 +30,7 @@ import re
 import random
 import colorsys
 
-import bot_core as lcmbotcore
+#import bot_core as lcmbotcore
 
 # todo: refactor these global variables
 # several functions in this module depend on these global variables

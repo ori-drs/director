@@ -11,12 +11,12 @@ from director import objectmodel as om
 from director.utime import getUtime
 from director import robotstate
 
-try:
-    import robotlocomotion as lcmrl
-    USE_DRC_MESSAGES = False
-except ImportError:
-    import drc as lcmdrc
-    USE_DRC_MESSAGES = True
+#try:
+#    import robotlocomotion as lcmrl
+#    USE_DRC_MESSAGES = False
+#except ImportError:
+#    import drc as lcmdrc
+#    USE_DRC_MESSAGES = True
 
 
 class ManipulationPlanDriver(object):

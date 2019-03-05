@@ -4,7 +4,7 @@
 from __future__ import division
 
 import director
-from director import irisdriver
+#from director import irisdriver
 
 import os
 import sys
@@ -99,8 +99,8 @@ from director import blackoutmonitor
 from director.tasks import robottasks as rt
 from director.tasks import taskmanagerwidget
 from director.tasks.descriptions import loadTaskDescriptions
-import drc as lcmdrc
-import bot_core as lcmbotcore
+#import drc as lcmdrc
+#import bot_core as lcmbotcore
 
 from collections import OrderedDict
 import functools
@@ -269,9 +269,9 @@ if useCollections:
     collectionsManager = lcmcollections.init(view)
     app.MenuActionToggleHelper('Tools', 'Renderer - Collections', collectionsManager.isEnabled, collectionsManager.setEnabled)
 
-if useDrakeVisualizer:
-    drakeVisualizer = drakevisualizer.DrakeVisualizer(view)
-    app.MenuActionToggleHelper('Tools', 'Renderer - Drake', drakeVisualizer.isEnabled, drakeVisualizer.setEnabled)
+#if useDrakeVisualizer:
+#    drakeVisualizer = drakevisualizer.DrakeVisualizer(view)
+#    app.MenuActionToggleHelper('Tools', 'Renderer - Drake', drakeVisualizer.isEnabled, drakeVisualizer.setEnabled)
 
 
 if useNavigationPanel:
@@ -632,21 +632,7 @@ if useFootContactVis:
 
 
 
-if useFallDetectorVis:
-    def onPlanStatus(msg):
-        links = ['pelvis', 'utorso']
-        if msg.plan_type == lcmdrc.plan_status_t.RECOVERING:
-            for link in links:
-                robotHighlighter.highlightLink(link, [1,0.4,0.0])
-        elif msg.plan_type == lcmdrc.plan_status_t.BRACING:
-            for link in links:
-                robotHighlighter.highlightLink(link, [1, 0, 0])
-        else:
-            for link in links:
-                robotHighlighter.dehighlightLink(link)
 
-    fallDetectorSub = lcmUtils.addSubscriber("PLAN_EXECUTION_STATUS", lcmdrc.plan_status_t, onPlanStatus)
-    fallDetectorSub.setSpeedLimit(10)
 
 if useDataFiles:
 

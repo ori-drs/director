@@ -68,7 +68,7 @@ class RobotSystemFactory(object):
             visible=True)
 
         robotStateJointController.setPose('EST_ROBOT_STATE', robotStateJointController.getPose('q_nom'))
-        roboturdf.startModelPublisherListener([(robotStateModel, robotStateJointController)])
+        #roboturdf.startModelPublisherListener([(robotStateModel, robotStateJointController)])
         robotStateJointController.addLCMUpdater('EST_ROBOT_STATE')
 
         return FieldContainer(robotStateModel=robotStateModel,

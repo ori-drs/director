@@ -16,8 +16,8 @@ from director.simpletimer import SimpleTimer
 from director.utime import getUtime
 import time
 
-import drc as lcmdrc
-import bot_core
+#import drc as lcmdrc
+#import bot_core
 #import atlas
 #from pronto.indexed_measurement_t import indexed_measurement_t
 
@@ -458,7 +458,7 @@ def init(outputConsole=None):
     global driver
     driver = AtlasDriver()
 
-    global systemStatus
-    systemStatus = SystemStatusListener(outputConsole)
+    #global systemStatus
+    #systemStatus = SystemStatusListener(outputConsole)
 
     return driver

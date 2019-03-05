@@ -7,7 +7,7 @@ from director import getDRCBaseDir
 from director import lcmUtils
 from director import transformUtils
 from director import visualization as vis
-import bot_core
+#import bot_core
 import numpy as np
 
 import rospy

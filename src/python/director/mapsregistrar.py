@@ -1,7 +1,7 @@
 from director import lcmUtils
 from director import transformUtils
 import PythonQt
-import bot_core as lcmbotcore
+#import bot_core as lcmbotcore
 
 import subprocess
 import select
