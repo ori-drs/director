@@ -1,5 +1,5 @@
 option(USE_PCL "Build with PCL." OFF)
-option(USE_LCM "Build with lcm." ON)
+option(USE_LCM "Build with lcm." OFF)
 option(USE_LCMGL "Build with lcm-gl." OFF)
 option(USE_OCTOMAP "Build with octomap." OFF)
 option(USE_APRILTAGS "Build with apriltags lcm driver." OFF)
