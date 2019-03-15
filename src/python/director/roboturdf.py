@@ -10,7 +10,6 @@ import director.visualization as vis
 import director.vtkAll as vtk
 from director import jointcontrol
 from director import getDRCBaseDir
-from director import lcmUtils
 from director import filterUtils
 from director import packagepath
 from director import transformUtils
@@ -299,12 +298,6 @@ def onModelPublisherString(msg):
         newModel = loadRobotModelFromString(getModelPublisherString())
         obj.setModel(newModel)
         jointController.push()
-
-
-#def startModelPublisherListener(modelsToReload):
-#    global _modelsToReload
-#    _modelsToReload = modelsToReload
-#    lcmUtils.addSubscriber('ROBOT_MODEL', bot_core.robot_urdf_t, onModelPublisherString)
 
 
 

@@ -4,7 +4,6 @@ from director.timercallback import TimerCallback
 from director.simpletimer import SimpleTimer
 from director import robotstate
 from director import getDRCBaseDir
-from director import lcmUtils
 from director import transformUtils
 from director import visualization as vis
 #import bot_core
@@ -145,8 +144,6 @@ class JointController(object):
                         new_arg_strings.append(arg_string)
             return new_arg_strings
 
-        #self.subscriber = lcmUtils.addSubscriber(channelName, bot_core.robot_state_t, onRobotStateMessage)
-        #self.subscriber.setSpeedLimit(60)
 
 
         new_arg_strings = remove_launchfile_generated_args(sys.argv)
@@ -156,9 +153,7 @@ class JointController(object):
         self.fixedFrame = "map"
 
 
-    def removeLCMUpdater(self):
-        lcmUtils.removeSubscriber(self.subscriber)
-        self.subscriber = None
+
 
 
 class JointControlTestRamp(TimerCallback):

@@ -1,5 +1,4 @@
 import director.applogic as app
-from director import lcmUtils
 from director import transformUtils
 from director import visualization as vis
 from director import filterUtils
@@ -51,39 +50,6 @@ def makeSphere(radius, resolution):
     s.SetEndPhi(85)
     s.Update()
     return shallowCopy(s.GetOutput())
-
-
-
-
-def sendFOVRequest(channel, imagePoints):
-
-    import maps as lcmmaps
-
-    channelToImageType = {
-        'MULTISENSE_CAMERA_LEFT' : lcmmaps.data_request_t.CAMERA_IMAGE_HEAD_LEFT,
-        'CAMERACHEST_LEFT' : lcmmaps.data_request_t.CAMERA_IMAGE_LCHEST,
-        'CAMERACHEST_RIGHT' : lcmmaps.data_request_t.CAMERA_IMAGE_RCHEST,
-                         }
-
-    dataRequest = lcmmaps.data_request_t()
-    dataRequest.type = channelToImageType[channel]
-
-    message = lcmmaps.subimage_request_t()
-    message.data_request = dataRequest
-
-    imagePoints = np.array([[pt[0], pt[1]] for pt in imagePoints])
-    minX, maxX = imagePoints[:,0].min(), imagePoints[:,0].max()
-    minY, maxY = imagePoints[:,1].min(), imagePoints[:,1].max()
-
-    message.x = minX
-    message.y = minY
-    message.w = maxX - minX
-    message.h = maxY - minY
-
-    #print message.x, message.y, message.w, message.h
-
-    requestChannel = 'SUBIMAGE_REQUEST'
-    lcmUtils.publish(requestChannel, message)
 
 
 
@@ -501,7 +467,6 @@ class CameraImageView(object):
     def onRubberBandPick(self, obj, event):
         displayPoints = self.interactorStyle.GetStartPosition(), self.interactorStyle.GetEndPosition()
         imagePoints = [vis.pickImage(point, self.view)[1] for point in displayPoints]
-        sendFOVRequest(self.imageName, imagePoints)
 
     def getImage(self):
         return self.imageManager.getImage(self.imageName)

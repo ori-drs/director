@@ -1,4 +1,4 @@
-from director import lcmUtils
+#from director import lcmUtils
 from director import objectmodel as om
 from director import visualization as vis
 from director.utime import getUtime
@@ -343,13 +343,7 @@ class FootstepsDriver(object):
         sub2 = lcmUtils.addSubscriber('BDI_ADJUSTED_FOOTSTEP_PLAN', lcmdrc.footstep_plan_t, self.onBDIAdjustedFootstepPlan)
         sub2.setSpeedLimit(1) # was 5 but was slow rendering
 
-    def changeSubscriptionAlt(self, newAltChannel="POSE_BODY_ALT"):
-        # used to monitor a different pose e.g. POSE_BODY_LOGGED in playback
-        self.altChannel = newAltChannel
-        lcmUtils.removeSubscriber ( self.altSubscribe )
 
-        self.altSubscribe = lcmUtils.addSubscriber( self.altChannel , pose_t, self.onPoseAlt)
-        self.altSubscribe.setSpeedLimit(60)
 
 
     ##############################
