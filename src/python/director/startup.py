@@ -243,6 +243,17 @@ viewBackgroundLightHandler = viewcolors.ViewBackgroundLightHandler(viewOptions, 
 if not useLightColorScheme:
     viewBackgroundLightHandler.action.trigger()
 
+# reset time button and connections
+button = QtGui.QPushButton('')
+button.text = 'Reset time'
+button.connect('clicked()', pointCloudSource.resetTime)
+button.connect('clicked()', gridMapSource.resetTime)
+button.connect('clicked()', headCameraPointCloudSource.resetTime)
+button.connect('clicked()', groundCameraPointCloudSource.resetTime)
+button.connect('clicked()', robotStateJointController.resetTime)
+button.connect('clicked()', cameraview.cameraView.resetTime)
+app.getMainWindow().statusBar().addPermanentWidget(button)
+
 
 if useHands:
     handcontrolpanel.init(lHandDriver, rHandDriver, robotStateModel, robotStateJointController, view)
@@ -500,9 +511,9 @@ if usePlanning:
 #    copMonitor = copmonitor.COPMonitor(robotSystem, view);
 
 
-if useLoggingWidget:
-    w = lcmloggerwidget.LCMLoggerWidget(statusBar=app.getMainWindow().statusBar())
-    app.getMainWindow().statusBar().addPermanentWidget(w.button)
+#if useLoggingWidget:
+#    w = lcmloggerwidget.LCMLoggerWidget(statusBar=app.getMainWindow().statusBar())
+#    app.getMainWindow().statusBar().addPermanentWidget(w.button)
 
 
 
