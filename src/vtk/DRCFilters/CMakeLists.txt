@@ -81,7 +81,6 @@ set(pkg_deps)
 
 find_package(catkin  REQUIRED COMPONENTS 
   grid_map_ros grid_map_msgs multisense_image_utils image_transport)
-# vs_lcmtypes bot_frames
 
 list(APPEND deps
   ${catkin_LIBRARIES}
@@ -103,15 +102,6 @@ if (USE_DRC_PLANE_SEG)
   include_directories(${PLANE_SEG_INCLUDE_DIRS})
   include_directories(${PCL_INCLUDE_DIRS})
   list(APPEND deps ${PLANE_SEG_LIBRARIES} ${PCL_LIBRARIES})
-endif()
-
-if(USE_LCMGL)
-
-  find_package(LibBot REQUIRED MODULE)
-  include_directories(${LIBBOT_INCLUDE_DIRS})
-  list(APPEND sources vtkLCMGLProp.cxx)
-  list(APPEND deps ${LIBBOT_LIBRARIES} ${OPENGL_LIBRARIES})
-
 endif()
 
 if(USE_OCTOMAP)
