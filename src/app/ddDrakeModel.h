@@ -6,16 +6,11 @@
 #include <QVector>
 #include "ddSharedPtr.h"
 #include "ddAppConfigure.h"
-#include "ddDrakeVersion.h"
 #include "DirectorRigidBodyTree.h"
 
 /*class vtkRenderer;
 class vtkTransform;
 class vtkPolyData;*/
-
-#ifdef DRAKE_OH_FORK
-#define RigidBodyTreed RigidBodyTree
-#endif
 
 class DD_APP_EXPORT ddDrakeModel : public QObject
 {
@@ -30,7 +25,7 @@ public:
   bool loadFromXML(const QString& xmlString);
   const QString& filename() const;
 
-  const ddSharedPtr<RigidBodyTreed> getDrakeRBM() const;
+  const ddSharedPtr<RigidBodyTree> getDrakeRBM() const;
   const ddSharedPtr<KinematicsCache<double> > getKinematicsCache() const;
 
   void addToRenderer(vtkRenderer* renderer);

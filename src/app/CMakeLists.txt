@@ -130,50 +130,39 @@ find_package(catkin  REQUIRED COMPONENTS
     kdl_parser forward_kinematics ctk_python_console qt_property_browser python_qt topic_tools tf)
 
 
-#if (USE_DRAKE)
-if (TRUE)
+##################################
+#Compiles the RigidBodyTree model of the robot
+find_package(Eigen REQUIRED)
 
-  find_package(Eigen REQUIRED)
+include_directories(
+  ${EIGEN_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS}
+)
 
-  include_directories(
-    ${EIGEN_INCLUDE_DIRS}
-    ${catkin_INCLUDE_DIRS}
-  )
+set(moc_srcs)
+qt_wrap_cpp(moc_srcs
+  ddDrakeModel.h
+)
 
-  set(moc_srcs)
-  qt_wrap_cpp(moc_srcs
-    ddDrakeModel.h
-  )
+list(APPEND srcs
+  DirectorRigidBodyTree.cpp
+)
 
-  list(APPEND srcs
-    DirectorRigidBodyTree.cpp
-  )
+list(APPEND srcs
+  ${moc_srcs}
+)
 
-  list(APPEND srcs
-    ${moc_srcs}
-  )
+list(APPEND srcs ddDrakeModel.cpp)
 
-  # openhumanoids uses an old drake fork which has a divergent api so we
-  # use a fork of ddDrakeModel.cpp to encapsulate the api incompatibilities
-  if (USE_DRC)
-    set(DRAKE_OH_FORK TRUE)
-    list(APPEND srcs ddDrakeModelOH.cpp)
-  else()
-    set(DRAKE_OH_FORK FALSE)
-    list(APPEND srcs ddDrakeModel.cpp)
-  endif()
+list(APPEND wrap_files
+  wrapped_methods_drake.txt
+)
 
-  configure_file(ddDrakeVersion.h.in ddDrakeVersion.h)
+list(APPEND deps
+  ${catkin_LIBRARIES}
+)
+##################################
 
-  list(APPEND wrap_files
-    wrapped_methods_drake.txt
-  )
-
-  list(APPEND deps
-    ${catkin_LIBRARIES}
-  )
-
-endif()
 
 if (USE_ROS)
 
@@ -207,11 +196,11 @@ set(_install_targets ddApp directorPython drake-visualizer)
 add_executable(drake-visualizer drakeVisualizerApp.cpp)
 target_link_libraries(drake-visualizer ddApp)
 
-if(USE_DRC)
-  add_executable(director main.cpp)
-  target_link_libraries(director ddApp)
-  list(APPEND _install_targets director)
-endif()
+# Build main executable
+add_executable(director main.cpp)
+target_link_libraries(director ddApp)
+list(APPEND _install_targets director)
+
 
 add_executable(directorPython consoleApp.cpp)
 target_link_libraries(directorPython ddApp ${PYTHON_LIBRARIES})
