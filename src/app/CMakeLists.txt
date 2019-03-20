@@ -125,21 +125,14 @@ set(pkg_deps)
 
 
 #####
-
-# project name needed to avoid lcm_catkin clash
 project(ddApp)
 find_package(catkin  REQUIRED COMPONENTS 
     kdl_parser forward_kinematics ctk_python_console qt_property_browser python_qt topic_tools tf)
 
 
-#    bot_core_lcmtypes 
-#    multisense_utils image_utils
-
-
 #if (USE_DRAKE)
 if (TRUE)
 
-  #find_package(Drake REQUIRED MODULE)
   find_package(Eigen REQUIRED)
 
   include_directories(
@@ -182,88 +175,20 @@ if (TRUE)
 
 endif()
 
-if (USE_LCM)
-
-  find_package(LCM REQUIRED)
-  include_directories(${LCM_INCLUDE_DIRS})
+if (USE_ROS)
 
   set(moc_srcs)
   qt_wrap_cpp(moc_srcs
-    ddLCMSubscriber.h
-    ddLCMThread.h
     ddROSStateSubscriber.h
     ddROSSubscriber.h
   )
 
   list(APPEND srcs
     ${moc_srcs}
-    ddLCMThread.cpp
-  )
-
-  if(NOT BUILD_SHARED_LIBS AND LCM_STATIC_LIBRARIES)
-    set(LCM_LIBRARIES ${LCM_STATIC_LIBRARIES})
-  endif()
-
-  list(APPEND deps
-    ${LCM_LIBRARIES}
   )
 
   list(APPEND wrap_files
-    wrapped_methods_lcm.txt
-  )
-
-endif()
-
-if (USE_PERCEPTION)
-
-  #find_package(LibBot REQUIRED MODULE)
-  #include_directories(${LIBBOT_INCLUDE_DIRS})
-
-  find_package(PCL REQUIRED)
-  include_directories(${PCL_INCLUDE_DIRS})
-
-  find_package(OpenCV REQUIRED)
-  include_directories(${OpenCV_INCLUDE_DIRS})
-
-  find_package(ZLIB REQUIRED)
-
-  #find_package(bot2-core-lcmtypes REQUIRED)
-
-  find_library(CVUTILS_LIBRARY cv-utils DOC "The cv-utils library")
-  find_path(CVUTILS_INCLUDE_DIR image_utils/jpeg.h PATH_SUFFIXES cv-utils DOC "Path to the cv-utils include directory")
-
-#  set(CVUTILS_INCLUDE_DIRS ${CVUTILS_INCLUDE_DIR})
-#  set(CVUTILS_LIBRARIES ${CVUTILS_LIBRARY})
-#  include_directories(${CVUTILS_INCLUDE_DIRS})
-#  find_package(catkin  REQUIRED COMPONENTS bot_core_lcmtypes
-#    bot_core bot_param bot_frames image_utils drake multisense_utils)
-
-  include_directories(${catkin_INCLUDE_DIRS})
-
-  set(moc_srcs)
-  qt_wrap_cpp(moc_srcs
-    ddBotImageQueue.h
-    #ddKinectLCM.h
-    ddPointCloudLCM.h
-  )
-
-  list(APPEND srcs
-    ${moc_srcs}
-    ddBotImageQueue.cpp
-    #ddKinectLCM.cpp
-    ddPointCloudLCM.cpp
-  )
-
-  list(APPEND wrap_files
-    wrapped_methods_drc.txt
-  )
-
-  list (APPEND deps
-#    ${LIBBOT_LIBRARIES}
-    ${PCL_LIBRARIES}
-    ${OpenCV_LIBS}
-#    ${CVUTILS_LIBRARIES}
-    ${ZLIB_LIBRARIES}
+    wrapped_methods_ros.txt
   )
 
 endif()

@@ -34,7 +34,7 @@ include(cmake/dd-version.cmake)
 
 # dependency options
 option(USE_PORTMIDI "Build director with portmidi dependency." OFF)
-option(USE_LCM "Build director with lcm dependency." OFF)
+option(USE_ROS "Build director with ros dependency." OFF)
 option(USE_LCMGL "Build director with lcmgl dependency." OFF)
 option(USE_LIBBOT "Build director with libbot dependency." OFF)
 #option(USE_DRAKE "Build director with drake dependency." ON)
@@ -43,7 +43,6 @@ option(USE_DRC_MAPS "Build director with drc maps dependency." ON)
 option(USE_DRC_PLANE_SEG "Build director with drc plane segmentation." OFF)
 option(USE_OCTOMAP "Build director with octomap dependency." OFF)
 option(USE_COLLECTIONS "Build director with collections dependency." OFF)
-option(USE_PERCEPTION "Build director features that require OpenCV, PCL, cv-utils, and libbot as dependencies." OFF)
 
 use_cpp11()
 setup_qt()
