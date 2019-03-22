@@ -1,6 +1,5 @@
 from director.segmentation import *
 from director import perception
-from director import mapsregistrar
 import PythonQt
 from PythonQt import QtCore, QtGui
 

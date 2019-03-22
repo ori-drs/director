@@ -38,6 +38,8 @@ class RobotSystemFactory(object):
             'Playback',
             'FootstepsPlayback',
             'RaycastDriver',
+	    'HandDrivers',
+            'ViewBehaviors',	
             'RobotLinkSelector']
 
         return components, disabledComponents
@@ -147,9 +149,10 @@ class RobotSystemFactory(object):
 
     def initAtlasDriver(self, robotSystem):
 
-        from director import atlasdriver
+        #from director import atlasdriver
 
-        atlasDriver = atlasdriver.init(None)
+        #atlasDriver = atlasdriver.init(None)
+ 	atlasDriver = None
         return FieldContainer(atlasDriver=atlasDriver)
 
     def initPlanning(self, robotSystem):

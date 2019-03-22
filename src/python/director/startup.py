@@ -22,20 +22,19 @@ from director import callbacks
 from director import camerabookmarks
 from director import cameracontrol
 from director import cameracontrolpanel
-from director import bihandeddemo
+#from director import bihandeddemo
 from director import debrisdemo
-from director import doordemo
-from director import drilldemo
-from director import valvedemo
-from director import drivingplanner
-from director import egressplanner
-from director import polarisplatformplanner
-from director import surprisetask
-from director import continuouswalkingdemo
-from director import sitstandplanner
-from director import walkingtestdemo
-from director import quadrupedtask
-from director import terraintask
+#from director import doordemo
+#from director import drilldemo
+#from director import valvedemo
+#from director import drivingplanner
+#from director import egressplanner
+#from director import surprisetask
+#from director import continuouswalkingdemo
+#from director import sitstandplanner
+#from director import walkingtestdemo
+#from director import quadrupedtask
+#from director import terraintask
 from director import ikplanner
 from director import objectmodel as om
 from director import spreadsheet
@@ -45,7 +44,7 @@ from director import skybox
 from director import perception
 from director import segmentation
 from director import cameraview
-from director import drakevisualizer
+#from director import drakevisualizer
 from director.fieldcontainer import FieldContainer
 from director import robotstate
 from director import roboturdf
@@ -55,46 +54,46 @@ from director import filterUtils
 from director import footstepsdriver
 from director import footstepsdriverpanel
 from director import framevisualization
-from director import lcmloggerwidget
-from director import lcmgl
-from director import lcmoctomap
-from director import lcmcollections
-from director import atlasdriver
-from director import atlasdriverpanel
+#from director import lcmloggerwidget
+#from director import lcmgl
+#from director import lcmoctomap
+#from director import lcmcollections
+#from director import atlasdriver
+#from director import atlasdriverpanel
 from director import multisensepanel
 from director import navigationpanel
-from director import handcontrolpanel
+#from director import handcontrolpanel
 from director import tasklaunchpanel
 from director.jointpropagator import JointPropagator
 from director import planningutils
 from director import viewcolors
 
-from director import coursemodel
+#from director import coursemodel
 
-from director import copmonitor
-from director import robotplanlistener
-from director import handdriver
+#from director import copmonitor
+#from director import robotplanlistener
+#from director import handdriver
 from director import planplayback
 from director import playbackpanel
 from director import screengrabberpanel
 from director import splinewidget
 from director import teleoppanel
-from director import motionplanningpanel
+#from director import motionplanningpanel
 from director import vtkNumpy as vnp
 from director import visualization as vis
 from director import actionhandlers
 from director.timercallback import TimerCallback
 from director.pointpicker import PointPicker, ImagePointPicker
 from director import segmentationpanel
-from director import lcmUtils
+#from director import lcmUtils
 from director.utime import getUtime
 from director.shallowCopy import shallowCopy
 
 from director import segmentationroutines
 from director import trackers
 
-from director import gamepad
-from director import blackoutmonitor
+#from director import gamepad
+#from director import blackoutmonitor
 
 from director.tasks import robottasks as rt
 from director.tasks import taskmanagerwidget
@@ -140,25 +139,25 @@ usePerception = True
 useGrid = True
 useSpreadsheet = True
 useFootsteps = True
-useHands = True
+useHands = False
 usePlanning = True
-useHumanoidDRCDemos = True
-useAtlasDriver = True
-useLCMGL = True
+useHumanoidDRCDemos = False
+useAtlasDriver = False
+useLCMGL = False
 useOctomap = True
-useCollections = True
+useCollections = False
 useLightColorScheme = True
-useLoggingWidget = True
-useDrakeVisualizer = True
+useLoggingWidget = False
+useDrakeVisualizer = False
 useNavigationPanel = True
 useFallDetectorVis = True
 useCameraFrustumVisualizer = True
 useControllerRate = True
 useForceDisplay = True
 useDataFiles = True
-useGamepad = True
+useGamepad = False
 useRandomWalk = True
-useCOPMonitor = True
+useCOPMonitor = False
 
 useQuadrupedDemos = False
 useSkybox = False
@@ -424,15 +423,16 @@ if usePlanning:
                         playPlans, teleopPanel.showPose, cameraview, segmentationpanel)
         drillTaskPanel = drilldemo.DrillTaskPanel(drillDemo)
 
-        valveDemo = valvedemo.ValvePlannerDemo(robotStateModel, footstepsDriver, footstepsPanel, manipPlanner, ikPlanner,
-                                          lHandDriver, rHandDriver, robotStateJointController)
-        valveTaskPanel = valvedemo.ValveTaskPanel(valveDemo)
+        #valveDemo = valvedemo.ValvePlannerDemo(robotStateModel, footstepsDriver, footstepsPanel, manipPlanner, ikPlanner,
+        #                                  lHandDriver, rHandDriver, robotStateJointController)
+        #valveTaskPanel = valvedemo.ValveTaskPanel(valveDemo)
 
         continuouswalkingDemo = continuouswalkingdemo.ContinousWalkingDemo(robotStateModel, footstepsPanel, footstepsDriver, playbackPanel, robotStateJointController, ikPlanner,
                                                                            teleopJointController, navigationPanel, cameraview)
         continuousWalkingTaskPanel = continuouswalkingdemo.ContinuousWalkingTaskPanel(continuouswalkingDemo)
 
-        useDrivingPlanner = drivingplanner.DrivingPlanner.isCompatibleWithConfig()
+        #useDrivingPlanner = drivingplanner.DrivingPlanner.isCompatibleWithConfig()
+        useDrivingPlanner = False
         if useDrivingPlanner:
             drivingPlannerPanel = drivingplanner.DrivingPlannerPanel(robotSystem)
 
@@ -441,33 +441,30 @@ if usePlanning:
                         robotStateJointController,
                         playPlans, showPose)
 
-        bihandedDemo = bihandeddemo.BihandedPlannerDemo(robotStateModel, playbackRobotModel, teleopRobotModel, footstepsDriver, manipPlanner, ikPlanner,
-                        lHandDriver, rHandDriver, atlasdriver.driver, perception.multisenseDriver,
-                        fitDrillMultisense, robotStateJointController,
-                        playPlans, showPose, cameraview, segmentationpanel)
 
-        doorDemo = doordemo.DoorDemo(robotStateModel, footstepsDriver, manipPlanner, ikPlanner,
-                                          lHandDriver, rHandDriver, atlasdriver.driver, perception.multisenseDriver,
-                                          fitDrillMultisense, robotStateJointController,
-                                          playPlans, showPose)
-        doorTaskPanel = doordemo.DoorTaskPanel(doorDemo)
+
+        #doorDemo = doordemo.DoorDemo(robotStateModel, footstepsDriver, manipPlanner, ikPlanner,
+        #                                  lHandDriver, rHandDriver, atlasdriver.driver, perception.multisenseDriver,
+        #                                  fitDrillMultisense, robotStateJointController,
+        #                                  playPlans, showPose)
+        #doorTaskPanel = doordemo.DoorTaskPanel(doorDemo)
 
         terrainTaskPanel = terraintask.TerrainTaskPanel(robotSystem)
         terrainTask = terrainTaskPanel.terrainTask
 
         surpriseTaskPanel = surprisetask.SurpriseTaskPanel(robotSystem)
         surpriseTask = surpriseTaskPanel.planner
-        egressPanel = egressplanner.EgressPanel(robotSystem)
-        egressPlanner = egressPanel.egressPlanner
+        #egressPanel = egressplanner.EgressPanel(robotSystem)
+        #egressPlanner = egressPanel.egressPlanner
 
         if useDrivingPlanner:
             taskPanels['Driving'] = drivingPlannerPanel.widget
 
-        taskPanels['Egress'] = egressPanel.widget
-        taskPanels['Door'] = doorTaskPanel.widget
-        taskPanels['Valve'] = valveTaskPanel.widget
-        taskPanels['Drill'] = drillTaskPanel.widget
-        taskPanels['Surprise'] = surpriseTaskPanel.widget
+        #taskPanels['Egress'] = egressPanel.widget
+        #taskPanels['Door'] = doorTaskPanel.widget
+        #taskPanels['Valve'] = valveTaskPanel.widget
+        #taskPanels['Drill'] = drillTaskPanel.widget
+        #taskPanels['Surprise'] = surpriseTaskPanel.widget
         taskPanels['Terrain'] = terrainTaskPanel.widget
         taskPanels['Continuous Walking'] = continuousWalkingTaskPanel.widget
 
