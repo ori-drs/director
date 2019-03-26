@@ -65,6 +65,8 @@ public:
   virtual void unsubscribe()
   {
     // Used to contain LCM unsubscribe
+    std::cout << "ddROSSubscriber: unsubscribe " << qPrintable(mChannel) << "\n";
+    mSubscriber->shutdown();
   }
 
   const QString& channel() const
@@ -148,7 +150,7 @@ public:
 
 signals:
 
-  void messageReceived(const QByteArray& messageData, const QString& channel);
+  void messageReceived(const QByteArray& messageData, const QString& channel, const QString& md5sum);
   void messageReceivedInQueue(const QString& channel);
 
 protected slots:
@@ -156,7 +158,7 @@ protected slots:
   void onMessageInQueue(const QString& channel)
   {
     QByteArray msg = this->getNextMessage(0);
-    emit this->messageReceived(msg, channel);
+    emit this->messageReceived(msg, channel, mMD5Sum);
   }
 
 
@@ -177,6 +179,7 @@ protected:
     ros::serialization::OStream stream(buffer.data(), buffer.size());
     msg->write(stream);
 
+
     //std::cout << (int) buffer.size() << " is buffer size\n";
 
     return QByteArray((char*)buffer.data(), buffer.size());
@@ -190,6 +193,7 @@ protected:
     ddNotUsed(channel);
 
     QByteArray messageBytes = decodeMessage(msg);
+    mMD5Sum = QString(msg->getMD5Sum().c_str() );
 
     mFPSCounter.update();
 
@@ -201,7 +205,7 @@ protected:
 
         if (this->mNotifyAllMessages)
         {
-          emit this->messageReceived(messageBytes, QString(channel.c_str()));
+          emit this->messageReceived(messageBytes, QString(channel.c_str()), mMD5Sum );
         }
         else
         {
@@ -234,6 +238,8 @@ protected:
   mutable QMutex mMutex;
   QWaitCondition mWaitCondition;
   QByteArray mLastMessage;
+  QString mMD5Sum;
+
   ddFPSCounter mFPSCounter;
   QTime mTimer;
   QString mChannel;
