@@ -13,7 +13,7 @@ from director import drcargs
 from director import affordanceurdf
 from director.roboturdf import HandFactory
 from director.utime import getUtime
-from director import lcmUtils
+#from director import lcmUtils
 
 import functools
 import math

@@ -1,6 +1,5 @@
 import PythonQt
 from PythonQt import QtCore, QtGui, QtUiTools
-from director import lcmUtils
 from director import applogic as app
 from director.utime import getUtime
 from director.timercallback import TimerCallback

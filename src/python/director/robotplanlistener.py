@@ -6,7 +6,6 @@ import numpy as np
 
 from director import callbacks
 from director import transformUtils
-from director import lcmUtils
 from director import objectmodel as om
 from director.utime import getUtime
 from director import robotstate

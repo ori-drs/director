@@ -3,7 +3,6 @@ from PythonQt import QtCore, QtGui
 import director.objectmodel as om
 import director.visualization as vis
 from director import affordanceitems
-from director import lcmUtils
 from director import callbacks
 from director import cameracontrol
 from director import splinewidget
@@ -147,7 +146,6 @@ def onNewDrivingGoal(frame):
     msg = lcmbotcore.pose_t()
     msg.utime = getUtime()
     msg.pos, msg.orientation = transformUtils.poseFromTransform(frame.transform)
-    lcmUtils.publish('DRIVING_PLAN_REQUEST', msg)
 
 def newDrivingGoal(displayPoint, view):
     # Places the driving goal on the plane of the root link current yaw
@@ -591,34 +589,6 @@ class RobotViewEventFilter(ViewEventFilter):
             self.consumeEvent()
 
 
-class KeyPressLogCommander(ViewEventFilter):
-
-    def __init__(self, view):
-        ViewEventFilter.__init__(self, view)
-        self.commander = lcmUtils.LogPlayerCommander()
-
-    def onKeyPressRepeat(self, event):
-
-        key = str(event.text()).lower()
-        consumed = True
-
-        if key == 'p':
-            self.commander.togglePlay()
-        elif key == 'n':
-            self.commander.step()
-        elif key in ('+', '='):
-            self.commander.faster()
-        elif key in ('-', '_'):
-            self.commander.slower()
-        elif key == '[':
-            self.commander.back()
-        elif key == ']':
-            self.commander.forward()
-        else:
-            consumed = False
-
-        if consumed:
-            self.consumeEvent()
 
 
 class RobotViewBehaviors(object):
@@ -626,7 +596,6 @@ class RobotViewBehaviors(object):
     def __init__(self, view, _robotSystem):
         self.view = view
         self.viewBehaviors = viewbehaviors.ViewBehaviors(view)
-        self.logCommander = KeyPressLogCommander(view)
         self.robotViewBehaviors = RobotViewEventFilter(view)
 
         global robotSystem, robotModel, footstepsDriver, robotLinkSelector

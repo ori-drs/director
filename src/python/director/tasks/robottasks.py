@@ -15,7 +15,7 @@ from director import affordanceitems
 from director import vtkNumpy as vnp
 from director.debugVis import DebugData
 from director import vtkAll as vtk
-from director import lcmUtils
+#from director import lcmUtils
 import numpy as np
 import copy
 import pickle

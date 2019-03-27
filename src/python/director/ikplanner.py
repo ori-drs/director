@@ -9,7 +9,7 @@ import random
 import numpy as np
 
 from director import transformUtils
-from director import lcmUtils
+#from director import lcmUtils
 from director.timercallback import TimerCallback
 from director import objectmodel as om
 from director import visualization as vis
