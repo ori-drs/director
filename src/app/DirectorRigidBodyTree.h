@@ -236,7 +236,7 @@ public:
 
 private:
   //build a Drake geometry form a urdf Geometry
-  std::shared_ptr<DrakeShapes::Geometry> getGeometry(boost::shared_ptr<urdf::Geometry> &urdf_geometry);
+  std::shared_ptr<DrakeShapes::Geometry> getGeometry(urdf::GeometrySharedPtr &urdf_geometry);
   KDL::Tree my_tree_;
   urdf::Model my_model_;
 

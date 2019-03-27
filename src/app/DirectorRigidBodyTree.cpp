@@ -58,7 +58,7 @@ void RigidBodyTree::addRobotFromURDFString(const std::string &xml_string, std::m
     return;
   }
   // building data structures of RigidBodyTree
-  std::vector<boost::shared_ptr<urdf::Link> > links;
+  std::vector<urdf::LinkSharedPtr> links;
   my_model_.getLinks(links);
   std::map<std::string, int> body_index;
   //put a link called world at the front of bodies
@@ -138,7 +138,7 @@ void RigidBodyTree::addRobotFromURDFString(const std::string &xml_string, std::m
   joint_limit_max = Eigen::VectorXd::Constant(num_positions, std::numeric_limits<double>::infinity());
 }
 
-std::shared_ptr<DrakeShapes::Geometry> RigidBodyTree::getGeometry(boost::shared_ptr<urdf::Geometry>& urdf_geometry) {
+std::shared_ptr<DrakeShapes::Geometry> RigidBodyTree::getGeometry(urdf::GeometrySharedPtr& urdf_geometry) {
   std::shared_ptr<DrakeShapes::Geometry> geometry;
   if (!urdf_geometry) {
     return geometry;
@@ -146,13 +146,13 @@ std::shared_ptr<DrakeShapes::Geometry> RigidBodyTree::getGeometry(boost::shared_
   switch(urdf_geometry->type) {
   case urdf::Geometry::SPHERE:
   {
-    boost::shared_ptr<urdf::Sphere> sphere = boost::dynamic_pointer_cast<urdf::Sphere>(urdf_geometry);
+    urdf::SphereSharedPtr sphere = urdf::dynamic_pointer_cast<urdf::Sphere>(urdf_geometry);
     geometry = std::make_shared<DrakeShapes::Sphere>(sphere->radius);
   }
     break;
   case urdf::Geometry::BOX:
   {
-    boost::shared_ptr<urdf::Box> box = boost::dynamic_pointer_cast<urdf::Box>(urdf_geometry);
+    urdf::BoxSharedPtr box = urdf::dynamic_pointer_cast<urdf::Box>(urdf_geometry);
     Eigen::Vector3d size;
     size << box->dim.x, box->dim.y, box->dim.z;
     geometry = std::make_shared<DrakeShapes::Box>(size);
@@ -160,13 +160,13 @@ std::shared_ptr<DrakeShapes::Geometry> RigidBodyTree::getGeometry(boost::shared_
     break;
   case urdf::Geometry::CYLINDER:
   {
-    boost::shared_ptr<urdf::Cylinder> cylinder = boost::dynamic_pointer_cast<urdf::Cylinder>(urdf_geometry);
+    urdf::CylinderSharedPtr cylinder = urdf::dynamic_pointer_cast<urdf::Cylinder>(urdf_geometry);
     geometry = std::make_shared<DrakeShapes::Cylinder>(cylinder->radius, cylinder->length);
   }
     break;
   case urdf::Geometry::MESH:
   {
-    boost::shared_ptr<urdf::Mesh> mesh = boost::dynamic_pointer_cast<urdf::Mesh>(urdf_geometry);
+    urdf::MeshSharedPtr mesh = urdf::dynamic_pointer_cast<urdf::Mesh>(urdf_geometry);
     geometry = std::make_shared<DrakeShapes::Mesh>(mesh->filename, mesh->scale.x);
   }
     break;
