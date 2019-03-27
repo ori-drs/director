@@ -38,8 +38,7 @@ class RobotSystemFactory(object):
             'Playback',
             'FootstepsPlayback',
             'RaycastDriver',
-	    'HandDrivers',
-            'ViewBehaviors',	
+	        'HandDrivers',	
             'RobotLinkSelector']
 
         return components, disabledComponents
