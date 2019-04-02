@@ -101,19 +101,19 @@ class ImageManager(object):
         self.queue[name] = vtkRos.vtkRosImageSubscriber()
         if cameraMode == "simulation":        
             if name == 'REALSENSE_FORWARD_CAMERA_LEFT':
-                self.queue[name].Start('/realsense_d435_forward/rgb/image_raw', 'raw', '/realsense_d435_forward/rgb/camera_info')
+                self.queue[name].Start('/realsense_d435_front_forward/rgb/image_raw', 'raw', '/realsense_d435_front_forward/rgb/camera_info')
             else:
-                self.queue[name].Start('/realsense_d435/rgb/image_raw', 'raw', '/realsense_d435/rgb/camera_info')
+                self.queue[name].Start('/realsense_d435_front/rgb/image_raw', 'raw', '/realsense_d435_front/rgb/camera_info')
         elif cameraMode == "wifi":
             if name == 'REALSENSE_FORWARD_CAMERA_LEFT':
-                self.queue[name].Start('/wifi/realsense_d435_forward/color/image_raw', 'compressed', '/wifi/realsense_d435_forward/color/camera_info')
+                self.queue[name].Start('/wifi/realsense_d435_front_forward/color/image_raw', 'compressed', '/wifi/realsense_d435_front_forward/color/camera_info')
             else:
-                self.queue[name].Start('/wifi/realsense_d435/color/image_raw', 'compressed', '/wifi/realsense_d435/color/camera_info')
+                self.queue[name].Start('/wifi/realsense_d435_front/color/image_raw', 'compressed', '/wifi/realsense_d435_front/color/camera_info')
         elif cameraMode == "wired":
             if name == 'REALSENSE_FORWARD_CAMERA_LEFT':
-                self.queue[name].Start('/realsense_d435_forward/color/image_raw', 'compressed', '/realsense_d435_forward/color/camera_info')
+                self.queue[name].Start('/realsense_d435_front_forward/color/image_raw', 'compressed', '/realsense_d435_front_forward/color/camera_info')
             else:
-                self.queue[name].Start('/realsense_d435/color/image_raw', 'compressed', '/realsense_d435/color/camera_info')
+                self.queue[name].Start('/realsense_d435_front/color/image_raw', 'compressed', '/realsense_d435_front/color/camera_info')
         else:
             print "camera mode not understood"
 
