@@ -6,6 +6,7 @@ QStringList ddROSStateSubscriber::getJointNames() const;
 QVector<double> ddROSStateSubscriber::getRobotPose() const;
 QVector<double> ddROSStateSubscriber::getOdomInMap() const;
 void ddROSStateSubscriber::setSpeedLimit(double);
+void ddROSStateSubscriber::resetTime();
 
 ddROSSubscriber::ddROSSubscriber(const QString&);
 ddROSSubscriber::ddROSSubscriber(const QString&, QObject*);
