@@ -456,18 +456,20 @@ class RosGridMap(vis.PolyDataItem):
         elif propertyName == 'Color By':
             color= self.getPropertyEnumValue(propertyName)
             self.reader.SetColorLayer(color)
-            self.showMap()
+            #only_new_data = False because the poly_date need to be redraw with the new color layer
+            self.showMap(only_new_data = False)
+            self._updateColorBy()
 
 
-    def showMap(self):
+    def showMap(self, only_new_data = True):
 
         polyData = vtk.vtkPolyData()
-        self.reader.GetMesh(polyData, True)
+        self.reader.GetMesh(polyData, only_new_data)
         if polyData.GetNumberOfPoints() == 0:
             return
 
         bodyHeight = self.robotStateJointController.q[2]
-        self.setRangeMap('z', [bodyHeight-0.5, bodyHeight+0.5])
+        self.setRangeMap('z', [bodyHeight-0.5, bodyHeight])
 
         if self.callbackFunc:
             self.callbackFunc()
