@@ -456,17 +456,20 @@ class RosGridMap(vis.PolyDataItem):
         elif propertyName == 'Color By':
             color= self.getPropertyEnumValue(propertyName)
             self.reader.SetColorLayer(color)
-            self.showMap()
+            #only_new_data = False because the poly_date need to be redraw with the new color layer
+            self.showMap(only_new_data = False)
+            self._updateColorBy()
 
 
-    def showMap(self):
+    def showMap(self, only_new_data = True):
+
         polyData = vtk.vtkPolyData()
-        self.reader.GetMesh(polyData)
+        self.reader.GetMesh(polyData, only_new_data)
         if polyData.GetNumberOfPoints() == 0:
             return
 
         bodyHeight = self.robotStateJointController.q[2]
-        self.setRangeMap('z', [bodyHeight-0.5, bodyHeight+0.5])
+        self.setRangeMap('z', [bodyHeight-0.5, bodyHeight])
 
         if self.callbackFunc:
             self.callbackFunc()
@@ -550,9 +553,10 @@ class PointCloudSource(vis.PolyDataItem):
     def resetTime(self):
         self.reader.ResetTime()
 
-    def showPointCloud(self):
-        polyData = self.getPointCloud()
-        if polyData is None:
+    def showPointCloud(self):   
+        polyData = vtk.vtkPolyData()
+        self.reader.GetPointCloud(polyData, True)
+        if polyData.GetNumberOfPoints() == 0:
             return
 
         bodyHeight = self.robotStateJointController.q[2]
@@ -657,7 +661,7 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
     def getPointCloud(self):
         polyData = vtk.vtkPolyData()
         self.reader.GetPointCloud(polyData)
-        if (polyData.GetNumberOfPoints() == 0):
+        if polyData.GetNumberOfPoints() == 0:
             return None
         else:
             return polyData
@@ -684,13 +688,9 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
         elif (utime - self.lastUtime < 1E6/self.getProperty('Target FPS')):
             return
 
-        #decimation = int(self.properties.getPropertyEnumValue('Decimation'))
-        #removeSize = int(self.properties.getProperty('Remove Size'))
-        #rangeThreshold = float(self.properties.getProperty('Max Range'))
-        #polyData = getDisparityPointCloud(decimation, imagesChannel=self.getProperty('Channel'), cameraName=self.getProperty('Camera name'),
-        #                                  removeOutliers=False, removeSize=removeSize, rangeThreshold = rangeThreshold)
-        polyData = self.getPointCloud()
-        if polyData is None:
+        polyData = vtk.vtkPolyData()
+        new_data = self.reader.GetPointCloud(polyData, True)
+        if polyData.GetNumberOfPoints() == 0:
             return
 
         # currently disabled
