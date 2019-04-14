@@ -80,6 +80,9 @@ class ImageManager(object):
     #        frames = self.queue[key].GetFrameNames()
     #        return frames.split(',')
 
+    def resetTime(self):
+        for cameraName, subscriber in self.queue.iteritems():
+            subscriber.ResetTime()
 
     def addImage(self, name):
 
@@ -184,6 +187,8 @@ class CameraView(object):
         self.timerCallback.callback = self.updateView
         self.timerCallback.start()
 
+    def resetTime(self):
+        self.imageManager.resetTime()
 
     def filterEvent(self, obj, event):
         if event.type() == QtCore.QEvent.KeyPress:

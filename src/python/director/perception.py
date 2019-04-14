@@ -482,6 +482,9 @@ class RosGridMap(vis.PolyDataItem):
             zIndex = colorList.index('z') if 'z' in colorList else 0
             self.properties.setProperty('Color By', zIndex)
 
+    def resetTime(self):
+        self.reader.ResetTime()
+
 
     def getPointCloud(self):
         polyData = vtk.vtkPolyData()
@@ -546,6 +549,9 @@ class PointCloudSource(vis.PolyDataItem):
             return None
         else:
             return polyData
+
+    def resetTime(self):
+        self.reader.ResetTime()
 
     def showPointCloud(self):   
         polyData = vtk.vtkPolyData()
@@ -663,6 +669,9 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
     def onRemoveFromObjectModel(self):
         vis.PolyDataItem.onRemoveFromObjectModel(self)
         self.timer.stop()
+
+    def resetTime(self):
+        self.reader.ResetTime()
 
     def update(self):
         #utime = self.imageManager.queue.getCurrentImageTime(self.cameraName)

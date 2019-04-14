@@ -89,6 +89,11 @@ public:
     // Used to contain LCM unsubscribe
   }
 
+  void resetTime()
+  {
+    mTfListener->clear();
+  }
+
   const QString& channel() const
   {
     return mChannel;
