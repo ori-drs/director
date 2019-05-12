@@ -107,6 +107,7 @@ set(python_files
   director/robotsystem.py
   director/roboturdf.py
   director/robotviewbehaviors.py
+  director/rosutils.py
   director/sceneloader.py
   director/screengrabberpanel.py
   director/segmentation.py
