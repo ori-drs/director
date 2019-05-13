@@ -22,6 +22,11 @@ from director.timercallback import TimerCallback
 
 
 class TfFrameSync(object):
+    """
+        A class used to draw items in a custom global frame
+        Each item is represented in a local frame, this class synchronized the item thanks to tfListener
+        in order to draw it in another frame
+    """
 
     class FrameData(object):
         def __init__(self, **kwargs):
@@ -36,13 +41,15 @@ class TfFrameSync(object):
         self._rootFrame = frame
         self._blockCallbacks = False
         self._ids = itertools.count()
-        #self.tfSubscriber = rospy.Subscriber("/tf", tfMessage, self.callback, queue_size=50)
         self.listener = tf.TransformListener()
         self.mutex = Lock()
         self.timer = TimerCallback(targetFps=5, callback=self.callback)
         self.timer.start()
 
     def callback(self):
+        """
+        Callback of the timer used to regular check if the items are synchronized
+        """
         if not self.baseItemsToUpdate:
             return
 
@@ -54,42 +61,11 @@ class TfFrameSync(object):
                 self._onBaseItemModified(baseItem)
             except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException,
                      tf2_ros.TransformException) as e:
-                print 'tf exception'
                 newBaseItemsToUpdate.append(baseItem)
 
         self.baseItemsToUpdate = newBaseItemsToUpdate
         self.mutex.release()
 
-
-    # def callback(self, msg):
-    #     if not self.baseItemsToUpdate:
-    #         return
-    #     self.mutex.acquire()
-    #     newBaseItemsToUpdate = {}
-    #
-    #     for transform in msg.transforms:
-    #         print 'HERE'
-    #         if transform.child_frame_id == self._rootFrame and transform.header.frame_id in self.baseItemsToUpdate:
-    #             for baseItem in self.baseItemsToUpdate[transform.header.frame_id]:
-    #                 if transform.header.stamp >= baseItem.timestamp:
-    #                     print 'before getTransform'
-    #                     baseItem.baseTransform = self._getTransform(self._rootFrame, baseItem.frame, baseItem.timestamp)
-    #                     # try:
-    #                     #     baseItem.baseTransform = self._getTransform(self._rootFrame, baseItem.frame,
-    #                     #                                                 baseItem.timestamp)
-    #                     # except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException,
-    #                     #         tf2_ros.TransformException) as e:
-    #                     #     print 'tf exception'
-    #                     #     baseItem.baseTransform = self._catchBaseItemTfException(baseItem)
-    #                     print 'after getTransform'
-    #                 else:
-    #                     if transform.header.frame_id in newBaseItemsToUpdate:
-    #                         newBaseItemsToUpdate[transform.header.frame_id].append(baseItem)
-    #                     else:
-    #                         newBaseItemsToUpdate[transform.header.frame_id] = [baseItem]
-    #
-    #     self.baseItemsToUpdate = newBaseItemsToUpdate
-    #     self.mutex.release()
 
     def hasItem(self, item):
         if self._findItemId(item) is not None:
@@ -107,10 +83,11 @@ class TfFrameSync(object):
 
         item._frameSync = self
         itemId = self._ids.next()
-        #callbackId = item.connectFrameModified(self._onItemModified)
+        callbackId = item.connectItemModified(self._onItemModified)
 
         self.items[itemId] = TfFrameSync.FrameData(
             ref=weakref.ref(item),
+            callbackId=callbackId,
             ignoreIncoming=ignoreIncoming)
 
         baseItem = self._addBaseItem(item, itemId, timestamp)
@@ -130,7 +107,6 @@ class TfFrameSync(object):
             baseItem.baseTransform = self._getTransform(self._rootFrame, baseItem.frame, baseItem.timestamp)
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException,
                 tf2_ros.TransformException) as e:
-            print 'tf exception'
             baseItem.baseTransform = self._catchBaseItemTfException(baseItem)
 
         return baseItem
@@ -145,7 +121,6 @@ class TfFrameSync(object):
                     baseItem.baseTransform = self._getTransform(self._rootFrame, baseItem.frame, baseItem.timestamp)
                 except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException,
                         tf2_ros.TransformException) as e:
-                    print 'tf exception'
                     baseItem.baseTransform = self._catchBaseItemTfException(baseItem)
                 savedBaseItem = baseItem
                 break
@@ -156,25 +131,25 @@ class TfFrameSync(object):
             self._onBaseItemModified(savedBaseItem)
 
     def setRootFrame(self, frame):
+        """
+        Set the global or root frame of the TfFrameSync object
+        """
         self._rootFrame = frame
 
         for baseItem in self.baseItems:
             try:
                 baseItem.baseTransform = self._getTransform(self._rootFrame, baseItem.frame, baseItem.timestamp)
             except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException, tf2_ros.TransformException) as e:
-                print 'tf exception'
                 baseItem.baseTransform = self._catchBaseItemTfException(baseItem)
 
         self._onBaseItemsModified()
 
     def _catchBaseItemTfException(self, baseItem):
+        """
+        The method is called when the transform between self._rootFrame and the local transform of an item
+        cannot be computed
+        """
         self.mutex.acquire()
-        # if baseItem.frame in self.baseItemsToUpdate:
-        #     if baseItem not in self.baseItemsToUpdate[baseItem.frame]:
-        #         self.baseItemsToUpdate[baseItem.frame].append(baseItem)
-        #
-        # else:
-        #     self.baseItemsToUpdate[baseItem.frame] = [baseItem]
         if baseItem.frame not in self.baseItemsToUpdate:
             self.baseItemsToUpdate.append(baseItem)
         self.mutex.release()
@@ -182,6 +157,9 @@ class TfFrameSync(object):
         return transformUtils.frameFromPositionAndRPY([0,0,0],[0,0,0])
 
     def _getTransform(self, targetFrame, sourceFrame, timestamp, waitForTransform=True):
+        """
+        :return: the transform between sourceFrame and targetFrame
+        """
         if waitForTransform:
             self.listener.waitForTransform(targetFrame, sourceFrame, timestamp, rospy.Duration(0.2))
         (trans, rot) = self.listener.lookupTransform(targetFrame, sourceFrame, timestamp)
@@ -210,6 +188,8 @@ class TfFrameSync(object):
         if baseItemToRemove.frame in self.baseItemsToUpdate:
             self.baseItemsToUpdate.remove(baseItem)
 
+        item.disconnectItemModified(self.items[itemId].callbackId)
+        item._frameSync = None
         self._removeItemId(itemId)
 
 
@@ -227,14 +207,7 @@ class TfFrameSync(object):
 
 
     def _onBaseItemModified(self, baseItem):
-
-        baseTransform = baseItem.baseTransform
-        transform = baseItem.item.ref().localTransform
-        #baseTransformInverse = transformUtils.copyFrame(baseTransform)
-        #baseTransformInverse.Inverse()
-        new_transform = transformUtils.concatenateTransforms([transform, baseTransform])
-
-        baseItem.item.ref().applyTransform(baseTransform, new_transform)
+        baseItem.item.ref().applyTransform(baseItem.baseTransform)
 
     def _onBaseItemsModified(self):
 
@@ -245,63 +218,54 @@ class TfFrameSync(object):
     def _onItemModified(self, item):
         for baseItem in self.baseItems:
             if baseItem.item.ref() is item:
-                #TODO the name of the method called is misleading
                 self._onBaseItemModified(baseItem)
                 break
 
 
 
 class TfMovableItem(vis.PolyDataItem):
+    """
+        An abstract class used to represent an item synchronized by a TfFrameSync object
+    """
 
     def __init__(self, name, transform, frame, view, polyData=vtk.vtkPolyData()):
 
         vis.PolyDataItem.__init__(self, name, polyData, view)
 
-        #self.transform = transform
         self.localTransform = transformUtils.copyFrame(transform)
         self._blockSignals = False
         self._frameSync = None
         #the localTransform of the item is in this frame
         self.frame = frame
 
-        #self.callbacks.addSignal('FrameModified')
-        self.onTransformModifiedCallback = None
-        #self.observerTag = self.transform.AddObserver('ModifiedEvent', self.onTransformModified)
+        self.callbacks.addSignal('ItemModified')
+        self.observerTag = None
 
 
+    def connectItemModified(self, func):
+        return self.callbacks.connect('ItemModified', func)
 
-    def connectFrameModified(self, func):
-        return self.callbacks.connect('FrameModified', func)
-
-    def disconnectFrameModified(self, callbackId):
+    def disconnectItemModified(self, callbackId):
         self.callbacks.disconnect(callbackId)
-
-    def onTransformModified(self, transform, event):
-        if not self._blockSignals:
-            if self.onTransformModifiedCallback:
-                self.onTransformModifiedCallback(self)
-            self.callbacks.process('FrameModified', self)
 
     def addToView(self, view):
         vis.PolyDataItem.addToView(self, view)
 
     @abc.abstractmethod
-    def applyTransform(self, baseTransform, transform):
+    def applyTransform(self, baseTransform):
+        """
+        Apply a new transform given by TfFrameSync
+        :param baseTransform: the transformation between self.localTransform and the global frame
+                              of the TfFrameSync
+        """
         pass
 
 
-    def onRemoveFromObjectModel(self):
-        vis.PolyDataItem.onRemoveFromObjectModel(self)
-
-        self.widget.SetInteractor(None)
-        self.widget.EnabledOff()
-        for view in self.views:
-            view.renderer().RemoveActor(self.actor)
-            view.render()
-
 
 class TfFrameItem(TfMovableItem):
-
+    """
+        An class used to represent a frame item synchronized by a TfFrameSync object
+    """
     def __init__(self, name, transform, frame, view):
 
         TfMovableItem.__init__(self, name, transform, frame, view)
@@ -330,18 +294,32 @@ class TfFrameItem(TfMovableItem):
         self._updateAxesGeometry()
         self.setProperty('Color By', 'Axes')
         self.setProperty('Icon', om.Icons.Axes)
+        self.observerTag = self.localTransform.AddObserver('ModifiedEvent', self.onTransformModified)
 
+
+    def onTransformModified(self, transform, event):
+        """
+        This callback is called when self._localTransform is modified
+        """
+        if not self._blockSignals:
+            self.callbacks.process('ItemModified', self)
 
     def _updateAxesGeometry(self):
         scale = self.getProperty('Scale')
         self.rep.SetWorldSize(scale)
         self.setPolyData(vis.createAxesPolyData(scale, self.getProperty('Tube'), self.getProperty('Tube Width')))
 
-    def applyTransform(self, baseTransform, transform):
-        #traceback.print_stack(file=sys.stdout)
+    def setLocalTransform(self, transform):
+        #obj.localTransform = transform
+        #obj.localTransform.SetMatrix(transform.GetMatrix())
+        #obj._frameSync._onItemModified(obj)
+        self.localTransform.DeepCopy(transform)
+        self.localTransform.Modified()
+
+    def applyTransform(self, baseTransform):
         self._blockSignals = True
-        self.transform = transformUtils.frameFromPositionAndRPY([0, 0, 0], [0, 0, 0])
-        self.transform.SetMatrix(transform.GetMatrix())
+        new_transform = transformUtils.concatenateTransforms([self.localTransform, baseTransform])
+        self.transform.SetMatrix(new_transform.GetMatrix())
         #
         self.actor.SetUserTransform(self.transform)
         self.rep.SetTransform(self.transform)
@@ -379,34 +357,65 @@ class TfFrameItem(TfMovableItem):
             self.properties.setPropertyAttribute('Tube Width', 'hidden', not self.getProperty(propertyName))
             self._updateAxesGeometry()
 
+    def onRemoveFromObjectModel(self):
+        vis.PolyDataItem.onRemoveFromObjectModel(self)
+
+        self.localTransform.RemoveObserver(self.observerTag)
+
+        self.widget.SetInteractor(None)
+        self.widget.EnabledOff()
+        for view in self.views:
+            view.renderer().RemoveActor(self.actor)
+            view.render()
+
 
 class TfPolyDataItem(TfMovableItem):
-
+    """
+        An class used to represent a polydata item synchronized by a TfFrameSync object
+    """
     def __init__(self, name, polyData, frame, view):
 
         transform = transformUtils.frameFromPositionAndRPY([0, 0, 0], [0, 0, 0])
         TfMovableItem.__init__(self, name, transform, frame, view, polyData=polyData)
-        self._polyData = polyData
 
-    def applyTransform(self, baseTransform, transform):
-        #print 'polydata', baseTransform
+        #self.polyData is represented in the global frame and we need to keep a version of the
+        #polydata represented in the local frame
+        self._notTransformedPolyData = polyData
+
+        self.observerTag = self._notTransformedPolyData.AddObserver('ModifiedEvent', self.onPolyDataModified)
+
+    def onPolyDataModified(self, transform, event):
+        """
+        This callback is called when self._notTransformedPolyData is modified
+        """
+        if not self._blockSignals:
+            self.callbacks.process('ItemModified', self)
+
+
+    def applyTransform(self, baseTransform):
         transformFilter = vtk.vtkTransformPolyDataFilter()
         transformFilter.SetTransform(baseTransform)
-        transformFilter.SetInputData(self._polyData)
+        transformFilter.SetInputData(self._notTransformedPolyData)
         transformFilter.Update()
 
-        #super(TfPolyDataItem, self).setPolyData(transformFilter.GetOutput())
         vis.PolyDataItem.setPolyData(self, transformFilter.GetOutput())
 
     def setPolyData(self, polyData):
-        #TODO this can be improved
-        self._polyData = polyData
-        self._frameSync._onItemModified(self)
+        #self._notTransformedPolyData = polyData
+        #self._frameSync._onItemModified(self)
+        self._notTransformedPolyData.DeepCopy(polyData)
+        self._notTransformedPolyData.Modified()
 
+    def onRemoveFromObjectModel(self):
+        vis.PolyDataItem.onRemoveFromObjectModel(self)
+
+        self._notTransformedPolyData.RemoveObserver(self.observerTag)
 
 
 def showPolyData(polyData, name, frame, color=None, colorByName=None, colorByRange=None, alpha=1.0, visible=True, view=None, parent=None):
-
+    """
+    Create a new TfPolyDataItem
+    """
     view = view or app.getCurrentRenderView()
     assert view
 
@@ -445,7 +454,9 @@ def updatePolyData(polyData, name, frame, **kwargs):
     return obj
 
 def showFrame(name, transform, frame, view=None, parent=None, scale=0.35, visible=True):
-
+    """
+    Create a new TfFrameItem
+    """
     view = view or app.getCurrentRenderView()
     assert view
 
@@ -465,10 +476,7 @@ def updateFrame(name, transform, frame, **kwargs):
 
     obj = om.findObjectByName(name)
     if obj:
-        #obj.transform = transform
-        obj.localTransform = transform
-        # TODO this can be improved
-        obj._frameSync._onItemModified(obj)
+        obj.setLocalTransform(transform)
     else:
         obj = showFrame(name, transform, frame, **kwargs)
 
