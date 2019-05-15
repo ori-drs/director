@@ -42,6 +42,8 @@ class TfFrameSync(object):
         self._blockCallbacks = False
         self._ids = itertools.count()
         self.listener = tf.TransformListener()
+        #baseItems are can be modified in self.callback and in other methods at the same time
+        #that why we need this mutex
         self.mutex = Lock()
         self.timer = TimerCallback(targetFps=5, callback=self.callback)
         self.timer.start()
@@ -90,8 +92,10 @@ class TfFrameSync(object):
             callbackId=callbackId,
             ignoreIncoming=ignoreIncoming)
 
+        self.mutex.acquire()
         baseItem = self._addBaseItem(item, itemId, timestamp)
         self._onBaseItemModified(baseItem)
+        self.mutex.release()
 
     def _addBaseItem(self, item, itemId, timestamp):
 
@@ -113,6 +117,7 @@ class TfFrameSync(object):
 
     def updateItemTimestamp(self, item, timestamp):
 
+        self.mutex.acquire()
         savedBaseItem = None
         for baseItem in self.baseItems:
             if baseItem.item.ref() is item:
@@ -129,13 +134,14 @@ class TfFrameSync(object):
             self.addItem(item, timestamp)
         else:
             self._onBaseItemModified(savedBaseItem)
+        self.mutex.release()
 
     def setRootFrame(self, frame):
         """
         Set the global or root frame of the TfFrameSync object
         """
         self._rootFrame = frame
-
+        self.mutex.acquire()
         for baseItem in self.baseItems:
             try:
                 baseItem.baseTransform = self._getTransform(self._rootFrame, baseItem.frame, baseItem.timestamp)
@@ -143,16 +149,15 @@ class TfFrameSync(object):
                 baseItem.baseTransform = self._catchBaseItemTfException(baseItem)
 
         self._onBaseItemsModified()
+        self.mutex.release()
 
     def _catchBaseItemTfException(self, baseItem):
         """
         The method is called when the transform between self._rootFrame and the local transform of an item
         cannot be computed
         """
-        self.mutex.acquire()
         if baseItem.frame not in self.baseItemsToUpdate:
             self.baseItemsToUpdate.append(baseItem)
-        self.mutex.release()
 
         return transformUtils.frameFromPositionAndRPY([0,0,0],[0,0,0])
 
