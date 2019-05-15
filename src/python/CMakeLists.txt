@@ -131,6 +131,7 @@ set(python_files
   director/terrainitem.py
   director/terraintask.py
   director/timercallback.py
+  director/tfdrawer.py
   director/tfvisualization.py
   director/transformUtils.py
   director/trackers.py
