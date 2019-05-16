@@ -107,6 +107,7 @@ set(python_files
   director/robotsystem.py
   director/roboturdf.py
   director/robotviewbehaviors.py
+  director/rosutils.py
   director/sceneloader.py
   director/screengrabberpanel.py
   director/segmentation.py
@@ -130,6 +131,8 @@ set(python_files
   director/terrainitem.py
   director/terraintask.py
   director/timercallback.py
+  director/tfdrawer.py
+  director/tfvisualization.py
   director/transformUtils.py
   director/trackers.py
   director/treeviewer.py
