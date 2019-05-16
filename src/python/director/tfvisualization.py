@@ -19,6 +19,7 @@ import director.vtkAll as vtk
 from director import visualization as vis
 from director.timercallback import TimerCallback
 
+import vtkRosPython as vtkRos
 
 
 class TfFrameSync(object):
@@ -27,6 +28,8 @@ class TfFrameSync(object):
         Each item is represented in a local frame, this class synchronized the item thanks to tfListener
         in order to draw it in another frame
     """
+
+    listener = None
 
     class FrameData(object):
         def __init__(self, **kwargs):
@@ -41,12 +44,18 @@ class TfFrameSync(object):
         self._rootFrame = frame
         self._blockCallbacks = False
         self._ids = itertools.count()
-        self.listener = tf.TransformListener()
         #baseItems are can be modified in self.callback and in other methods at the same time
         #that why we need this mutex
         self.mutex = Lock()
         self.timer = TimerCallback(targetFps=1, callback=self.callback)
         self.timer.start()
+
+        if not TfFrameSync.listener:
+            TfFrameSync.listener = tf.TransformListener()
+
+    @staticmethod
+    def resetTime():
+        TfFrameSync.listener.clear()
 
     def callback(self):
         """
@@ -166,8 +175,8 @@ class TfFrameSync(object):
         :return: the transform between sourceFrame and targetFrame
         """
         if waitForTransform:
-            self.listener.waitForTransform(targetFrame, sourceFrame, timestamp, rospy.Duration(0.1))
-        (trans, rot) = self.listener.lookupTransform(targetFrame, sourceFrame, timestamp)
+            TfFrameSync.listener.waitForTransform(targetFrame, sourceFrame, timestamp, rospy.Duration(0.1))
+        (trans, rot) = TfFrameSync.listener.lookupTransform(targetFrame, sourceFrame, timestamp)
         pose = Pose()
         pose.position.x = trans[0]
         pose.position.y = trans[1]
