@@ -45,7 +45,7 @@ class TfFrameSync(object):
         #baseItems are can be modified in self.callback and in other methods at the same time
         #that why we need this mutex
         self.mutex = Lock()
-        self.timer = TimerCallback(targetFps=5, callback=self.callback)
+        self.timer = TimerCallback(targetFps=1, callback=self.callback)
         self.timer.start()
 
     def callback(self):
@@ -57,9 +57,9 @@ class TfFrameSync(object):
 
         self.mutex.acquire()
         newBaseItemsToUpdate = []
-        for baseItem in self.baseItemsToUpdate:
+        for i, baseItem in enumerate(self.baseItemsToUpdate):
             try:
-                baseItem.baseTransform = self._getTransform(self._rootFrame, baseItem.frame, baseItem.timestamp, False)
+                baseItem.baseTransform = self._getTransform(self._rootFrame, baseItem.frame, baseItem.timestamp, i == 0)
                 self._onBaseItemModified(baseItem)
             except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException,
                      tf2_ros.TransformException) as e:
@@ -156,7 +156,7 @@ class TfFrameSync(object):
         The method is called when the transform between self._rootFrame and the local transform of an item
         cannot be computed
         """
-        if baseItem.frame not in self.baseItemsToUpdate:
+        if baseItem not in self.baseItemsToUpdate:
             self.baseItemsToUpdate.append(baseItem)
 
         return transformUtils.frameFromPositionAndRPY([0,0,0],[0,0,0])
@@ -166,7 +166,7 @@ class TfFrameSync(object):
         :return: the transform between sourceFrame and targetFrame
         """
         if waitForTransform:
-            self.listener.waitForTransform(targetFrame, sourceFrame, timestamp, rospy.Duration(0.2))
+            self.listener.waitForTransform(targetFrame, sourceFrame, timestamp, rospy.Duration(0.1))
         (trans, rot) = self.listener.lookupTransform(targetFrame, sourceFrame, timestamp)
         pose = Pose()
         pose.position.x = trans[0]
