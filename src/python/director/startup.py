@@ -88,6 +88,7 @@ from director import segmentationpanel
 #from director import lcmUtils
 from director.utime import getUtime
 from director.shallowCopy import shallowCopy
+from director import tfvisualization as tf_vis
 
 from director import segmentationroutines
 from director import trackers
@@ -251,6 +252,7 @@ button.connect('clicked()', headCameraPointCloudSource.resetTime)
 button.connect('clicked()', groundCameraPointCloudSource.resetTime)
 button.connect('clicked()', robotStateJointController.resetTime)
 button.connect('clicked()', cameraview.cameraView.resetTime)
+button.connect('clicked()', tf_vis.TfFrameSync.resetTime)
 app.getMainWindow().statusBar().addPermanentWidget(button)
 
 

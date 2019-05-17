@@ -28,8 +28,16 @@ class DD_APP_EXPORT ddROSStateSubscriber : public QObject
 
 public:
 
-  ddROSStateSubscriber(const QList<QString>& argv2, const QString& channel, QObject* parent=NULL) : QObject(parent)
+  ddROSStateSubscriber(const QList<QString>& argv2, const QString& channel, QObject* parent=NULL) 
+    : QObject(parent), odomToMap(7)
   {
+    odomToMap[0] = 0;
+    odomToMap[1] = 0;
+    odomToMap[2] = 0;
+    odomToMap[3] = 0;
+    odomToMap[4] = 0;
+    odomToMap[5] = 0;
+    odomToMap[6] = 1;
     mChannel = channel;
     this->mEmitMessages = true;
     this->mNotifyAllMessages = false;
@@ -72,6 +80,7 @@ public:
     mSubscriber = boost::make_shared<ros::Subscriber>(
     n.subscribe("/state_estimator/quadruped_state", 1000, &ddROSStateSubscriber::messageHandler, this));
     mTfListener = boost::make_shared<tf::TransformListener>();
+
 
   }
 
@@ -118,6 +127,11 @@ public:
   }
 
   QVector<double> getOdomInMap() const
+  {
+    return odomToMap;
+  }      
+
+  QVector<double> computeOdomInMap() const
   {
     // returns odom_in_map in x,y,z,qx,qy,qz,qw
     // note the ordering matches ROS
@@ -280,7 +294,7 @@ protected:
        names.append(QString( message.joints.name[i].c_str()  ));
     }
     mJointNames = names;
-
+    odomToMap =  computeOdomInMap();
   }
 
   void messageHandler(const quadruped_msgs::QuadrupedState& message) {
@@ -301,10 +315,10 @@ protected:
         else
         {
           this->mMutex.lock();
-          updateState(message);
+            
+          updateState(message); 
           bool doEmit = true;//= !this->mLastMessage.size();
-          this->mMutex.unlock();
-
+          this->mMutex.unlock(); 
           if (doEmit)
           {
             emit this->messageReceived( mChannel );
@@ -333,10 +347,14 @@ protected:
   QString mChannel;
 
   boost::shared_ptr<ros::Subscriber> mSubscriber;
-  boost::shared_ptr<tf::TransformListener> mTfListener;
+  boost::shared_ptr<tf::TransformListener> mTfListener;  
 
   QVector<double> mRobotPose;
   QVector<double> mJointPositions;
+  /**
+   * @brief odomToMap is the transformation between map and odom at time (mSec,mNsec)
+   */
+  QVector<double> odomToMap;  
   QList<QString> mJointNames;
   long mSec;
   long mNsec;
