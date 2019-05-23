@@ -18,6 +18,7 @@ from director.debugVis import DebugData
 import director.visualization as vis
 from director import vtkNumpy as vnp
 import numpy as np
+import rospy
 
 #import drc as lcmdrc
 #import bot_core as lcmbotcore
@@ -519,7 +520,8 @@ class PointCloudSource(vis.PolyDataItem):
         self.callbackFunc = callbackFunc
         self.reader = vtkRos.vtkRosPointCloudSubscriber()
         self.reader.SetNumberOfPointClouds(10)
-        topicName = '/point_cloud_filter/velodyne/point_cloud_filtered'
+        topicName = rospy.get_param("/director/velodyne_point_cloud")
+
         self.reader.Start(topicName)
         self.addProperty('Updates Enabled', True)
         self.addProperty('Topic name', topicName)
@@ -592,32 +594,29 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
         cameraMode = drcargs.getDirectorConfig()['cameraMode']
 
         self.reader = vtkRos.vtkRosDepthImageSubscriber()
-        if (cameraMode == "simulation"):
-            print "configure cameras for sim"
-            if cameraName == 'REALSENSE_FORWARD_CAMERA_LEFT':
-                self.reader.Start('/realsense_d435_front_forward/rgb/image_raw', 'raw', '/realsense_d435_front_forward/rgb/camera_info',
-                                  '/realsense_d435_front_forward/depth/image_raw', 'raw', '/realsense_d435_front_forward/depth/camera_info')
-            else:
-                self.reader.Start('/realsense_d435_front/rgb/image_raw', 'raw', '/realsense_d435_front/rgb/camera_info',
-                                  '/realsense_d435_front/depth/image_raw', 'raw', '/realsense_d435_front/depth/camera_info')
-        elif (cameraMode == "wifi"):
-            print "configure cameras for real data. wifi"
-            if cameraName == 'REALSENSE_FORWARD_CAMERA_LEFT':
-                self.reader.Start('/wifi/realsense_d435_front_forward/color/image_raw', 'compressed', '/wifi/realsense_d435_front_forward/color/camera_info',
-                                  '/wifi/realsense_d435_front_forward/aligned_depth_to_color/image_raw', 'compressedDepth', '/wifi/realsense_d435_front_forward/aligned_depth_to_color/camera_info')
-            else:
-                self.reader.Start('/wifi/realsense_d435_front/color/image_raw', 'compressed', '/wifi/realsense_d435_front/color/camera_info',
-                              '/wifi/realsense_d435_front/aligned_depth_to_color/image_raw', 'compressedDepth', '/wifi/realsense_d435_front/aligned_depth_to_color/camera_info')
-        elif (cameraMode == "wired"):
-            print "configure cameras for real data. wired"
-            if cameraName == 'REALSENSE_FORWARD_CAMERA_LEFT':
-                self.reader.Start('/realsense_d435_front_forward/color/image_raw', 'compressed', '/realsense_d435_front_forward/color/camera_info',
-                                  '/realsense_d435_front_forward/aligned_depth_to_color/image_raw', 'compressedDepth', '/realsense_d435_front_forward/aligned_depth_to_color/camera_info')
-            else:
-                self.reader.Start('/realsense_d435_front/color/image_raw', 'compressed', '/realsense_d435_front/color/camera_info',
-                                  '/realsense_d435_front/aligned_depth_to_color/image_raw', 'compressedDepth', '/realsense_d435_front/aligned_depth_to_color/camera_info')
+
+        realsense_front_image = rospy.get_param("/director/realsense_front_image")
+        realsense_front_image_transport = rospy.get_param("/director/realsense_front_image_transport")
+        realsense_front_image_info = rospy.get_param("/director/realsense_front_image_info")
+
+        realsense_front_depth = rospy.get_param("/director/realsense_front_depth")
+        realsense_front_depth_transport = rospy.get_param("/director/realsense_front_depth_transport")
+        realsense_front_depth_info = rospy.get_param("/director/realsense_front_depth_info")
+
+        realsense_front_forward_image = rospy.get_param("/director/realsense_front_forward_image")
+        realsense_front_forward_image_transport = rospy.get_param("/director/realsense_front_forward_image_transport")
+        realsense_front_forward_image_info = rospy.get_param("/director/realsense_front_forward_image_info")
+
+        realsense_front_forward_depth = rospy.get_param("/director/realsense_front_forward_depth")
+        realsense_front_forward_depth_transport = rospy.get_param("/director/realsense_front_forward_depth_transport")
+        realsense_front_forward_depth_info = rospy.get_param("/director/realsense_front_forward_depth_info")
+    
+        if cameraName == 'REALSENSE_FORWARD_CAMERA_LEFT':
+            self.reader.Start(realsense_front_forward_image, realsense_front_forward_image_transport, realsense_front_forward_image_info,
+                              realsense_front_forward_depth, realsense_front_forward_depth_transport, realsense_front_forward_depth_info)
         else:
-            print "camera mode not understood"
+            self.reader.Start(realsense_front_image, realsense_front_image_transport, realsense_front_image_info,
+                              realsense_front_depth, realsense_front_depth_transport, realsense_front_depth_info)
 
         decimation = int(self.properties.getPropertyEnumValue('Decimation'))
         removeSize = int(self.properties.getProperty('Remove Size'))

@@ -17,6 +17,7 @@ import numpy as np
 from director.simpletimer import SimpleTimer
 from director import ioUtils
 import sys
+import rospy
 
 
 def clipRange(dataObj, arrayName, thresholdRange):
@@ -102,23 +103,20 @@ class ImageManager(object):
 
         cameraMode = drcargs.getDirectorConfig()['cameraMode']
         self.queue[name] = vtkRos.vtkRosImageSubscriber()
-        if cameraMode == "simulation":        
-            if name == 'REALSENSE_FORWARD_CAMERA_LEFT':
-                self.queue[name].Start('/realsense_d435_front_forward/rgb/image_raw', 'raw', '/realsense_d435_front_forward/rgb/camera_info')
-            else:
-                self.queue[name].Start('/realsense_d435_front/rgb/image_raw', 'raw', '/realsense_d435_front/rgb/camera_info')
-        elif cameraMode == "wifi":
-            if name == 'REALSENSE_FORWARD_CAMERA_LEFT':
-                self.queue[name].Start('/wifi/realsense_d435_front_forward/color/image_raw', 'compressed', '/wifi/realsense_d435_front_forward/color/camera_info')
-            else:
-                self.queue[name].Start('/wifi/realsense_d435_front/color/image_raw', 'compressed', '/wifi/realsense_d435_front/color/camera_info')
-        elif cameraMode == "wired":
-            if name == 'REALSENSE_FORWARD_CAMERA_LEFT':
-                self.queue[name].Start('/realsense_d435_front_forward/color/image_raw', 'compressed', '/realsense_d435_front_forward/color/camera_info')
-            else:
-                self.queue[name].Start('/realsense_d435_front/color/image_raw', 'compressed', '/realsense_d435_front/color/camera_info')
+
+        realsense_front_image = rospy.get_param("/director/realsense_front_image")
+        realsense_front_image_transport = rospy.get_param("/director/realsense_front_image_transport")
+        realsense_front_image_info = rospy.get_param("/director/realsense_front_image_info")
+
+        realsense_front_forward_image = rospy.get_param("/director/realsense_front_forward_image")
+        realsense_front_forward_image_transport = rospy.get_param("/director/realsense_front_forward_image_transport")
+        realsense_front_forward_image_info = rospy.get_param("/director/realsense_front_forward_image_info")
+
+        if name == 'REALSENSE_FORWARD_CAMERA_LEFT':
+            self.queue[name].Start(realsense_front_forward_image, realsense_front_forward_image_transport, realsense_front_forward_image_info)
         else:
-            print "camera mode not understood"
+            self.queue[name].Start(realsense_front_image, realsense_front_image_transport, realsense_front_image_info)
+
 
     def writeImage(self, imageName, outFile):
         writer = vtk.vtkPNGWriter()
