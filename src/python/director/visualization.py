@@ -552,6 +552,8 @@ class FrameItem(PolyDataItem):
         elif propertyName == 'Tube':
             self.properties.setPropertyAttribute('Tube Width', 'hidden', not self.getProperty(propertyName))
             self._updateAxesGeometry()
+        elif propertyName == 'Tube Width':
+            self._updateAxesGeometry()
 
     def onRemoveFromObjectModel(self):
         PolyDataItem.onRemoveFromObjectModel(self)
