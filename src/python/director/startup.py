@@ -723,7 +723,7 @@ imageOverlayManager = ImageOverlayManager()
 imageWidget = cameraview.ImageWidget(cameraview.imageManager, monoCameras, view, visible=False)
 imageViewHandler = ToggleImageViewHandler(imageWidget)
 
-screengrabberpanel.init(view)
+screengrabberpanel.init(view, imageWidget)
 framevisualization.init(view)
 affordancePanel = affordancepanel.init(view, affordanceManager, robotStateJointController)
 camerabookmarks.init(view)

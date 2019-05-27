@@ -306,6 +306,8 @@ class ImageWidget(object):
         self.imageManager = imageManager
         self.imageNames = imageNames
         self.visible = visible
+        self.widgetWidth = 400
+        self.showNonMainImages = True
 
         self.updateUtime = 0
         self.initialized = False
@@ -358,12 +360,12 @@ class ImageWidget(object):
             coord2.SetCoordinateSystemToDisplay()
             coord.SetValue(0, viewHeight-imageHeight-offsetY)
             coord2.SetValue(imageWidth, imageHeight)
-            offsetY += imageHeight + 15
+            offsetY += imageHeight
 
         self.view.render()
 
     def onResizeEvent(self):
-        self.setWidgetSize(400)
+        self.setWidgetSize(self.widgetWidth)
 
     #def setImageName(self, imageName):
     #    self.imageName = imageName
@@ -375,15 +377,16 @@ class ImageWidget(object):
 
     def hide(self):
         self.visible = False
-        for imageWidget in self.imageWidgets:
+        for i, imageWidget in enumerate(self.imageWidgets):
             imageWidget.Off()
         self.view.render()
 
     def show(self):
         self.visible = True
         if self.haveImage():
-            for imageWidget in self.imageWidgets:
-                imageWidget.On()
+            for i, imageWidget in enumerate(self.imageWidgets):
+                if (i==0 or self.showNonMainImages is True):
+                    imageWidget.On()
             self.view.render()
 
     def haveImage(self):
@@ -409,7 +412,7 @@ class ImageWidget(object):
 
             if not self.initialized and self.visible and self.haveImage():
                 self.show()
-                self.setWidgetSize(400)
+                self.setWidgetSize(self.widgetWidth)
                 self.initialized = True
 
 

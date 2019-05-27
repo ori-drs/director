@@ -28,9 +28,10 @@ class WidgetDict(object):
 
 class ScreenGrabberPanel(object):
 
-    def __init__(self, view):
+    def __init__(self, view, imageWidget):
 
         self.view = view
+        self.imageWidget = imageWidget
 
         loader = QtUiTools.QUiLoader()
         uifile = QtCore.QFile(':/ui/ddScreenGrabber.ui')
@@ -52,6 +53,9 @@ class ScreenGrabberPanel(object):
 
         self.ui.viewHeightSpin.connect('valueChanged(int)', self.onViewSizeChanged)
         self.ui.viewWidthSpin.connect('valueChanged(int)', self.onViewSizeChanged)
+
+        self.ui.imageWidgetWidthSpin.connect('valueChanged(int)', self.onimageWidgetWidthChanged)
+        self.ui.showMainImageCheck.connect('clicked()', self.onShowMainImageCheckChanged)
 
         self.updateViewSize()
         self.onLockViewSize()
@@ -255,6 +259,20 @@ class ScreenGrabberPanel(object):
         else:
             self.unlockViewSize()
 
+    def onimageWidgetWidthChanged(self):
+        self.imageWidget.widgetWidth = self.ui.imageWidgetWidthSpin.value
+        self.imageWidget.onResizeEvent()
+        self.imageWidget.updateView()
+
+    def onShowMainImageCheckChanged(self):
+        if self.ui.showMainImageCheck.checked:
+            self.imageWidget.showNonMainImages = False
+        else:
+            self.imageWidget.showNonMainImages = True
+
+        self.imageWidget.hide()
+        self.imageWidget.show()
+
     def onRecordTimer(self):
 
         saveScreenshot(self.view, self.nextMovieFileName(), shouldRender=False)
@@ -315,12 +333,12 @@ def _getAction():
     return app.getToolBarActions()['ActionScreenGrabberPanel']
 
 
-def init(view):
+def init(view, imageWidget):
 
     global panel
     global dock
 
-    panel = ScreenGrabberPanel(view)
+    panel = ScreenGrabberPanel(view, imageWidget)
     dock = app.addWidgetToDock(panel.widget, action=_getAction())
     dock.hide()
 
