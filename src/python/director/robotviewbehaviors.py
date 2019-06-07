@@ -127,7 +127,12 @@ def placeHandModel(displayPoint, view, side='left'):
 
 def newWalkingGoal(displayPoint, view):
 
-    footFrame = footstepsDriver.getFeetMidPoint(robotModel)
+    # put walking goal at robot's feet
+    #footFrame = footstepsDriver.getFeetMidPoint(robotModel)
+    # put walking goal at robot's base
+    mainLink = drcargs.getDirectorConfig()['pelvisLink']
+    footFrame = robotModel.getLinkFrame(mainLink)
+
 
     worldPt1, worldPt2 = vis.getRayFromDisplayPoint(view, displayPoint)
     groundOrigin = footFrame.GetPosition()

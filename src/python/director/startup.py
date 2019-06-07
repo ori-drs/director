@@ -722,11 +722,10 @@ class ToggleImageViewHandler(object):
 
 monoCameras = drcargs.getDirectorConfig()['monoCameras']
 imageOverlayManager = ImageOverlayManager()
-imageWidget = cameraview.ImageWidget(cameraview.imageManager, monoCameras[0], view, visible=False)
+imageWidget = cameraview.ImageWidget(cameraview.imageManager, monoCameras, view, visible=False)
 imageViewHandler = ToggleImageViewHandler(imageWidget)
-setImageWidgetSource = imageWidget.setImageName
 
-screengrabberpanel.init(view)
+screengrabberpanel.init(view, imageWidget)
 framevisualization.init(view)
 affordancePanel = affordancepanel.init(view, affordanceManager, robotStateJointController)
 camerabookmarks.init(view)

@@ -301,27 +301,33 @@ class CameraView(object):
 
 class ImageWidget(object):
 
-    def __init__(self, imageManager, imageName, view, visible=True):
+    def __init__(self, imageManager, imageNames, view, visible=True):
         self.view = view
         self.imageManager = imageManager
-        self.imageName = imageName
+        self.imageNames = imageNames
         self.visible = visible
+        self.widgetWidth = 400
+        self.showNonMainImages = True
 
         self.updateUtime = 0
         self.initialized = False
 
-        self.imageWidget = vtk.vtkLogoWidget()
-        imageRep = self.imageWidget.GetRepresentation()
-        self.imageWidget.ResizableOff()
-        self.imageWidget.SelectableOn()
+        self.imageWidgets = [vtk.vtkLogoWidget() for i in range(0, len(self.imageNames))]
+        for imageWidget in self.imageWidgets:
+            imageWidget.ResizableOff()
+            imageWidget.SelectableOn()
+            imageWidget.SetInteractor(self.view.renderWindow().GetInteractor())
 
-        imageRep.GetImageProperty().SetOpacity(1.0)
-        self.imageWidget.SetInteractor(self.view.renderWindow().GetInteractor())
+        self.flips = [vtk.vtkImageFlip() for i in range(0, len(self.imageNames))]
 
-        self.flip = vtk.vtkImageFlip()
-        self.flip.SetFilteredAxis(1)
-        self.flip.SetInputData(imageManager.getImage(imageName))
-        imageRep.SetImage(self.flip.GetOutput())
+
+        for i in range(0, len(self.imageWidgets)):
+            self.flips[i].SetFilteredAxis(1)
+            self.flips[i].SetInputData(imageManager.getImage(self.imageNames[i]))
+
+            imageRep = self.imageWidgets[i].GetRepresentation()
+            imageRep.GetImageProperty().SetOpacity(1.0)
+            imageRep.SetImage(self.flips[i].GetOutput())
 
         self.eventFilter = PythonQt.dd.ddPythonEventFilter()
         self.view.installEventFilter(self.eventFilter)
@@ -335,65 +341,78 @@ class ImageWidget(object):
 
     def setWidgetSize(self, desiredWidth=400):
 
-        image = self.imageManager.getImage(self.imageName)
-        dims = image.GetDimensions()
-        if 0.0 in dims:
-            return
+        offsetY = 0
+        for i, imageName in enumerate(self.imageNames):
+            image = self.imageManager.getImage(imageName)
+            dims = image.GetDimensions()
+            if 0.0 in dims:
+                return
 
-        aspectRatio = float(dims[0])/dims[1]
-        imageWidth, imageHeight = desiredWidth, desiredWidth/aspectRatio
-        viewWidth, viewHeight = self.view.width, self.view.height
+            aspectRatio = float(dims[0])/dims[1]
+            imageWidth, imageHeight = desiredWidth, desiredWidth/aspectRatio
+            viewWidth, viewHeight = self.view.width, self.view.height
 
-        rep = self.imageWidget.GetBorderRepresentation()
-        rep.SetShowBorderToOff()
-        coord = rep.GetPositionCoordinate()
-        coord2 = rep.GetPosition2Coordinate()
-        coord.SetCoordinateSystemToDisplay()
-        coord2.SetCoordinateSystemToDisplay()
-        coord.SetValue(0, viewHeight-imageHeight)
-        coord2.SetValue(imageWidth, imageHeight)
+            rep = self.imageWidgets[i].GetBorderRepresentation()
+            rep.SetShowBorderToOff()
+            coord = rep.GetPositionCoordinate()
+            coord2 = rep.GetPosition2Coordinate()
+            coord.SetCoordinateSystemToDisplay()
+            coord2.SetCoordinateSystemToDisplay()
+            coord.SetValue(0, viewHeight-imageHeight-offsetY)
+            coord2.SetValue(imageWidth, imageHeight)
+            offsetY += imageHeight
 
         self.view.render()
 
     def onResizeEvent(self):
-        self.setWidgetSize(400)
+        self.setWidgetSize(self.widgetWidth)
 
-    def setImageName(self, imageName):
-        self.imageName = imageName
-        self.flip.SetInputData(imageManager.getImage(imageName))
+    #def setImageName(self, imageName):
+    #    self.imageName = imageName
+    #    self.flip.SetInputData(imageManager.getImage(imageName))
 
     def setOpacity(self, opacity=1.0):
-        self.imageWidget.GetRepresentation().GetImageProperty().SetOpacity(opacity)
+        for imageWidget in self.imageWidgets:
+            imageWidget.GetRepresentation().GetImageProperty().SetOpacity(opacity)
 
     def hide(self):
         self.visible = False
-        self.imageWidget.Off()
+        for i, imageWidget in enumerate(self.imageWidgets):
+            imageWidget.Off()
         self.view.render()
 
     def show(self):
         self.visible = True
         if self.haveImage():
-            self.imageWidget.On()
+            for i, imageWidget in enumerate(self.imageWidgets):
+                if (i==0 or self.showNonMainImages is True):
+                    imageWidget.On()
             self.view.render()
 
     def haveImage(self):
-        image = self.imageManager.getImage(self.imageName)
-        dims = image.GetDimensions()
-        return 0.0 not in dims
+        for imageName in self.imageNames:
+            image = self.imageManager.getImage(imageName)
+            dims = image.GetDimensions()
+            if 0.0 not in dims:
+                return True
+        return False
 
     def updateView(self):
         if not self.visible or not self.view.isVisible():
             return
 
-        currentUtime = self.imageManager.updateImage(self.imageName)
+        currentUtime = None
+        for imageName in self.imageNames:
+            currentUtime = self.imageManager.updateImage(imageName)
         if currentUtime != self.updateUtime:
             self.updateUtime = currentUtime
-            self.flip.Update()
+            for flip in self.flips:
+                flip.Update()
             self.view.render()
 
             if not self.initialized and self.visible and self.haveImage():
                 self.show()
-                self.setWidgetSize(400)
+                self.setWidgetSize(self.widgetWidth)
                 self.initialized = True
 
 
@@ -629,5 +648,4 @@ def init(view=None,addToView=True):
             monoCameraShortName = monoCamerasShortName[i]
             if monoCamera in cameraNames:
                 addCameraView(monoCamera, monoCameraShortName, addToView=addToView)
-
 
