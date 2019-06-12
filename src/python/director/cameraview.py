@@ -307,27 +307,13 @@ class ImageWidget(object):
         self.imageNames = imageNames
         self.visible = visible
         self.widgetWidth = 400
-        self.showNonMainImages = True
+        self.showNonMainImages = True # if false, show only imageNames[0]
 
         self.updateUtime = 0
         self.initialized = False
 
-        self.imageWidgets = [vtk.vtkLogoWidget() for i in range(0, len(self.imageNames))]
-        for imageWidget in self.imageWidgets:
-            imageWidget.ResizableOff()
-            imageWidget.SelectableOn()
-            imageWidget.SetInteractor(self.view.renderWindow().GetInteractor())
-
-        self.flips = [vtk.vtkImageFlip() for i in range(0, len(self.imageNames))]
-
-
-        for i in range(0, len(self.imageWidgets)):
-            self.flips[i].SetFilteredAxis(1)
-            self.flips[i].SetInputData(imageManager.getImage(self.imageNames[i]))
-
-            imageRep = self.imageWidgets[i].GetRepresentation()
-            imageRep.GetImageProperty().SetOpacity(1.0)
-            imageRep.SetImage(self.flips[i].GetOutput())
+        self.imageWidgets = [None for i in range(0, len(self.imageNames))]
+        self.flips = [None for i in range(0, len(self.imageNames))]
 
         self.eventFilter = PythonQt.dd.ddPythonEventFilter()
         self.view.installEventFilter(self.eventFilter)
@@ -339,14 +325,37 @@ class ImageWidget(object):
         self.timerCallback.callback = self.updateView
         self.timerCallback.start()
 
+    def initImageFlip(self, i):
+        if i >= len(self.flips):
+            return
+        if self.flips[i]: #already initialized
+            return
+
+        self.flips[i] = vtk.vtkImageFlip()
+        self.flips[i].SetFilteredAxis(1)
+        self.flips[i].SetInputData(imageManager.getImage(self.imageNames[i]))
+
+        self.imageWidgets[i] = vtk.vtkLogoWidget()
+        self.imageWidgets[i].ResizableOff()
+        self.imageWidgets[i].SelectableOn()
+        self.imageWidgets[i].SetInteractor(self.view.renderWindow().GetInteractor())
+
+        imageRep = self.imageWidgets[i].GetRepresentation()
+        imageRep.GetImageProperty().SetOpacity(1.0)
+        imageRep.SetImage(self.flips[i].GetOutput())
+
+
     def setWidgetSize(self, desiredWidth=400):
 
         offsetY = 0
         for i, imageName in enumerate(self.imageNames):
+            if not self.imageWidgets[i]:
+                continue
+
             image = self.imageManager.getImage(imageName)
             dims = image.GetDimensions()
-            if 0.0 in dims:
-                return
+            if 0 in dims:
+                continue
 
             aspectRatio = float(dims[0])/dims[1]
             imageWidth, imageHeight = desiredWidth, desiredWidth/aspectRatio
@@ -385,7 +394,7 @@ class ImageWidget(object):
         self.visible = True
         if self.haveImage():
             for i, imageWidget in enumerate(self.imageWidgets):
-                if (i==0 or self.showNonMainImages is True):
+                if (i==0 or self.showNonMainImages) and imageWidget:
                     imageWidget.On()
             self.view.render()
 
@@ -393,7 +402,7 @@ class ImageWidget(object):
         for imageName in self.imageNames:
             image = self.imageManager.getImage(imageName)
             dims = image.GetDimensions()
-            if 0.0 not in dims:
+            if 0 not in dims:
                 return True
         return False
 
@@ -401,13 +410,23 @@ class ImageWidget(object):
         if not self.visible or not self.view.isVisible():
             return
 
-        currentUtime = None
+        currentUtime = 0
         for imageName in self.imageNames:
-            currentUtime = self.imageManager.updateImage(imageName)
+            currentUtime = max(self.imageManager.updateImage(imageName), currentUtime)
+
+
+        if currentUtime == 0:
+            #no data received
+            return
+
         if currentUtime != self.updateUtime:
             self.updateUtime = currentUtime
-            for flip in self.flips:
-                flip.Update()
+            for i in range(0, len(self.flips)):
+                image = self.imageManager.getImage(self.imageNames[i])
+                if 0 not in image.GetDimensions():
+                    #the image is not empty
+                    self.initImageFlip(i)
+                    self.flips[i].Update()
             self.view.render()
 
             if not self.initialized and self.visible and self.haveImage():
