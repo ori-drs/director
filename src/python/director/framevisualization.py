@@ -177,7 +177,7 @@ class FrameVisualizationPanel(object):
         self.eventFilter.connect('handleEvent(QObject*, QEvent*)', self.onEvent)
 
         #PythonQt.dd.ddGroupBoxHider(self.ui.botFramesGroup)
-        PythonQt.dd.ddGroupBoxHider(self.ui.linkFramesGroup)
+        #PythonQt.dd.ddGroupBoxHider(self.ui.linkFramesGroup)
 
         #self.updateTimer = TimerCallback(targetFps=60)
         #self.updateTimer.callback = self.updateFrames
