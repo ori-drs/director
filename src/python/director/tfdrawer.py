@@ -30,9 +30,9 @@ class TfDrawer(object):
         obj = vis.updatePolyData(d.getPolyData(), name, colorByName='RGB255', parent=parent)
         return obj
 
-    def drawFrame(self, transform, name, timestamp, frame):
+    def drawFrame(self, transform, name, timestamp, frame, **kwargs):
 
-        obj = tf_vis.updateFrame(name, transform, frame)
+        obj = tf_vis.updateFrame(name, transform, frame, **kwargs)
         if not self.frameSync.hasItem(obj):
             self.frameSync.addItem(obj, timestamp, frame)
         else:
