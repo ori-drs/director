@@ -890,11 +890,7 @@ def showFrame(frame, name, view=None, parent='segmentation', scale=0.35, visible
     else:
         parentObj = parent
 
-    print "burp"
-
     item = FrameItem(name, frame, view)
-    item.setProperty('Tube', True)
-    item.setProperty('Tube Width', 0.02)    
     om.addToObjectModel(item, parentObj)
     item.setProperty('Visible', visible)
     item.setProperty('Scale', scale)
