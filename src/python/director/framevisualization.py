@@ -121,17 +121,18 @@ class FrameUpdater(object):
             self.addFrame(frameName)
 
 
-
-class BotFrameUpdater(FrameUpdater):
-
-    def __init__(self, listWidget):
-        FrameUpdater.__init__(self, 'Bot Frames', listWidget)
-
-    def getFrameTransform(self, frameName):
-        t = vtk.vtkTransform()
-        t.PostMultiply()
-        cameraview.imageManager.queue.getTransform(frameName, 'local', t)
-        return t
+# Depreciated after bot frames was disabled
+# TODO: add support for tf frame visualization
+#class BotFrameUpdater(FrameUpdater):
+#
+#    def __init__(self, listWidget):
+#        FrameUpdater.__init__(self, 'Bot Frames', listWidget)
+#
+#    def getFrameTransform(self, frameName):
+#        t = vtk.vtkTransform()
+#        t.PostMultiply()
+#        cameraview.imageManager.queue.getTransform(frameName, 'local', t)
+#        return t
 
 
 class LinkFrameUpdater(FrameUpdater):
@@ -165,7 +166,7 @@ class FrameVisualizationPanel(object):
         self.widget = loader.load(uifile)
         self.ui = WidgetDict(self.widget.children())
 
-        self.botFrameUpdater = BotFrameUpdater(self.ui.botFramesListWidget)
+        #self.botFrameUpdater = BotFrameUpdater(self.ui.botFramesListWidget)
 
         robotModel = om.findObjectByName('robot state model')
         self.linkFrameUpdater = LinkFrameUpdater(robotModel, self.ui.linkFramesListWidget)
@@ -175,25 +176,25 @@ class FrameVisualizationPanel(object):
         self.eventFilter.addFilteredEventType(QtCore.QEvent.Resize)
         self.eventFilter.connect('handleEvent(QObject*, QEvent*)', self.onEvent)
 
-        PythonQt.dd.ddGroupBoxHider(self.ui.botFramesGroup)
-        PythonQt.dd.ddGroupBoxHider(self.ui.linkFramesGroup)
+        #PythonQt.dd.ddGroupBoxHider(self.ui.botFramesGroup)
+        #PythonQt.dd.ddGroupBoxHider(self.ui.linkFramesGroup)
 
-        self.updateTimer = TimerCallback(targetFps=60)
-        self.updateTimer.callback = self.updateFrames
-        self.updateTimer.start()
+        #self.updateTimer = TimerCallback(targetFps=60)
+        #self.updateTimer.callback = self.updateFrames
+        #self.updateTimer.start()
 
     def onEvent(self, obj, event):
         minSize = self.ui.scrollArea.widget().minimumSizeHint.width() + self.ui.scrollArea.verticalScrollBar().width
         self.ui.scrollArea.setMinimumWidth(minSize)
 
-    def updateFrames(self):
-        self.botFrameUpdater.updateFrames()
+    #def updateFrames(self):
+    #    self.botFrameUpdater.updateFrames()
 
-    def getNameFilter(self):
-        return str(self.ui.botFramesFilterEdit.text)
+    #def getNameFilter(self):
+    #    return str(self.ui.botFramesFilterEdit.text)
 
-    def onNameFilterChanged(self):
-        filter = self.getNameFilter()
+    #def onNameFilterChanged(self):
+    #    filter = self.getNameFilter()
 
 
 
