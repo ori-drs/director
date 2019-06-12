@@ -1,8 +1,13 @@
-from director import transformUtils
+import PythonQt
 import numpy as np
+import vtkNumpy
+
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Pose
-import PythonQt
+from sensor_msgs import point_cloud2
+
+from director import transformUtils
+from director import segmentation
 
 def rosPoseToTransform(pose):
     '''
@@ -35,6 +40,24 @@ def rosPoseFromTransform(transform):
     pose.orientation.z = quat[3]
 
     return pose
+
+
+def convertPointCloud2ToPolyData(msg, addXYZ=False):
+    # alternative:
+    # https://answers.ros.org/question/230680/extracting-the-xyz-coordinates-from-pointcloud2-data-in-python/
+    #reader = point_cloud2.read_points(msg)
+    #x.append( reader.next()[0:3] )
+
+    numPoints = msg.width * msg.height
+    points=np.zeros(shape=(numPoints,3))
+    for i, point in enumerate(point_cloud2.read_points(msg)):
+        points[i] = point[0:3]
+
+    polyData = vtkNumpy.numpyToPolyData(points, createVertexCells=True)
+
+    if (addXYZ):
+        polyData = segmentation.addCoordArraysToPolyDataXYZ(polyData)
+    return polyData
 
 
 def addSubscriber(channel, messageClass=None, callback=None, historicalLoader=None, callbackNeedsChannel=False):
