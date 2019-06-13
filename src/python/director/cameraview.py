@@ -387,7 +387,8 @@ class ImageWidget(object):
     def hide(self):
         self.visible = False
         for i, imageWidget in enumerate(self.imageWidgets):
-            imageWidget.Off()
+            if (imageWidget is not None):
+                imageWidget.Off()
         self.view.render()
 
     def show(self):
