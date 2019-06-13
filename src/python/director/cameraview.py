@@ -312,6 +312,7 @@ class ImageWidget(object):
         self.updateUtime = 0
         self.initialized = False
 
+        #these two data structures are initialized when data is received
         self.imageWidgets = [None for i in range(0, len(self.imageNames))]
         self.flips = [None for i in range(0, len(self.imageNames))]
 
@@ -382,6 +383,8 @@ class ImageWidget(object):
 
     def setOpacity(self, opacity=1.0):
         for imageWidget in self.imageWidgets:
+            if not imageWidget:
+                continue
             imageWidget.GetRepresentation().GetImageProperty().SetOpacity(opacity)
 
     def hide(self):
