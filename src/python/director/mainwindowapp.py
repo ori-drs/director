@@ -197,6 +197,7 @@ class MainWindowAppFactory(object):
         viewOptions = vis.ViewOptionsItem(fields.view)
         fields.objectModel.addToObjectModel(viewOptions, parentObj=fields.objectModel.findObjectByName('scene'))
         viewOptions.setProperty('Background color', [0.3, 0.3, 0.35])
+        #viewOptions.setProperty('Background color 2', [0.5,0.5,0.5])
         viewOptions.setProperty('Background color 2', [0.95,0.95,1])
         return FieldContainer(viewOptions=viewOptions)
 

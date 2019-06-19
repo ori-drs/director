@@ -8,7 +8,8 @@ class ViewBackgroundLightHandler(object):
         self.action.checkable = True
         self.action.connect('triggered()', self._onChecked)
 
-        self.properties = { viewOptions : {'Gradient background':True, 'Background color':[0.0, 0.0, 0.0], 'Background color 2':[0.3, 0.3, 0.3]},
+        # background was 0,0,0 (black). now charcoal
+        self.properties = { viewOptions : {'Gradient background':True, 'Background color':[0.15, 0.15, 0.15], 'Background color 2':[0.3, 0.3, 0.3]},
                             grid : {'Surface Mode':'Wireframe', 'Alpha':0.05, 'Color':[1.0, 1.0, 1.0], 'Color By':0}
                           }
 
