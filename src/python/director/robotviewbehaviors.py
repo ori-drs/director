@@ -55,6 +55,19 @@ def resetCameraToRobot(view):
     flyer.zoomTo(focalPoint, position)
 
 
+def resetCameraToRobotAbove(view):
+    t = robotModel.getLinkFrame(drcargs.getDirectorConfig()['pelvisLink'] )
+    if t is None:
+        t = vtk.vtkTransform()
+
+    focalPoint = [2, 0.0, 0.25]
+    position = [1, 0.0, 15.25] # to avoid singularities
+    t.TransformPoint(focalPoint, focalPoint)
+    t.TransformPoint(position, position)
+    flyer = cameracontrol.Flyer(view)
+    flyer.zoomTo(focalPoint, position)
+
+
 def resetCameraToHeadView(view):
 
 
@@ -589,6 +602,11 @@ class RobotViewEventFilter(ViewEventFilter):
             consumed = True
             if robotModel is not None:
                 resetCameraToRobot(self.view)
+
+        if key == 't': # aka 'top'
+            consumed = True
+            if robotModel is not None:
+                resetCameraToRobotAbove(self.view)
 
         if consumed:
             self.consumeEvent()
