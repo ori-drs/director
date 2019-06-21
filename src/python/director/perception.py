@@ -444,7 +444,10 @@ class RosGridMap(vis.PolyDataItem):
         self.timer.start()
         self.callbackFunc = callbackFunc
         self.reader = vtkRos.vtkRosGridMapSubscriber()
-        self.reader.Start()
+
+        topicName = rospy.get_param("/director/elevation_map")
+        self.reader.Start(topicName)
+        self.addProperty('Topic name', topicName)
 
 
     def _onPropertyChanged(self, propertySet, propertyName):
@@ -454,6 +457,10 @@ class RosGridMap(vis.PolyDataItem):
                 self.timer.start()
             else:
                 self.timer.stop()
+        elif propertyName == 'Topic name':
+            topicName = self.getProperty(propertyName)
+            self.reader.Stop()
+            self.reader.Start(topicName)   
         elif propertyName == 'Color By':
             color= self.getPropertyEnumValue(propertyName)
             self.reader.SetColorLayer(color)
