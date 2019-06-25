@@ -221,7 +221,8 @@ class TfFrameSync(object):
 
 
     def _onBaseItemModified(self, baseItem):
-        baseItem.item.ref().applyTransform(baseItem.baseTransform)
+        if baseItem.item.ref():
+            baseItem.item.ref().applyTransform(baseItem.baseTransform)
 
     def _onBaseItemsModified(self):
 
@@ -273,6 +274,11 @@ class TfMovableItem(vis.PolyDataItem):
                               of the TfFrameSync
         """
         pass
+
+    def onRemoveFromObjectModel(self):
+        vis.PolyDataItem.onRemoveFromObjectModel(self)
+        if self._frameSync:
+            self._frameSync.removeItem(self)
 
 
 
@@ -374,7 +380,7 @@ class TfFrameItem(TfMovableItem):
             self._updateAxesGeometry()
 
     def onRemoveFromObjectModel(self):
-        vis.PolyDataItem.onRemoveFromObjectModel(self)
+        TfMovableItem.onRemoveFromObjectModel(self)
 
         self.localTransform.RemoveObserver(self.observerTag)
 
@@ -423,7 +429,7 @@ class TfPolyDataItem(TfMovableItem):
         self._notTransformedPolyData.Modified()
 
     def onRemoveFromObjectModel(self):
-        vis.PolyDataItem.onRemoveFromObjectModel(self)
+        TfMovableItem.onRemoveFromObjectModel(self)
 
         self._notTransformedPolyData.RemoveObserver(self.observerTag)
 
