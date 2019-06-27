@@ -80,7 +80,7 @@ set(deps
 set(pkg_deps)
 
 find_package(catkin  REQUIRED COMPONENTS 
-  grid_map_ros grid_map_msgs multisense_image_utils image_transport)
+  grid_map_ros grid_map_msgs depth_image_utils image_utils image_transport)
 
 list(APPEND deps
   ${catkin_LIBRARIES}
