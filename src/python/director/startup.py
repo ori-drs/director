@@ -67,6 +67,7 @@ from director import tasklaunchpanel
 from director.jointpropagator import JointPropagator
 from director import planningutils
 from director import viewcolors
+from director import viewframes
 
 #from director import coursemodel
 
@@ -240,6 +241,9 @@ om.addToObjectModel(viewOptions, parentObj=om.findObjectByName('sensors'))
 
 viewBackgroundLightHandler = viewcolors.ViewBackgroundLightHandler(viewOptions, grid,
                                 app.getToolsMenuActions()['ActionToggleBackgroundLight'])
+
+viewFramesHandler = viewframes.ViewFramesSizeHandler(app.getToolsMenuActions()['ActionToggleFramesSize'])
+
 if not useLightColorScheme:
     viewBackgroundLightHandler.action.trigger()
 

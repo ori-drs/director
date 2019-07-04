@@ -49,6 +49,7 @@
     <addaction name="ActionSignalScope"/>
     <addaction name="ActionToggleStereoRender"/>
     <addaction name="ActionToggleBackgroundLight"/>
+    <addaction name="ActionToggleFramesSize"/>
     <addaction name="ActionToggleImageView"/>
    </widget>
    <widget class="QMenu" name="ViewMenu">
@@ -118,6 +119,7 @@
    <addaction name="ActionColorizeLidar"/>
    <addaction name="ActionToggleImageView"/>
    <addaction name="ActionToggleBackgroundLight"/>
+   <addaction name="ActionToggleFramesSize"/>
    <addaction name="ActionToggleCameraTerrainMode"/>
    <addaction name="ActionResetCamera"/>
   </widget>
@@ -301,6 +303,21 @@
    </property>
    <property name="toolTip">
     <string>Toggle Background Light</string>
+   </property>
+  </action>
+  <action name="ActionToggleFramesSize">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="images/resources.qrc">
+     <normaloff>:/images/magnifying_glass.png</normaloff>:/images/magnifying_glass.png</iconset>
+   </property>
+   <property name="text">
+    <string>Toggle Frames Size</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle Frames Size</string>
    </property>
   </action>
   <action name="ActionResetCamera">
