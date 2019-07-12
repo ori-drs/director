@@ -51,7 +51,7 @@ class TfFrameSync(object):
         self.timer.start()
 
         if not TfFrameSync.listener:
-            TfFrameSync.listener = tf.TransformListener()
+            TfFrameSync.listener = tf.TransformListener(cache_time=rospy.Duration(2000))
 
     @staticmethod
     def resetTime():
