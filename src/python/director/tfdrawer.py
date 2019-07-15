@@ -24,19 +24,20 @@ class TfDrawer(object):
 
         return obj
 
-    def drawArrowWithoutTimestamp(self, frame, name, color=[1,0,0], parent=None):
-        d = DebugData()
-        d.addArrowWithFrame(frame, scale=0.5, color=color, headRadius=0.1, tubeRadius=0.04)
-        obj = vis.updatePolyData(d.getPolyData(), name, colorByName='RGB255', parent=parent)
-        return obj
 
-    def drawFrame(self, transform, name, timestamp, frame, **kwargs):
+    def drawFrame(self, transform, name, timestamp, frame, color=None, **kwargs):
 
         obj = tf_vis.updateFrame(name, transform, frame, **kwargs)
-        if not self.frameSync.hasItem(obj):
-            self.frameSync.addItem(obj, timestamp, frame)
-        else:
-            self.frameSync.updateItemTimestamp(obj, timestamp)
+        if timestamp and frame:
+            if not self.frameSync.hasItem(obj):
+                self.frameSync.addItem(obj, timestamp, frame)
+            else:
+                self.frameSync.updateItemTimestamp(obj, timestamp)
+
+        if color:
+            obj.setProperty('Color By', 'Solid Color')
+            obj.setProperty('Color', color)
+        return obj
 
     def setRootFrame(self, frame):
         self.frameSync.setRootFrame(frame)
