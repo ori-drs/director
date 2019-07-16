@@ -286,6 +286,10 @@ class TfFrameItem(TfMovableItem):
     """
         An class used to represent a frame item synchronized by a TfFrameSync object
     """
+    _scale = 0.35
+    _isTube = False
+    _tubeWidth = 0.002
+
     def __init__(self, name, transform, frame, view):
 
         TfMovableItem.__init__(self, name, transform, frame, view)
@@ -300,11 +304,18 @@ class TfFrameItem(TfMovableItem):
         self.rep.SetTransform(self.transform)
         self.traceData = None
 
-        self.addProperty('Scale', 1.0, attributes=om.PropertyAttributes(decimals=2, minimum=0.01, maximum=100, singleStep=0.1, hidden=False))
         self.addProperty('Edit', False)
         self.addProperty('Trace', False)
+        self.addProperty('Scale', 0.35,
+                         attributes=om.PropertyAttributes(decimals=2, minimum=0.01, maximum=100, singleStep=0.1,
+                                                          hidden=False))
+
         self.addProperty('Tube', False)
-        self.addProperty('Tube Width', 0.002, attributes=om.PropertyAttributes(decimals=3, minimum=0.001, maximum=10, singleStep=0.01, hidden=True))
+        self.addProperty('Tube Width', 0.002,
+                         attributes=om.PropertyAttributes(decimals=3, minimum=0.001, maximum=10, singleStep=0.01,
+                                                          hidden=True))
+        self._setSizeProperties()
+
 
         self.properties.setPropertyIndex('Edit', 0)
         self.properties.setPropertyIndex('Trace', 1)
@@ -315,6 +326,24 @@ class TfFrameItem(TfMovableItem):
         self.setProperty('Color By', 'Axes')
         self.setProperty('Icon', om.Icons.Axes)
         self.observerTag = self.localTransform.AddObserver('ModifiedEvent', self.onTransformModified)
+
+    def _setSizeProperties(self):
+        self.setProperty('Scale', TfFrameItem._scale)
+        self.setProperty('Tube', TfFrameItem._isTube)
+        self.setProperty('Tube Width', TfFrameItem._tubeWidth)
+
+    def setDefaultSizeProperties(self):
+        TfFrameItem._scale = 0.35
+        TfFrameItem._isTube = False
+        TfFrameItem._tubeWidth = 0.002
+        self._setSizeProperties()
+
+
+    def setBigSizeProperties(self):
+        TfFrameItem._scale = 0.6
+        TfFrameItem._isTube = True
+        TfFrameItem._tubeWidth = 0.05
+        self._setSizeProperties()
 
 
     def onTransformModified(self, transform, event):
@@ -475,7 +504,7 @@ def updatePolyData(polyData, name, frame, **kwargs):
         obj = showPolyData(polyData, name, frame, **kwargs)
     return obj
 
-def showFrame(name, transform, frame, view=None, parent=None, scale=0.35, visible=True):
+def showFrame(name, transform, frame, view=None, parent=None, visible=True):
     """
     Create a new TfFrameItem
     """
@@ -490,7 +519,6 @@ def showFrame(name, transform, frame, view=None, parent=None, scale=0.35, visibl
     item = TfFrameItem(name, transform, frame, view)
     om.addToObjectModel(item, parentObj)
     item.setProperty('Visible', visible)
-    item.setProperty('Scale', scale)
     return item
 
 
