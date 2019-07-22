@@ -89,7 +89,7 @@ class RobotSystemFactory(object):
         from director import robotstate
 
 
-        rosInit, pointCloudSource, gridMapSource, headCameraPointCloudSource, groundCameraPointCloudSource = perception.init(robotSystem.view,  robotSystem.robotStateJointController)
+        rosInit, pointCloudSource, gridMapSource, gridMapLidarSource, headCameraPointCloudSource, groundCameraPointCloudSource = perception.init(robotSystem.view,  robotSystem.robotStateJointController)
 
 
         spindleJoint = 'hokuyo_joint'
@@ -109,6 +109,7 @@ class RobotSystemFactory(object):
         return FieldContainer(  rosInit=rosInit,
                                 pointCloudSource=pointCloudSource,
                                 gridMapSource=gridMapSource,
+                                gridMapLidarSource=gridMapLidarSource,
                                 headCameraPointCloudSource=headCameraPointCloudSource,
                                 groundCameraPointCloudSource=groundCameraPointCloudSource)
 
