@@ -435,8 +435,8 @@ class SpindleMonitor(object):
 
 class RosGridMap(vis.PolyDataItem):
 
-    def __init__(self, robotStateJointController, callbackFunc=None):
-        vis.PolyDataItem.__init__(self, 'elevation map', vtk.vtkPolyData(), view=None)
+    def __init__(self, robotStateJointController, inputTopic, name, callbackFunc=None):
+        vis.PolyDataItem.__init__(self, name, vtk.vtkPolyData(), view=None)
         self.firstData = True
         self.robotStateJointController = robotStateJointController
         self.timer = TimerCallback()
@@ -445,9 +445,8 @@ class RosGridMap(vis.PolyDataItem):
         self.callbackFunc = callbackFunc
         self.reader = vtkRos.vtkRosGridMapSubscriber()
 
-        topicName = rospy.get_param("/director/elevation_map")
-        self.reader.Start(topicName)
-        self.addProperty('Topic name', topicName)
+        self.reader.Start(inputTopic)
+        self.addProperty('Topic name', inputTopic)
 
 
     def _onPropertyChanged(self, propertySet, propertyName):
@@ -456,7 +455,7 @@ class RosGridMap(vis.PolyDataItem):
             if self.getProperty(propertyName):
                 self.timer.start()
             else:
-                self.timer.stop()
+                self.timer.stop()  
         elif propertyName == 'Topic name':
             topicName = self.getProperty(propertyName)
             self.reader.Stop()
@@ -753,9 +752,18 @@ def init(view, robotStateJointController):
     rosInit.addToView(view)
     #om.addToObjectModel(rosInit, sensorsFolder)
 
-    gridMapSource = RosGridMap(robotStateJointController, callbackFunc=view.render)
+    #elevation map
+    topicName = rospy.get_param("/director/elevation_map")    
+    gridMapSource = RosGridMap(robotStateJointController, topicName, 'elevation map', callbackFunc=view.render)
     gridMapSource.addToView(view)
     om.addToObjectModel(gridMapSource, sensorsFolder)
+    
+    #lidar elevation map        
+    topicName = rospy.get_param("/director/elevation_map_lidar")  
+    gridMapLidarSource = RosGridMap(robotStateJointController, topicName, 'lidar elevation map', callbackFunc=view.render)
+    gridMapLidarSource.setProperty('Visible', False)
+    gridMapLidarSource.addToView(view)
+    om.addToObjectModel(gridMapLidarSource, sensorsFolder)
 
     pointCloudSource = PointCloudSource(robotStateJointController, callbackFunc=view.render)
     pointCloudSource.addToView(view)
@@ -780,4 +788,4 @@ def init(view, robotStateJointController):
     #def createPointerTracker():
     #    return trackers.PointerTracker(robotStateModel, mainDisparityPointCloud)
 
-    return rosInit, pointCloudSource, gridMapSource, headCameraPointCloudSource, groundCameraPointCloudSource
+    return rosInit, pointCloudSource, gridMapSource, gridMapLidarSource, headCameraPointCloudSource, groundCameraPointCloudSource
