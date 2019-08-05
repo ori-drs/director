@@ -75,6 +75,11 @@ public:
 
   void SetRotationActor(int axisId, vtkActor* actor);
 
+  static void SetBigSizeHandles();
+  static void SetDefaultSizeHandles();
+
+  void RedrawHandles();
+
   // Description:
   // Methods supporting, and required by, the rendering process.
   virtual void ReleaseGraphicsResources(vtkWindow*);
@@ -131,6 +136,7 @@ private:
 
   vtkFrameWidgetRepresentation(const vtkFrameWidgetRepresentation&);  //Not implemented
   void operator=(const vtkFrameWidgetRepresentation&);  //Not implemented
+
 };
 
 #endif
