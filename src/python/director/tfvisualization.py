@@ -314,7 +314,7 @@ class TfFrameItem(TfMovableItem):
         self.addProperty('Tube Width', 0.002,
                          attributes=om.PropertyAttributes(decimals=3, minimum=0.001, maximum=10, singleStep=0.01,
                                                           hidden=True))
-        self._setSizeProperties()
+        self.setSizeProperties()
 
 
         self.properties.setPropertyIndex('Edit', 0)
@@ -327,23 +327,22 @@ class TfFrameItem(TfMovableItem):
         self.setProperty('Icon', om.Icons.Axes)
         self.observerTag = self.localTransform.AddObserver('ModifiedEvent', self.onTransformModified)
 
-    def _setSizeProperties(self):
+    def setSizeProperties(self):
         self.setProperty('Scale', TfFrameItem._scale)
         self.setProperty('Tube', TfFrameItem._isTube)
         self.setProperty('Tube Width', TfFrameItem._tubeWidth)
 
-    def setDefaultSizeProperties(self):
+    @staticmethod
+    def setDefaultSizeProperties():
         TfFrameItem._scale = 0.35
         TfFrameItem._isTube = False
         TfFrameItem._tubeWidth = 0.002
-        self._setSizeProperties()
 
-
-    def setBigSizeProperties(self):
+    @staticmethod
+    def setBigSizeProperties():
         TfFrameItem._scale = 0.6
         TfFrameItem._isTube = True
         TfFrameItem._tubeWidth = 0.05
-        self._setSizeProperties()
 
 
     def onTransformModified(self, transform, event):
