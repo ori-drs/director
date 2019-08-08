@@ -21,6 +21,8 @@ class AicpPoseSource(om.ContainerItem):
         self.lineContainer = tf_draw.PolyDataContainer('lines')
         om.addToObjectModel(self.lineContainer, parentObj=self)
         self.areContainerInitialized = False
+        self.prevTfFrame = None
+        self.prevIndexReceived = -1
 
         self.addProperty('Topic name', topicName)
         self.addProperty('Subscribe', True)
@@ -29,21 +31,13 @@ class AicpPoseSource(om.ContainerItem):
 
     def _posesCallback(self, msg):
         view = app.getCurrentRenderView()
+        #only render last poses received
 
-        # clear lines, frames and arrows
-        for obj in self.lines:
-            obj.disconnect()
-            om.removeFromObjectModel(obj)
+        print len(msg.poses)-self.prevIndexReceived
 
-        del self.lines[:]
-        for obj in self.arrows + self.frames:
-            om.removeFromObjectModel(obj)
-        del self.frames[:]
-        del self.arrows[:]
+        for i in range(self.prevIndexReceived+1, len(msg.poses)):
+            pose = msg.poses[i]
 
-
-        prevTfFrame = None
-        for i, pose in enumerate(msg.poses):
             transform = rosutils.rosPoseToTransform(pose.pose)
             tfFrame = self.tfDrawer.drawFrame(transform, "pose " + str(i), msg.header.stamp, msg.header.frame_id,
                                     parent=self)
@@ -52,19 +46,20 @@ class AicpPoseSource(om.ContainerItem):
                                               parent=self)
             self.arrows.append(tfArrow)
 
-            if prevTfFrame:
-                line = tf_draw.LineItem('line ' + str(i), prevTfFrame, tfFrame)
+            if self.prevTfFrame:
+                line = tf_draw.LineItem('line ' + str(i), self.prevTfFrame, tfFrame)
                 line.addToView(view)
                 om.addToObjectModel(line, self.lineContainer)
                 self.lines.append(line)
 
-            prevTfFrame = tfFrame
+            self.prevTfFrame = tfFrame
+
+        self.prevIndexReceived = len(msg.poses)-1
 
         if not self.areContainerInitialized:
             if self.lines:
                 self._copyPropertiesToContainer(self.lineContainer, self.lines[0])
-
-            self.areContainerInitialized = True
+                self.areContainerInitialized = True
         else:
             self._copyContainerPropertiesToObjects(self.lineContainer, self.lines)
 
@@ -89,6 +84,8 @@ class AicpPoseSource(om.ContainerItem):
                 obj.setProperty('Visible', False)
 
     def _copyContainerPropertiesToObjects(self, container, objects):
+
+
         for obj in objects:
             for propertyName in container.propertyNames():
                 if propertyName in ['Name', 'Icon']:
@@ -96,7 +93,7 @@ class AicpPoseSource(om.ContainerItem):
 
                 propertyValue = container.getProperty(propertyName)
                 if obj.hasProperty(propertyName):
-                    container.setProperty(propertyName, propertyValue)
+                    obj.setProperty(propertyName, propertyValue)
 
     def _copyPropertiesToContainer(self, container, obj):
         for propertyName in obj.propertyNames():
