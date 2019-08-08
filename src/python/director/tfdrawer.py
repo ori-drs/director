@@ -16,8 +16,11 @@ class PolyDataTfObserver(vis.PolyDataItem):
         vis.PolyDataItem.__init__(self, name, vtk.vtkPolyData(), view=None)
         self.tfFrame1 = tfFrame1
         self.tfFrame2 = tfFrame2
-        self.callbackId1 = tfFrame1.connectTransformModified(self.draw())
-        self.callbackId2 = tfFrame2.connectTransformModified(self.draw())
+        self.callbackId1 = tfFrame1.connectTransformModified(self.callback)
+        self.callbackId2 = tfFrame2.connectTransformModified(self.callback)
+        self.draw()
+
+    def callback(self, item):
         self.draw()
 
     @abc.abstractmethod

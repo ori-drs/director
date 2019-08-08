@@ -463,6 +463,7 @@ class TfPolyDataItem(TfMovableItem):
         transformFilter.Update()
 
         vis.PolyDataItem.setPolyData(self, transformFilter.GetOutput())
+        self.callbacks.process('TransformModified', self)
 
     def setPolyData(self, polyData):
         #self._notTransformedPolyData = polyData

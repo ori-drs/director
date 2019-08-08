@@ -8,39 +8,36 @@ from nav_msgs.msg import Path
 
 class AicpPoseSource(om.ContainerItem):
 
-    def __init__(self, name, topicName, fixedFrame):
+    def __init__(self, name, topicName, tfDrawer):
         om.ContainerItem.__init__(self, name)
 
         om.addToObjectModel(self)
         self.topicName = topicName
         self.subscriber = rosutils.addSubscriber(self.topicName, Path, self._posesCallback)
-        self.tfDrawer = tf_draw.TfDrawer(fixedFrame)
+        self.tfDrawer = tfDrawer
         self.lines = []
         self.frames = []
         self.arrows = []
         self.lineContainer = tf_draw.PolyDataContainer('lines')
         om.addToObjectModel(self.lineContainer, parentObj=self)
-        self.arrowContainer = tf_draw.PolyDataContainer('arrows')
-        om.addToObjectModel(self.arrowContainer, parentObj=self)
-        self.areContainersInitialized = False
+        self.areContainerInitialized = False
 
         self.addProperty('Topic name', topicName)
         self.addProperty('Subscribe', True)
-        self.addProperty('Visible', True)
-        self.addProperty('Draw Frames', True)
+        self.addProperty('Style', 0, attributes=om.PropertyAttributes(enumNames=['Frames', 'Arrows']))
 
 
     def _posesCallback(self, msg):
-
         view = app.getCurrentRenderView()
 
         # clear lines, frames and arrows
-        gen = chain(self)
-        for obj in self.lines + self.arrows:
+        for obj in self.lines:
             obj.disconnect()
             om.removeFromObjectModel(obj)
 
         del self.lines[:]
+        for obj in self.arrows + self.frames:
+            om.removeFromObjectModel(obj)
         del self.frames[:]
         del self.arrows[:]
 
@@ -51,6 +48,9 @@ class AicpPoseSource(om.ContainerItem):
             tfFrame = self.tfDrawer.drawFrame(transform, "pose " + str(i), msg.header.stamp, msg.header.frame_id,
                                     parent=self)
             self.frames.append(tfFrame)
+            tfArrow = self.tfDrawer.drawArrow(transform, "arrow " + str(i), msg.header.stamp, msg.header.frame_id,
+                                              parent=self)
+            self.arrows.append(tfArrow)
 
             if prevTfFrame:
                 line = tf_draw.LineItem('line ' + str(i), prevTfFrame, tfFrame)
@@ -58,23 +58,35 @@ class AicpPoseSource(om.ContainerItem):
                 om.addToObjectModel(line, self.lineContainer)
                 self.lines.append(line)
 
-                arrow = tf_draw.ArrowItem('arrow ' + str(i), prevTfFrame, tfFrame)
-                arrow.addToView(view)
-                om.addToObjectModel(arrow, self.arrowContainer)
-                self.arrows.append(arrow)
-
             prevTfFrame = tfFrame
 
-        if not self.areContainersInitialized:
+        if not self.areContainerInitialized:
             if self.lines:
                 self._copyPropertiesToContainer(self.lineContainer, self.lines[0])
-            if self.arrows:
-                self._copyPropertiesToContainer(self.arrowContainer, self.arrows[0])
-            self.areContainersInitialized = True
+
+            self.areContainerInitialized = True
         else:
             self._copyContainerPropertiesToObjects(self.lineContainer, self.lines)
-            self._copyContainerPropertiesToObjects(self.arrowContainer, self.arrows)
 
+        self._displayTfObjects()
+
+
+    def _displayTfObjects(self):
+        propertyValue = self.getPropertyEnumValue('Style')
+        visible = self.getProperty('Visible')
+        if propertyValue == 'Frames' and visible:
+            for frame in self.frames:
+                frame.setProperty('Visible', True)
+            for arrow in self.arrows:
+                arrow.setProperty('Visible', False)
+        elif propertyValue == 'Arrows' and visible:
+            for frame in self.frames:
+                frame.setProperty('Visible', False)
+            for arrow in self.arrows:
+                arrow.setProperty('Visible', True)
+        else:
+            for obj in self.frames + self.arrows:
+                obj.setProperty('Visible', False)
 
     def _copyContainerPropertiesToObjects(self, container, objects):
         for obj in objects:
@@ -119,11 +131,10 @@ class AicpPoseSource(om.ContainerItem):
             if self.getProperty(propertyName):
                 self.subscriber = rosutils.addSubscriber(self.topicName, Path, self._posesCallback)
             else:
-                self.subscriber = None
-        elif propertyName == 'Draw Frames':
-            for frame in self.frames:
-                frame.setProperty('Visible', self.getProperty(propertyName))
+                self.subscriber.unsubscribe()
+        elif propertyName == 'Style':
+            self._displayTfObjects()
         elif propertyName == 'Visible':
-            self.setProperty('Draw Frames', self.getProperty(propertyName))
+            self._displayTfObjects()
 
 
