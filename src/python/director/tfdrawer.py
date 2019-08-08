@@ -1,3 +1,5 @@
+import abc
+
 from director import tfvisualization as tf_vis
 from director import visualization as vis
 from director.debugVis import DebugData
@@ -5,15 +7,31 @@ from director import objectmodel as om
 
 import vtk
 
-
-class LineItem(vis.PolyDataItem):
+class PolyDataTfObserver(vis.PolyDataItem):
+    """
+        A class used to a polyData links to two tfFrame items
+        The item is redraw each time a tfFrame item is modified
+    """
     def __init__(self, name, tfFrame1, tfFrame2):
         vis.PolyDataItem.__init__(self, name, vtk.vtkPolyData(), view=None)
         self.tfFrame1 = tfFrame1
         self.tfFrame2 = tfFrame2
-        self.callbackId1 = tfFrame1.connectTransformModified(self.redraw())
-        self.callbackId2 = tfFrame2.connectTransformModified(self.redraw())
+        self.callbackId1 = tfFrame1.connectTransformModified(self.draw())
+        self.callbackId2 = tfFrame2.connectTransformModified(self.draw())
         self.draw()
+
+    @abc.abstractmethod
+    def draw(self):
+        pass
+
+    def disconnect(self):
+        self.tfFrame1.disconnectCallback(self.callbackId1)
+        self.tfFrame2.disconnectCallback(self.callbackId2)
+
+class LineItem(PolyDataTfObserver):
+
+    def __init__(self, name, tfFrame1, tfFrame2):
+        PolyDataTfObserver.__init__(self, name, tfFrame1, tfFrame2)
 
     def draw(self):
         d = DebugData()
@@ -24,13 +42,35 @@ class LineItem(vis.PolyDataItem):
         self.setPolyData(polyData)
         self.setProperty('Color By', 'RGB255')
 
-    def disconnect(self):
-        self.tfFrame1.disconnectCallback(self.callbackId1)
-        self.tfFrame2.disconnectCallback(self.callbackId2)
 
-    def redraw(self):
-        #callback called when a TfFrame1 or TfFrame2 is modified
-        self.draw()
+class ArrowItem(PolyDataTfObserver):
+
+    def __init__(self, name, tfFrame1, tfFrame2):
+        PolyDataTfObserver.__init__(self, name, tfFrame1, tfFrame2)
+
+    def draw(self):
+        d = DebugData()
+        p1 = self.tfFrame1.transform.GetPosition()
+        p2 = self.tfFrame2.transform.GetPosition()
+        d.addArrow(p1, p2, color=[0, 1, 0])
+        polyData = d.getPolyData()
+        self.setPolyData(polyData)
+        self.setProperty('Color By', 'RGB255')
+
+
+class PolyDataContainer(vis.PolyDataItem):
+
+    def __init__(self, name):
+        vis.PolyDataItem.__init__(self, name, vtk.vtkPolyData(), view=None)
+        self.setIcon(om.Icons.Directory)
+
+    def _onPropertyChanged(self, propertySet, propertyName):
+        vis.PolyDataItem._onPropertyChanged(self, propertySet, propertyName)
+        property = self.getProperty(propertyName)
+        for child in self.children():
+            if child.hasProperty(propertyName):
+                child.setProperty(propertyName, property)
+
 
 
 

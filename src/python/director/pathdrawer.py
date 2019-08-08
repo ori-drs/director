@@ -5,6 +5,7 @@ import director.applogic as app
 
 from nav_msgs.msg import Path
 
+
 class AicpPoseSource(om.ContainerItem):
 
     def __init__(self, name, topicName, fixedFrame):
@@ -16,12 +17,16 @@ class AicpPoseSource(om.ContainerItem):
         self.tfDrawer = tf_draw.TfDrawer(fixedFrame)
         self.lines = []
         self.frames = []
-        self.lineContainer = om.getOrCreateContainer('lines', parentObj=self)
+        self.arrows = []
+        self.lineContainer = tf_draw.PolyDataContainer('lines')
+        om.addToObjectModel(self.lineContainer, parentObj=self)
+        self.arrowContainer = tf_draw.PolyDataContainer('arrows')
+        om.addToObjectModel(self.arrowContainer, parentObj=self)
+        self.areContainersInitialized = False
 
         self.addProperty('Topic name', topicName)
         self.addProperty('Subscribe', True)
         self.addProperty('Visible', True)
-        self.addProperty('Draw Lines', True)
         self.addProperty('Draw Frames', True)
 
 
@@ -29,11 +34,15 @@ class AicpPoseSource(om.ContainerItem):
 
         view = app.getCurrentRenderView()
 
-        # clear lines and frames
-        for line in self.lines:
-            line.disconnect()
+        # clear lines, frames and arrows
+        gen = chain(self)
+        for obj in self.lines + self.arrows:
+            obj.disconnect()
+            om.removeFromObjectModel(obj)
+
         del self.lines[:]
         del self.frames[:]
+        del self.arrows[:]
 
 
         prevTfFrame = None
@@ -48,7 +57,55 @@ class AicpPoseSource(om.ContainerItem):
                 line.addToView(view)
                 om.addToObjectModel(line, self.lineContainer)
                 self.lines.append(line)
+
+                arrow = tf_draw.ArrowItem('arrow ' + str(i), prevTfFrame, tfFrame)
+                arrow.addToView(view)
+                om.addToObjectModel(arrow, self.arrowContainer)
+                self.arrows.append(arrow)
+
             prevTfFrame = tfFrame
+
+        if not self.areContainersInitialized:
+            if self.lines:
+                self._copyPropertiesToContainer(self.lineContainer, self.lines[0])
+            if self.arrows:
+                self._copyPropertiesToContainer(self.arrowContainer, self.arrows[0])
+            self.areContainersInitialized = True
+        else:
+            self._copyContainerPropertiesToObjects(self.lineContainer, self.lines)
+            self._copyContainerPropertiesToObjects(self.arrowContainer, self.arrows)
+
+
+    def _copyContainerPropertiesToObjects(self, container, objects):
+        for obj in objects:
+            for propertyName in container.propertyNames():
+                if propertyName in ['Name', 'Icon']:
+                    continue
+
+                propertyValue = container.getProperty(propertyName)
+                if obj.hasProperty(propertyName):
+                    container.setProperty(propertyName, propertyValue)
+
+    def _copyPropertiesToContainer(self, container, obj):
+        for propertyName in obj.propertyNames():
+            if propertyName in ['Name', 'Icon', 'Visible']:
+                continue
+
+            if propertyName == 'Color By':
+                enumNames = ['Solid Color'] + obj.getArrayNames()
+                currentValue = obj.getProperty('Color By')
+                if currentValue >= len(enumNames):
+                    container.setProperty('Color By', 0)
+                container.setPropertyAttribute('Color By', 'enumNames', enumNames)
+
+            propertyValue = obj.getProperty(propertyName)
+            if container.hasProperty(propertyName):
+                attribute = obj.getPropertyAttribute(propertyName, 'hidden')
+                container.setProperty(propertyName, propertyValue)
+                container.setPropertyAttribute(propertyName, 'hidden', attribute)
+            else:
+                #shouldn't go there
+                container.addProperty(propertyName, propertyValue)
 
 
     def _onPropertyChanged(self, propertySet, propertyName):
@@ -63,14 +120,10 @@ class AicpPoseSource(om.ContainerItem):
                 self.subscriber = rosutils.addSubscriber(self.topicName, Path, self._posesCallback)
             else:
                 self.subscriber = None
-        elif propertyName == 'Draw Lines':
-            for line in self.lines:
-                line.setProperty('Visible', self.getProperty(propertyName))
         elif propertyName == 'Draw Frames':
             for frame in self.frames:
                 frame.setProperty('Visible', self.getProperty(propertyName))
         elif propertyName == 'Visible':
-            self.setProperty('Draw Lines', self.getProperty(propertyName))
             self.setProperty('Draw Frames', self.getProperty(propertyName))
 
 

@@ -108,7 +108,6 @@ class PolyDataItem(om.ObjectModelItem):
 
         array = self.polyData.GetPointData().GetArray(arrayName)
         if not array:
-            print 'colorBy(%s): array not found' % arrayName
             self.mapper.ScalarVisibilityOff()
             self.polyData.GetPointData().SetActiveScalars(None)
             return
