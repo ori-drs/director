@@ -6,7 +6,7 @@ import director.applogic as app
 from nav_msgs.msg import Path
 
 
-class AicpPoseSource(om.ContainerItem):
+class PathSource(om.ContainerItem):
 
     def __init__(self, name, topicName, tfDrawer):
         om.ContainerItem.__init__(self, name)
@@ -31,23 +31,22 @@ class AicpPoseSource(om.ContainerItem):
 
     def _posesCallback(self, msg):
         view = app.getCurrentRenderView()
+        name = self.getProperty('Name')
         #only render last poses received
-
-        print len(msg.poses)-self.prevIndexReceived
 
         for i in range(self.prevIndexReceived+1, len(msg.poses)):
             pose = msg.poses[i]
 
             transform = rosutils.rosPoseToTransform(pose.pose)
-            tfFrame = self.tfDrawer.drawFrame(transform, "pose " + str(i), msg.header.stamp, msg.header.frame_id,
+            tfFrame = self.tfDrawer.drawFrame(transform, name + " - pose " + str(i), msg.header.stamp, msg.header.frame_id,
                                     parent=self)
             self.frames.append(tfFrame)
-            tfArrow = self.tfDrawer.drawArrow(transform, "arrow " + str(i), msg.header.stamp, msg.header.frame_id,
+            tfArrow = self.tfDrawer.drawArrow(transform, name + " - arrow " + str(i), msg.header.stamp, msg.header.frame_id,
                                               parent=self)
             self.arrows.append(tfArrow)
 
             if self.prevTfFrame:
-                line = tf_draw.LineItem('line ' + str(i), self.prevTfFrame, tfFrame)
+                line = tf_draw.LineItem(name + ' - line ' + str(i), self.prevTfFrame, tfFrame)
                 line.addToView(view)
                 om.addToObjectModel(line, self.lineContainer)
                 self.lines.append(line)
