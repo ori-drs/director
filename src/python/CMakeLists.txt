@@ -86,6 +86,7 @@ set(python_files
   director/otdfmodel.py
   director/outputconsole.py
   director/packagepath.py
+  director/pathdrawer.py
   director/perception.py
   director/planningutils.py
   director/planplayback.py

@@ -202,7 +202,7 @@ class TfFrameSync(object):
         if baseItemToRemove.frame in self.baseItemsToUpdate:
             self.baseItemsToUpdate.remove(baseItem)
 
-        item.disconnectItemModified(self.items[itemId].callbackId)
+        item.disconnectCallback(self.items[itemId].callbackId)
         item._frameSync = None
         self._removeItemId(itemId)
 
@@ -247,6 +247,7 @@ class TfMovableItem(vis.PolyDataItem):
 
         vis.PolyDataItem.__init__(self, name, polyData, view)
 
+        # localTransform is the transform of the item in frame
         self.localTransform = transformUtils.copyFrame(transform)
         self._blockSignals = False
         self._frameSync = None
@@ -254,13 +255,23 @@ class TfMovableItem(vis.PolyDataItem):
         self.frame = frame
 
         self.callbacks.addSignal('ItemModified')
+        self.callbacks.addSignal('TransformModified')
         self.observerTag = None
 
 
     def connectItemModified(self, func):
+        """
+        This signal *ItemModified* is triggered when the local transform of the item is modified
+        """
         return self.callbacks.connect('ItemModified', func)
 
-    def disconnectItemModified(self, callbackId):
+    def connectTransformModified(self, func):
+        """
+        This signal *TransformModified* is triggered when the global transform of the item is modified
+        """
+        return self.callbacks.connect('TransformModified', func)
+
+    def disconnectCallback(self, callbackId):
         self.callbacks.disconnect(callbackId)
 
     def addToView(self, view):
@@ -293,7 +304,7 @@ class TfFrameItem(TfMovableItem):
     def __init__(self, name, transform, frame, view):
 
         TfMovableItem.__init__(self, name, transform, frame, view)
-
+        # transform is the transform of the item in the frame of _frameSync
         self.transform = transformUtils.copyFrame(self.localTransform)
         self.actor.SetUserTransform(self.transform)
 
@@ -378,6 +389,8 @@ class TfFrameItem(TfMovableItem):
         if (parent and parent.getProperty('Visible')) or self.getProperty('Visible'):
             self._renderAllViews()
 
+        self.callbacks.process('TransformModified', self)
+
     def _onPropertyChanged(self, propertySet, propertyName):
         vis.PolyDataItem._onPropertyChanged(self, propertySet, propertyName)
 
@@ -450,6 +463,7 @@ class TfPolyDataItem(TfMovableItem):
         transformFilter.Update()
 
         vis.PolyDataItem.setPolyData(self, transformFilter.GetOutput())
+        self.callbacks.process('TransformModified', self)
 
     def setPolyData(self, polyData):
         #self._notTransformedPolyData = polyData
