@@ -226,6 +226,7 @@ def segmentGroundPlane():
 
 
 def applyLocalPlaneFit(polyData, searchPoint, searchRadius, searchRadiusEnd=None, removeGroundFirst=True):
+    # mf: this is the preferred plane fit algorithm
 
     useVoxelGrid = True
     voxelGridSize = 0.03
@@ -402,6 +403,7 @@ def cropToSphere(polyData, origin, radius):
 
 
 def applyPlaneFit(polyData, distanceThreshold=0.02, expectedNormal=None, perpendicularAxis=None, angleEpsilon=0.2, returnOrigin=False, searchOrigin=None, searchRadius=None):
+    # this is not the preferred plane fit algorithm. Its better to use the applyLocalPlaneFit as its more accurate
 
     expectedNormal = expectedNormal if expectedNormal is not None else [-1,0,0]
 
