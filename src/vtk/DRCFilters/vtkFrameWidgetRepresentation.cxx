@@ -209,7 +209,11 @@ DataRep MakeDisk(double radius, double handleRadius, int axis)
 }
 
 class vtkFrameWidgetRepresentation::vtkInternal {
-public:
+public:   
+
+  static double handleRadius_ ;
+  static double scaleFactor_;
+
   vtkInternal()
     {
     this->BoundingBox = vtkSmartPointer<vtkBox>::New();
@@ -246,14 +250,13 @@ public:
       }
   }
 
-  void RebuildActors(double scale, bool useTubeFilter)
+  void RebuildActors(double scale, bool useTubeFilter, double handleRadius = 0.0025)
   {
     this->Reps.clear();
     this->Axes.clear();
     this->Actors.clear();
 
     useTubeFilter = true;
-    double handleRadius = 0.0025;
     bool useDisk = false;
 
     if (useDisk)
@@ -318,7 +321,12 @@ public:
   std::vector<DataRep> Axes;
 
   std::vector<vtkActor*> Actors;
+     
+
 };
+
+double vtkFrameWidgetRepresentation::vtkInternal::handleRadius_ = 0.0025;
+double vtkFrameWidgetRepresentation::vtkInternal::scaleFactor_ = 1.0;
 
 //----------------------------------------------------------------------------
 vtkFrameWidgetRepresentation::vtkFrameWidgetRepresentation()
@@ -334,7 +342,8 @@ vtkFrameWidgetRepresentation::vtkFrameWidgetRepresentation()
   this->InteractionStartWorldPoint[2] = 0.0;
   this->LastEventPosition[0] = 0.0;
   this->LastEventPosition[1] = 0.0;
-  this->Internal->RebuildActors(this->WorldSize, this->UseTubeFilter);
+  this->Internal->RebuildActors(this->WorldSize*vtkInternal::scaleFactor_, this->UseTubeFilter,
+                                vtkFrameWidgetRepresentation::vtkInternal::handleRadius_);
 }
 
 //----------------------------------------------------------------------------
@@ -365,6 +374,49 @@ void vtkFrameWidgetRepresentation::SetTranslateAxisEnabled(int axisId, bool enab
 
   this->Internal->Axes[axisId].Actor->SetVisibility(enabled);
 }
+
+void vtkFrameWidgetRepresentation::SetBigSizeHandles()
+{
+  vtkInternal::handleRadius_ = 0.02;
+  vtkInternal::scaleFactor_ = 2.;
+}
+
+void vtkFrameWidgetRepresentation::SetDefaultSizeHandles()
+{
+  vtkFrameWidgetRepresentation::vtkInternal::handleRadius_ = 0.0025;
+  vtkInternal::scaleFactor_ = 1.;
+}
+
+void vtkFrameWidgetRepresentation::RedrawHandles()
+{
+  vtkSmartPointer<vtkActor> repActors[3];
+  vtkSmartPointer<vtkActor> axisActors[3];
+
+  for (int i = 0; i < 3 ; ++i)
+  {
+    repActors[i] = this->Internal->Reps[i].Actor;
+    axisActors[i] = this->Internal->Axes[i].Actor;
+  }
+
+  this->Internal->RebuildActors(this->WorldSize*vtkInternal::scaleFactor_, this->UseTubeFilter,
+                                vtkFrameWidgetRepresentation::vtkInternal::handleRadius_);
+
+  for (int i = 0; i < 3 ; ++i)
+  {
+    if ( repActors[i] && axisActors[i] )
+    {
+    this->Internal->Reps[i].Actor->SetVisibility(repActors[i]->GetVisibility());
+    this->Internal->Axes[i].Actor->SetVisibility(axisActors[i]->GetVisibility());
+
+    this->Internal->Reps[i].Actor->SetPickable(repActors[i]->GetPickable());
+    this->Internal->Axes[i].Actor->SetPickable(axisActors[i]->GetPickable());
+
+    this->Internal->Reps[i].Actor->SetDragable(repActors[i]->GetDragable());
+    this->Internal->Axes[i].Actor->SetDragable(axisActors[i]->GetDragable());
+    }
+  }
+}
+
 
 //----------------------------------------------------------------------
 void vtkFrameWidgetRepresentation::SetRotateAxisEnabled(int axisId, bool enabled)
@@ -865,7 +917,8 @@ void vtkFrameWidgetRepresentation::BuildRepresentation()
   if (this->GetMTime() > this->BuildTime)
     {
     this->BuildTime.Modified();
-    this->Internal->RebuildActors(this->WorldSize, this->UseTubeFilter);
+    this->Internal->RebuildActors(this->WorldSize, this->UseTubeFilter,
+                                  vtkFrameWidgetRepresentation::vtkInternal::handleRadius_);
     }
 }
 
