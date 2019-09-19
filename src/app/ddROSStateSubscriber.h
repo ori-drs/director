@@ -19,7 +19,7 @@
 #include "ddFPSCounter.h"
 #include "ddAppConfigure.h"
 
-#include <quadruped_msgs/QuadrupedState.h>
+#include <anymal_msgs/AnymalState.h>
 
 
 class DD_APP_EXPORT ddROSStateSubscriber : public QObject
@@ -78,7 +78,7 @@ public:
 
     ros::NodeHandle n;
     mSubscriber = boost::make_shared<ros::Subscriber>(
-    n.subscribe("/state_estimator/quadruped_state", 1000, &ddROSStateSubscriber::messageHandler, this));
+    n.subscribe("/state_estimator/anymal_state", 1000, &ddROSStateSubscriber::messageHandler, this));
     mTfListener = boost::make_shared<tf::TransformListener>();
 
 
@@ -270,7 +270,7 @@ protected slots:
 
 protected:
 
-  void updateState(const quadruped_msgs::QuadrupedState& message){
+  void updateState(const anymal_msgs::AnymalState& message){
     mSec = message.header.stamp.sec;
     mNsec = message.header.stamp.nsec;
 
@@ -297,7 +297,7 @@ protected:
     odomToMap =  computeOdomInMap();
   }
 
-  void messageHandler(const quadruped_msgs::QuadrupedState& message) {
+  void messageHandler(const anymal_msgs::AnymalState& message) {
 
     mFPSCounter.update();
 

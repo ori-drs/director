@@ -6,7 +6,7 @@ project(director)
 # I don't know if this function is used. Another call to find catkin
 # is used elsewhere
 find_package(catkin  REQUIRED COMPONENTS 
-     multi_gait_executor_msgs quadruped_msgs vtk_ros)
+     multi_gait_executor_msgs anymal_msgs vtk_ros)
 
 
 catkin_package(
@@ -14,7 +14,7 @@ catkin_package(
     pcl_ros pcl_plugin
     forward_kinematics ctk_python_console
     qt_property_browser python_qt
-    multi_gait_executor_msgs quadruped_msgs vtk_ros)
+    multi_gait_executor_msgs anymal_msgs vtk_ros)
 
 
 

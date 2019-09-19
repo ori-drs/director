@@ -10,7 +10,7 @@ from director import visualization as vis
 import numpy as np
 
 import rospy
-from quadruped_msgs.msg import *
+from anymal_msgs.msg import *
 import PythonQt
 
 class JointController(object):
@@ -150,7 +150,7 @@ class JointController(object):
 
 
         new_arg_strings = remove_launchfile_generated_args(sys.argv)
-        self.subscriberRos = PythonQt.dd.ddROSStateSubscriber(new_arg_strings, "/state_estimator/quadruped_state")
+        self.subscriberRos = PythonQt.dd.ddROSStateSubscriber(new_arg_strings, "/state_estimator/anymal_state")
         self.subscriberRos.connect('messageReceived(const QString&)', onRobotStateMessageRos)
         self.subscriberRos.setSpeedLimit(60)
         self.fixedFrame = "map"
