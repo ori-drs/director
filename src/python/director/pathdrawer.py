@@ -1,19 +1,23 @@
+import abc
+
 import director.objectmodel as om
 import director.rosutils as rosutils
 from director import tfdrawer as tf_draw
 import director.applogic as app
 
 from nav_msgs.msg import Path
+from geometry_msgs.msg import PoseArray
 
 
-class PathSource(om.ContainerItem):
+class PosesSource(om.ContainerItem):
 
-    def __init__(self, name, topicName, tfDrawer):
+    def __init__(self, name, topicName, tfDrawer, messageClass):
         om.ContainerItem.__init__(self, name)
 
         om.addToObjectModel(self)
         self.topicName = topicName
-        self.subscriber = rosutils.addSubscriber(self.topicName, Path, self._posesCallback)
+        self.messageClass = messageClass
+        self.subscriber = rosutils.addSubscriber(self.topicName, self.messageClass, self._posesCallback)
         self.tfDrawer = tfDrawer
         self.lines = []
         self.frames = []
@@ -27,17 +31,37 @@ class PathSource(om.ContainerItem):
         self.addProperty('Topic name', topicName)
         self.addProperty('Subscribe', True)
         self.addProperty('Style', 0, attributes=om.PropertyAttributes(enumNames=['Frames', 'Arrows']))
+        self.addProperty('Draw entirety of received messages', False)
 
 
     def _posesCallback(self, msg):
         view = app.getCurrentRenderView()
         name = self.getProperty('Name')
-        #only render last poses received
 
+        drawEverything = self.getProperty('Draw entirety of received messages')
+
+        if drawEverything or self.prevIndexReceived+1 >= len(msg.poses):
+            # clear lines, frames and arrows
+            self.prevIndexReceived = -1
+            self.areContainerInitialized = False
+            self.prevTfFrame = None
+            
+            for obj in self.lines:
+                obj.disconnect()
+                om.removeFromObjectModel(obj)
+
+            del self.lines[:]
+            for obj in self.arrows + self.frames:
+                om.removeFromObjectModel(obj)
+            del self.frames[:]
+            del self.arrows[:]
+
+        # only render last poses received, much faster than redrawing everything but sometimes it doesn't make sense
+        # so toggle property "draw entirety of received messages to change this behaviour
         for i in range(self.prevIndexReceived+1, len(msg.poses)):
-            pose = msg.poses[i]
+            pose = self._getPose(msg, i)
 
-            transform = rosutils.rosPoseToTransform(pose.pose)
+            transform = rosutils.rosPoseToTransform(pose)
             tfFrame = self.tfDrawer.drawFrame(transform, name + " - pose " + str(i), msg.header.stamp, msg.header.frame_id,
                                     parent=self)
             self.frames.append(tfFrame)
@@ -63,6 +87,10 @@ class PathSource(om.ContainerItem):
             self._copyContainerPropertiesToObjects(self.lineContainer, self.lines)
 
         self._displayTfObjects()
+
+    @abc.abstractmethod
+    def _getPose(self, msg, index):
+        pass
 
 
     def _displayTfObjects(self):
@@ -122,10 +150,10 @@ class PathSource(om.ContainerItem):
         if propertyName == 'Topic name':
             self.topicName = self.getProperty(propertyName)
             if self.getProperty('Subscribe'):
-                self.subscriber = rosutils.addSubscriber(self.topicName, Path, self._posesCallback)
+                self.subscriber = rosutils.addSubscriber(self.topicName, self.messageClass, self._posesCallback)
         elif propertyName == 'Subscribe':
             if self.getProperty(propertyName):
-                self.subscriber = rosutils.addSubscriber(self.topicName, Path, self._posesCallback)
+                self.subscriber = rosutils.addSubscriber(self.topicName, self.messageClass, self._posesCallback)
             else:
                 self.subscriber.unsubscribe()
         elif propertyName == 'Style':
@@ -134,3 +162,23 @@ class PathSource(om.ContainerItem):
             self._displayTfObjects()
 
 
+class PathSource(PosesSource):
+    """
+        A class used to draw a nav_msgs/Path
+    """
+    def __init__(self, name, topicName, tfDrawer):
+        super(PathSource, self).__init__(name, topicName, tfDrawer, Path)
+
+    def _getPose(self, msg, index):
+        return msg.poses[index].pose
+
+
+class ArraySource(PosesSource):
+    """
+        A class used to draw a PoseArray
+    """
+    def __init__(self, name, topicName, tfDrawer):
+        super(ArraySource, self).__init__(name, topicName, tfDrawer, PoseArray)
+
+    def _getPose(self, msg, index):
+        return msg.poses[index]
