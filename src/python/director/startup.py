@@ -732,7 +732,7 @@ imageViewHandler = ToggleImageViewHandler(imageWidget)
 screengrabberpanel.init(view, imageWidget)
 framevisualization.init(view)
 affordancePanel = affordancepanel.init(view, affordanceManager, robotStateJointController)
-camerabookmarks.init(view)
+cameraBooksmarksPanel = camerabookmarks.init(view)
 
 cameraControlPanel = cameracontrolpanel.CameraControlPanel(view)
 app.addWidgetToDock(cameraControlPanel.widget, action=None).hide()
