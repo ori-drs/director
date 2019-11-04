@@ -10,6 +10,13 @@ from sensor_msgs import point_cloud2
 from director import transformUtils
 from director import segmentation
 
+def rosTfPoseToTransform(tfPose):
+    (trans, quad_xyzw) = tfPose
+    pos = [trans[0], trans[1], trans[2]]
+    quat = [quad_xyzw[3], quad_xyzw[0], quad_xyzw[1], quad_xyzw[2]]
+    transform = transformUtils.transformFromPose(pos, quat)
+    return transform
+
 def rosPoseToTransform(pose):
     '''
     From ros Pose to vtk Transform
