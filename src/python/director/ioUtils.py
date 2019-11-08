@@ -28,6 +28,8 @@ def readPolyData(filename, computeNormals=False):
     reader.SetFileName(filename)
     reader.Update()
     polyData = shallowCopy(reader.GetOutput())
+    if ext == '.ply':
+        vtk.vtkPCLConversions.AddVertexCells(polyData)
 
     if computeNormals:
         return _computeNormals(polyData)
