@@ -517,7 +517,7 @@ class RosInit(vis.PolyDataItem):
 class PointCloudSource(vis.PolyDataItem):
 
     def __init__(self, robotStateJointController, callbackFunc=None):
-        vis.PolyDataItem.__init__(self, 'PointCloud', vtk.vtkPolyData(), view=None)
+        vis.PolyDataItem.__init__(self, 'point cloud', vtk.vtkPolyData(), view=None)
         self.firstData = True
         self.robotStateJointController = robotStateJointController
         self.timer = TimerCallback()
