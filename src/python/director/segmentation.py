@@ -4671,12 +4671,44 @@ def findFarRightCorner(polyData, linkFrame):
     return points[farRightIndex,:]
 
 
-def findMinimumBoundingRectangle(polyData, linkFrame):
+def projectHullTo3D(hull_points, clusterPolyData, distanceThreshold=0.0025):
+    # taking the input point cloud (from a plane i.e. a staircase step)
+    # and the 2D convex hull
+    # project the convex hull back onto the plane corresponding to the cloud's plane
+    # output is a conxex hull in 3D
+
+    planePoints, planeOrigin, planeNormal = applyPlaneFit(clusterPolyData, distanceThreshold=distanceThreshold, returnOrigin=True)
+
+    ray = [0,0,1] # project each point up onto the plane
+    #print planeOrigin , 'planeOrigin'
+    #print planeNormal , 'planeNormal'
+    hull_points_with_zero = np.vstack((hull_points.T, np.zeros( hull_points.shape[0]) )).T
+    hull_points_3d = []
+    for hull_point in hull_points_with_zero:
+        #print hull_point
+        hull_point_3d = intersectLineWithPlane(hull_point, ray, planeOrigin, planeNormal)
+        #print hull_point, " and ", hull_point_3d
+        #print type(hull_point_3d)
+        hull_points_3d.append(hull_point_3d)
+
+    #print type(hull_points)
+    #print type(hull_points_3d)
+    hull_points_3d = np.array(hull_points_3d)
+    #print type(hull_points_3d)
+    hull_points_3d_polyData = vtkNumpy.getVtkPolyDataFromNumpyPoints( hull_points_3d )
+
+    vis.showPolyData( hull_points_3d_polyData , 'hull_points_3d', parent=getDebugFolder(), visible=False)
+    #########################################
+    return hull_points_3d_polyData
+
+
+def findMinimumBoundingRectangle(polyData, linkFrame, returnConvexHull=False):
     '''
     Find minimum bounding rectangle of a rectangular point cloud
     The input is assumed to be a rectangular point cloud e.g. the top of a block or table
     Returns transform of center of rectangle (pointing away from robot)
     Previously returned the cornerTransform
+    NB: this assumes a horizontal plane. it won't be properly right if the plane is tilted
     '''
 
     # Originally From: https://github.com/dbworth/minimum-area-bounding-rectangle
@@ -4690,18 +4722,25 @@ def findMinimumBoundingRectangle(polyData, linkFrame):
         d2=d.copy()
         return vtkNumpy.getVtkPolyDataFromNumpyPoints( d2 )
 
-    pts =vtkNumpy.getNumpyFromVtk( polyData , 'Points' )
-    xy_points =  pts[:,[0,1]]
-    vis.updatePolyData( get2DAsPolyData(xy_points) , 'xy_points', parent=getDebugFolder(), visible=False)
-    hull_points = qhull_2d.qhull2D(xy_points)
-    vis.updatePolyData( get2DAsPolyData(hull_points) , 'hull_points', parent=getDebugFolder(), visible=False)
+    rawPoints =vtkNumpy.getNumpyFromVtk( polyData , 'Points' )
+    pointsInXY =  rawPoints[:,[0,1]]
+    vis.showPolyData( get2DAsPolyData(pointsInXY) , 'xy_points', parent=getDebugFolder(), visible=False)
+    convexHullPointsInXY = qhull_2d.qhull2D(pointsInXY)
+    vis.showPolyData( get2DAsPolyData(convexHullPointsInXY) , 'hull_points', parent=getDebugFolder(), visible=False)
     # Reverse order of points, to match output from other qhull implementations
-    hull_points = hull_points[::-1]
-    # print 'Convex hull points: \n', hull_points, "\n"
+    convexHullPointsInXY = convexHullPointsInXY[::-1]
+    # print 'Convex hull points: \n', convexHullPointsInXy, "\n"
+
+
+    # Project convex hull back into 3D - this is a newer additon
+    # the hardcoded value, distanceToPlaneThreshold, was used a previous stage
+    if (returnConvexHull):
+        convexHullPolyData = projectHullTo3D(convexHullPointsInXY, polyData, distanceThreshold=0.0025)
+
 
     # Find minimum area bounding rectangle
-    (rot_angle, rectArea, rectDepth, rectWidth, center_point, corner_points_ground) = min_bounding_rect.minBoundingRect(hull_points)
-    vis.updatePolyData( get2DAsPolyData(corner_points_ground) , 'corner_points_ground', parent=getDebugFolder(), visible=False)
+    (rot_angle, rectArea, rectDepth, rectWidth, center_point, corner_points_ground) = min_bounding_rect.minBoundingRect(convexHullPointsInXY)
+    vis.showPolyData( get2DAsPolyData(corner_points_ground) , 'corner_points_ground', parent=getDebugFolder(), visible=False)
 
     polyDataCentroid = computeCentroid(polyData)
     cornerPoints = np.vstack((corner_points_ground.T, polyDataCentroid[2]*np.ones( corner_points_ground.shape[0]) )).T
@@ -4750,4 +4789,7 @@ def findMinimumBoundingRectangle(polyData, linkFrame):
     #print "rectDepth:", rectDepth, " rectWidth:", rectWidth, "  Area:", rectArea
     #print "Center point: \n", center_point # numpy array
     #print "Corner points: \n", cornerPoints, "\n"  # numpy array
-    return blockTransform, rectDepth, rectWidth, rectArea
+    if (returnConvexHull is False):
+        return blockTransform, rectDepth, rectWidth, rectArea
+    else:
+        return blockTransform, rectDepth, rectWidth, rectArea, convexHullPolyData
