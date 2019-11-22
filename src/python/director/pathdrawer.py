@@ -40,7 +40,9 @@ class PosesSource(om.ContainerItem):
 
         drawEverything = self.getProperty('Draw entirety of received messages')
 
-        if drawEverything or self.prevIndexReceived+1 >= len(msg.poses):
+        # self.prevIndexReceived+1 > len(msg.poses) means that the number of poses received is lower that the previous
+        # number of received poses, it shouldn't happen, so everything is redrawn
+        if drawEverything or self.prevIndexReceived+1 > len(msg.poses):
             # clear lines, frames and arrows
             self.prevIndexReceived = -1
             self.areContainerInitialized = False
