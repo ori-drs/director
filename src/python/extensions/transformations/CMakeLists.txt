@@ -29,5 +29,5 @@ else()
   set_target_properties(_transformations PROPERTIES PREFIX "" SUFFIX ".so")
 endif()
 
-set_target_properties(_transformations PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CATKIN_DEVEL_PREFIX}/lib/${DD_INSTALL_PYTHON_DIR}/director/thirdparty")
+set_target_properties(_transformations PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CATKIN_DEVEL_PREFIX}/${DD_INSTALL_PYTHON_DIR}/director/thirdparty")
 install(TARGETS _transformations DESTINATION ${DD_INSTALL_PYTHON_DIR}/director/thirdparty)

@@ -62,7 +62,7 @@ void ddPythonManager::preInitialization()
 
   PythonQt::self()->importModule("PythonQt.dd").addObject("_pythonManager", this);
 
-  QString libDir = QFileInfo(QCoreApplication::applicationDirPath() + "/../lib").canonicalFilePath();
+  QString libDir = QFileInfo(QCoreApplication::applicationDirPath() + "/../../lib").canonicalFilePath();
   PythonQtObjectPtr mod = PythonQt::self()->importModule("sys");
   QVariantList version = mod.getVariable("version_info").value<QVariantList>();
   QString pythonMajor = version[0].toString();
@@ -89,7 +89,7 @@ QString ddPythonManager::appSitePackagesDir()
   PythonQtObjectPtr mod = PythonQt::self()->importModule("sys");
   QVariantList version = mod.getVariable("version_info").value<QVariantList>();
 
-  QString sitePath = QString("%1/../lib/python%2.%3/site-packages").arg(
+  QString sitePath = QString("%1/../../lib/python%2.%3/site-packages").arg(
     QCoreApplication::applicationDirPath(),
     version[0].toString(),
     version[1].toString());
