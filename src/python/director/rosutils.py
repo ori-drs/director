@@ -4,6 +4,7 @@ import vtkNumpy
 
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Pose
+from geometry_msgs.msg import PoseArray
 from sensor_msgs import point_cloud2
 
 from director import transformUtils
@@ -13,12 +14,11 @@ def rosPoseToTransform(pose):
     '''
     From ros Pose to vtk Transform
     '''
-
-
     pos = [pose.position.x,pose.position.y,pose.position.z]
     quat = [pose.orientation.w,pose.orientation.x,pose.orientation.y,pose.orientation.z]
     transform = transformUtils.transformFromPose(pos,quat)
     return transform
+
 
 def rosPoseFromTransform(transform):
     '''
@@ -40,6 +40,21 @@ def rosPoseFromTransform(transform):
     pose.orientation.z = quat[3]
 
     return pose
+
+
+def rosPoseArrayFromTransformArray(goalTransformList, fixedFrame, rosTime):
+    '''
+    From list of vtkTransform to ros PoseArray
+    '''
+    print "do the smurf"
+    msg = PoseArray()
+    msg.header.stamp = rosTime
+    msg.header.frame_id = fixedFrame
+
+    for transform in goalTransformList:
+        msg.poses.append( rosPoseFromTransform( transform ) )
+
+    return msg
 
 
 def convertPointCloud2ToPolyData(msg, addXYZ=False):
