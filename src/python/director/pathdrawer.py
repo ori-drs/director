@@ -14,16 +14,17 @@ class PosesSource(om.ContainerItem):
     def __init__(self, name, topicName, tfDrawer, messageClass):
         om.ContainerItem.__init__(self, name)
 
-        om.addToObjectModel(self)
+
         self.topicName = topicName
         self.messageClass = messageClass
-        self.subscriber = rosutils.addSubscriber(self.topicName, self.messageClass, self._posesCallback)
+        self.subscriber = None
+        self.lineContainer = tf_draw.PolyDataContainer('lines')
+        self.register()
         self.tfDrawer = tfDrawer
         self.lines = []
         self.frames = []
         self.arrows = []
-        self.lineContainer = tf_draw.PolyDataContainer('lines')
-        om.addToObjectModel(self.lineContainer, parentObj=self)
+
         self.areContainerInitialized = False
         self.prevTfFrame = None
         self.prevIndexReceived = -1
@@ -33,6 +34,19 @@ class PosesSource(om.ContainerItem):
         self.addProperty('Style', 0, attributes=om.PropertyAttributes(enumNames=['Frames', 'Arrows']))
         self.addProperty('Draw entirety of received messages', False)
 
+    def unregister(self):
+        self.subscriber.unsubscribe()
+        om.removeFromObjectModel(self)
+        om.removeFromObjectModel(self.lineContainer)
+        #reset the index, it means all the message received will be drawn if the register method is called
+        self.prevIndexReceived = -1
+        self.areContainerInitialized = False
+        self.prevTfFrame = None
+
+    def register(self):
+        om.addToObjectModel(self)
+        om.addToObjectModel(self.lineContainer, parentObj=self)
+        self.subscriber = rosutils.addSubscriber(self.topicName, self.messageClass, self._posesCallback)
 
     def _posesCallback(self, msg):
         view = app.getCurrentRenderView()
@@ -171,6 +185,9 @@ class PathSource(PosesSource):
 
     def _getPose(self, msg, index):
         return msg.poses[index].pose
+
+    def __del__(self):
+        print("PathSource del")
 
 
 class ArraySource(PosesSource):

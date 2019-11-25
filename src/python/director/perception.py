@@ -514,6 +514,64 @@ class RosInit(vis.PolyDataItem):
         self.reader.Start()
 
 
+class MarkerSource(vis.PolyDataItem):
+
+    def __init__(self, name, topicName, callbackFunc=None):
+        vis.PolyDataItem.__init__(self, name, vtk.vtkPolyData(), view=None)
+        self.timer = TimerCallback()
+        self.timer.callback = self.showData
+        self.timer.start()
+        self.reader = vtkRos.vtkRosMarkerSubscriber()
+        self.callbackFunc = callbackFunc
+        self.firstData = True
+        self.topicName = topicName
+
+        self.reader.Start(self.topicName)
+        self.addProperty('Topic name', self.topicName)
+        self.addProperty('Subscribe', True)
+
+
+    def _onPropertyChanged(self, propertySet, propertyName):
+        vis.PolyDataItem._onPropertyChanged(self, propertySet, propertyName)
+        if propertyName == 'Visible':
+            if self.getProperty(propertyName):
+                self.timer.start()
+            else:
+                self.timer.stop()
+        elif propertyName == 'Topic name':
+            self.topicName = self.getProperty(propertyName)
+            self.reader.Stop()
+            self.reader.Start(self.topicName)
+        elif propertyName == 'Subscribe':
+            if self.getProperty(propertyName):
+                self.reader.Start(self.topicName)
+                self.timer.start()
+            else:
+                self.reader.Stop()
+                self.timer.stop()
+
+    def resetTime(self):
+        self.reader.ResetTime()
+
+    def showData(self):
+        polyData = vtk.vtkPolyData()
+        self.reader.GetMesh(polyData)
+        if polyData.GetNumberOfPoints() == 0:
+            return
+
+        if self.callbackFunc:
+            self.callbackFunc()
+
+        #update view
+        self.setPolyData(polyData)
+
+        if self.firstData:
+            self.firstData = False
+            colorList = self.properties.getPropertyAttribute('Color By', 'enumNames')
+            zIndex = colorList.index('color') if 'z' in colorList else 0
+            self.properties.setProperty('Color By', zIndex)
+
+
 class PointCloudSource(vis.PolyDataItem):
 
     def __init__(self, robotStateJointController, callbackFunc=None):
