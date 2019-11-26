@@ -46,7 +46,6 @@ def rosPoseArrayFromTransformArray(goalTransformList, fixedFrame, rosTime):
     '''
     From list of vtkTransform to ros PoseArray
     '''
-    print "do the smurf"
     msg = PoseArray()
     msg.header.stamp = rosTime
     msg.header.frame_id = fixedFrame
