@@ -455,11 +455,11 @@ class RosGridMap(vis.PolyDataItem):
             if self.getProperty(propertyName):
                 self.timer.start()
             else:
-                self.timer.stop()  
+                self.timer.stop()
         elif propertyName == 'Topic name':
             topicName = self.getProperty(propertyName)
             self.reader.Stop()
-            self.reader.Start(topicName)   
+            self.reader.Start(topicName)
         elif propertyName == 'Color By':
             color= self.getPropertyEnumValue(propertyName)
             self.reader.SetColorLayer(color)
@@ -516,8 +516,8 @@ class RosInit(vis.PolyDataItem):
 
 class PointCloudSource(vis.PolyDataItem):
 
-    def __init__(self, robotStateJointController, callbackFunc=None):
-        vis.PolyDataItem.__init__(self, 'point cloud', vtk.vtkPolyData(), view=None)
+    def __init__(self, inputTopic, name, robotStateJointController, callbackFunc=None):
+        vis.PolyDataItem.__init__(self, name, vtk.vtkPolyData(), view=None)
         self.firstData = True
         self.robotStateJointController = robotStateJointController
         self.timer = TimerCallback()
@@ -526,11 +526,10 @@ class PointCloudSource(vis.PolyDataItem):
         self.callbackFunc = callbackFunc
         self.reader = vtkRos.vtkRosPointCloudSubscriber()
         self.reader.SetNumberOfPointClouds(10)
-        topicName = rospy.get_param("/director/velodyne_point_cloud")
 
-        self.reader.Start(topicName)
+        self.reader.Start(inputTopic)
         self.addProperty('Updates Enabled', True)
-        self.addProperty('Topic name', topicName)
+        self.addProperty('Topic name', inputTopic)
         self.addProperty('Number of Point Clouds', 10,
                          attributes=om.PropertyAttributes(decimals=0, minimum=1, maximum=100, singleStep=1, hidden=False))
 
@@ -561,7 +560,7 @@ class PointCloudSource(vis.PolyDataItem):
     def resetTime(self):
         self.reader.ResetTime()
 
-    def showPointCloud(self):   
+    def showPointCloud(self):
         polyData = vtk.vtkPolyData()
         self.reader.GetPointCloud(polyData, True)
         if polyData.GetNumberOfPoints() == 0:
@@ -616,7 +615,7 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
         realsense_front_forward_depth = rospy.get_param("/director/realsense_front_forward_depth")
         realsense_front_forward_depth_transport = rospy.get_param("/director/realsense_front_forward_depth_transport")
         realsense_front_forward_depth_info = rospy.get_param("/director/realsense_front_forward_depth_info")
-    
+
         if cameraName == 'REALSENSE_FORWARD_CAMERA_LEFT':
             self.reader.Start(realsense_front_forward_image, realsense_front_forward_image_transport, realsense_front_forward_image_info,
                               realsense_front_forward_depth, realsense_front_forward_depth_transport, realsense_front_forward_depth_info)
@@ -730,7 +729,7 @@ def init(view, robotStateJointController):
     #lidarNames = queue.getLidarNames()
     #for lidar in lidarNames:
     #    if queue.displayLidar(lidar):
-    #        
+    #
     #        l = LidarSource(view, queue.getLidarChannelName(lidar), queue.getLidarCoordinateFrame(lidar), queue.getLidarFriendlyName(lidar), queue.getLidarIntensity(lidar))
     #        l.start()
     #        lidarDriver = l
@@ -753,19 +752,20 @@ def init(view, robotStateJointController):
     #om.addToObjectModel(rosInit, sensorsFolder)
 
     #elevation map
-    topicName = rospy.get_param("/director/elevation_map")    
+    topicName = rospy.get_param("/director/elevation_map")
     gridMapSource = RosGridMap(robotStateJointController, topicName, 'elevation map', callbackFunc=view.render)
     gridMapSource.addToView(view)
     om.addToObjectModel(gridMapSource, sensorsFolder)
-    
-    #lidar elevation map        
-    topicName = rospy.get_param("/director/elevation_map_lidar")  
+
+    #lidar elevation map
+    topicName = rospy.get_param("/director/elevation_map_lidar")
     gridMapLidarSource = RosGridMap(robotStateJointController, topicName, 'lidar elevation map', callbackFunc=view.render)
     gridMapLidarSource.setProperty('Visible', False)
     gridMapLidarSource.addToView(view)
     om.addToObjectModel(gridMapLidarSource, sensorsFolder)
 
-    pointCloudSource = PointCloudSource(robotStateJointController, callbackFunc=view.render)
+    topicName = rospy.get_param("/director/velodyne_point_cloud")
+    pointCloudSource = PointCloudSource(topicName, 'point_cloud', robotStateJointController, callbackFunc=view.render)
     pointCloudSource.addToView(view)
     om.addToObjectModel(pointCloudSource, sensorsFolder)
 
@@ -781,6 +781,16 @@ def init(view, robotStateJointController):
                                                               robotStateJointController)
     groundCameraPointCloudSource.addToView(view)
     om.addToObjectModel(groundCameraPointCloudSource, parentObj=om.findObjectByName('sensors'))
+
+    # contact map
+    contactMapSource = RosGridMap(robotStateJointController, '/contact_mapping/contact_maps', 'Contact Map', callbackFunc=view.render)
+    contactMapSource.addToView(view)
+    om.addToObjectModel(contactMapSource, sensorsFolder)
+
+    # contact point cloud
+    contactPointCloudSource = PointCloudSource('/contact_mapping/contact_pointcloud', 'Contact point cloud', robotStateJointController, callbackFunc=view.render)
+    contactPointCloudSource.addToView(view)
+    om.addToObjectModel(contactPointCloudSource, sensorsFolder)
 
     #if (i==0):
     #    mainDisparityPointCloud = disparityPointCloud
