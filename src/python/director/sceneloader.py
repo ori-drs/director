@@ -109,8 +109,8 @@ class SceneLoader(object):
         
                     
     def generateSDFfromAffordances(self):
-        filename= os.environ['HOME'] + '/directorAffordances.sdf'
-        sdfFile = open(filename, 'w')
+        #filename= os.environ['HOME'] + '/directorAffordances.sdf'
+        #sdfFile = open(filename, 'w')
         am = segmentation.affordanceManager
         affordances = am.getAffordances()
         
@@ -135,7 +135,16 @@ class SceneLoader(object):
             else:
                 print '{:s} is unsupported skipping {:s} affordance!'.format(aff.getDescription()['classname'], aff.getDescription()['Name'])
         
-        tree.write(sdfFile)
-        sdfFile.close()
+        #tree.write(sdfFile)
+        #sdfFile.close()
                 
+        # New: make the xml pretty before writing:
+        filename2= os.environ['HOME'] + '/directorAffordances.sdf'
+        sdfFile2 = open(filename2, 'w')
 
+        from xml.dom import minidom
+        dirtyString = etree.tostring(tree.getroot(), encoding='utf8', method='xml')
+        dirtyDoc = minidom.parseString(dirtyString)
+        prettyString = dirtyDoc.toprettyxml(indent='  ')
+        sdfFile2.write(prettyString)
+        sdfFile2.close()
