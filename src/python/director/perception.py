@@ -781,6 +781,16 @@ def init(view, robotStateJointController):
     groundCameraPointCloudSource.addToView(view)
     om.addToObjectModel(groundCameraPointCloudSource, parentObj=om.findObjectByName('sensors'))
 
+    topicName = "/contact_mapping/contact_pointcloud"
+    contactPointCloudSource = PointCloudSource(robotStateJointController, topicName, 'contact point cloud', callbackFunc=view.render)
+    contactPointCloudSource.addToView(view)
+    om.addToObjectModel(contactPointCloudSource, sensorsFolder)
+
+    topicName = "/contact_mapping/contact_maps"
+    contactGridMapSource = RosGridMap(robotStateJointController, topicName, 'contact elevation map', callbackFunc=view.render)
+    contactGridMapSource.addToView(view)
+    om.addToObjectModel(contactGridMapSource, sensorsFolder)
+
     #if (i==0):
     #    mainDisparityPointCloud = disparityPointCloud
 
