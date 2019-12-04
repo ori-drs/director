@@ -516,8 +516,8 @@ class RosInit(vis.PolyDataItem):
 
 class PointCloudSource(vis.PolyDataItem):
 
-    def __init__(self, robotStateJointController, callbackFunc=None):
-        vis.PolyDataItem.__init__(self, 'point cloud', vtk.vtkPolyData(), view=None)
+    def __init__(self, robotStateJointController, inputTopic, name, callbackFunc=None):
+        vis.PolyDataItem.__init__(self, name, vtk.vtkPolyData(), view=None)
         self.firstData = True
         self.robotStateJointController = robotStateJointController
         self.timer = TimerCallback()
@@ -526,11 +526,9 @@ class PointCloudSource(vis.PolyDataItem):
         self.callbackFunc = callbackFunc
         self.reader = vtkRos.vtkRosPointCloudSubscriber()
         self.reader.SetNumberOfPointClouds(10)
-        topicName = rospy.get_param("/director/velodyne_point_cloud")
-
-        self.reader.Start(topicName)
+        self.reader.Start(inputTopic)
         self.addProperty('Updates Enabled', True)
-        self.addProperty('Topic name', topicName)
+        self.addProperty('Topic name', inputTopic)
         self.addProperty('Number of Point Clouds', 10,
                          attributes=om.PropertyAttributes(decimals=0, minimum=1, maximum=100, singleStep=1, hidden=False))
 
@@ -765,7 +763,8 @@ def init(view, robotStateJointController):
     gridMapLidarSource.addToView(view)
     om.addToObjectModel(gridMapLidarSource, sensorsFolder)
 
-    pointCloudSource = PointCloudSource(robotStateJointController, callbackFunc=view.render)
+    topicName = rospy.get_param("/director/velodyne_point_cloud")
+    pointCloudSource = PointCloudSource(robotStateJointController, topicName, 'lidar point cloud', callbackFunc=view.render)
     pointCloudSource.addToView(view)
     om.addToObjectModel(pointCloudSource, sensorsFolder)
 
