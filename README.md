@@ -1,109 +1,33 @@
-#Director
+# Director
 
-![drc terrain segmentation](director_pic.png)
+![director](director_pic.png)
 
 # Introduction
 
-The Director is a interface for remote command and control of a field robot.
+The (Robot) Director is an interface for remote command and control of a field robot.
 
-It is built within the ROS system and uses VTK for rendering.
+It is built within ROS and uses VTK for rendering. Unlike Rviz it is convenient to
+adapt Director to be tightly integrated with a specific robot.
+
+It's built upon a C++ base with the adaptation done in python - making rapid development
+of autonomy easier.
 
 
 System Requirements
 -------------------
 
-As of this writing, the software is tested on Ubuntu 14.04 and 16.04, and MacOSX 10.11.
-The build should work on Microsoft Windows with MSVC but it is not continuously tested.
-In theory it can run on any platform where VTK and Qt are supported.
+Currently the software is tested and used on Ubuntu 18.04 and ROS Melodic. ROS provides easy access to dependencies such as:
 
+* PCL 1.8
+* VTK 6.3
+* OpenCV 3.2
+* URDF/Xacro
 
-Download Instructions
-=====================
-
-Install Git
------------
-
-The source code is stored in a Git repository. To download the
-source code you may need to first install Git on your system.
-On Mac, we recommend using Homebrew.  On Windows, download the
-official git package from https://git-scm.com
-
-Download the source code
-------------------------
-
-Download the repository with the ``git clone`` command:
-
-::
-
-    git clone https://github.com/RobotLocomotion/director.git
-
-
-Dependencies
-============
-
-
-Required Dependencies
----------------------
-
-The required 3rd party dependencies are:
-
-  - Qt4 or Qt5 (Qt 4.8.7 recommended)
-  - VTK 6.2+ (VTK 7.1.1 recommended)
-  - Python 2.7 and NumPy
-
-Additionally, you will need CMake 2.8 or greater to configure the source code.
-
-The dependencies can be installed on Mac using `Homebrew <http://brew.sh/>`_:
-
-::
-
-    brew tap patmarion/director && brew tap-pin patmarion/director
-    brew install cmake glib libyaml numpy python scipy vtk7
-    pip2 install lxml PyYAML
-
-The dependencies can be installed on Ubuntu using apt-get:
-
-::
-
-    sudo apt-get install build-essential cmake libglib2.0-dev libqt4-dev \
-      libx11-dev libxext-dev libxt-dev python-dev python-lxml python-numpy \
-      python-scipy python-yaml
-
-On Ubuntu the build does not require VTK to be installed.  A compatible version
-of VTK will be downloaded (precompiled binaries) at build time.
-
-
-Building
-========
-
-Compiling
----------
-
-::
-
-    make superbuild
-
-This is an alias for:
-
-::
-
-    mkdir build && cd build
-    cmake ../distro/superbuild
-    make
-
-
-Documentation
-=============
-
-A preliminary Online Help for the Director (currently in preparation) can be found `here <https://openhumanoids.github.io/director/>`_.
-
-
-
-
+The original upstream (see below) is compatible and tested with MacOSX 10.11. In theory it can run on any platform where VTK and Qt are supported including Windows.
 
 # History
 
-This repo (from Oxford Dynamic Robot Systems Group) is a fork of the original Director repo. Originally Director was developed as the primary user interface used by Team MIT in the DARPA Robotics Challenge.
+This repo (from Oxford Dynamic Robot Systems Group) is a fork of the original Director master. Originally Director was developed as the primary user interface used by Team MIT in the DARPA Robotics Challenge.
 
 [![Team MIT DRC day-1 visualization](https://img.youtube.com/vi/em69XtIEEAg/0.jpg)](https://www.youtube.com/watch?v=em69XtIEEAg)
 
@@ -113,7 +37,7 @@ This previous version was heavily integrated with Drake and did not use ROS. It 
 
 #Citing
 
-If you wish to cite the director, please use:
+If you wish to cite the Director, please use this description from the DARPA Robotics Challenge:
 
 ::
 
