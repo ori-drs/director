@@ -1,5 +1,6 @@
 #Director
 
+![drc terrain segmentation](director_pic.png)
 
 # Introduction
 
