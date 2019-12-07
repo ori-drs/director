@@ -4,14 +4,11 @@
 
 # Introduction
 
-The (Robot) Director is an interface for remote command and control of a field robot.
+The (Robot) Director is an interface for remote command and control of field robots.
 
-It is built within ROS and uses VTK for rendering. Unlike Rviz it is convenient to
-adapt Director to be tightly integrated with a specific robot.
+It is built within ROS and uses VTK for rendering. Unlike Rviz it is convenient to adapt Director to be tightly integrated with a specific robot. VTK provides a modern scenegraph.
 
-It's built upon a C++ base with the adaptation done in python - making rapid development
-of autonomy easier.
-
+It's built upon a C++ base with the robot specific adaptation done in Python - making development of autonomy quicker.
 
 System Requirements
 -------------------
@@ -22,8 +19,38 @@ Currently the software is tested and used on Ubuntu 18.04 and ROS Melodic. ROS p
 * VTK 6.3
 * OpenCV 3.2
 * URDF/Xacro
+* ROS messaging
 
-The original upstream (see below) is compatible and tested with MacOSX 10.11. In theory it can run on any platform where VTK and Qt are supported including Windows.
+By design, ROS is only minimally integrated and previous versions did not use ROS at all.
+
+The original upstream (see below) is compatible and tested with MacOSX 10.11. In theory it can run on any platform where VTK and Qt are supported including Windows. It's been used on Ubuntu since 14.04.
+
+# Usage
+
+This Director repo is not intended for usage directly. Instead it should be skinned or adapted to a specific robot (using Python). We provide a full and minimal distribution focused on the ANYmal robot from ANYbotics here:
+
+[https://github.com/ori-drs/director_anymal_b_simple](https://github.com/ori-drs/director_anymal_b_simple)
+
+This should be modified for your specific robot by adapting the (Python) code to match your robot's interface.
+
+![director](director_overview.png)
+
+# Features
+
+Here is a list of useful features:
+
+* Independent and stable core library (director) with Python-configurable extension for quick integration.
+* Modern rendering library (VTK) with a scenegraph.
+* Integrated within ROS with few specific dependencies. Dependencies and Director compiles in 90 seconds.
+* Proper integrated tools for capturing videos with proper 16:9 aspect ratios. Support for flythroughs, orbiting and setting of camera angles.
+* Shortcuts for changing the view angle which are robot centric e.g. 'r' resets the camera near the robot. 't' gives a top-down view
+* Integrated Python interface directly accessable (via F8).
+* Interactive goal setting. 'Ctrl+click' sets goal for robot. 'Ctrl+Enter' executes the goal.
+* All dependencies are BSD Licensed.
+
+The video below provides an example of the interface applied to ANYmal.
+
+[![Demo video](https://img.youtube.com/vi/ZX53VhNcAuA/0.jpg)](https://www.youtube.com/watch?v=ZX53VhNcAuA)
 
 # History
 
@@ -31,15 +58,11 @@ This repo (from Oxford Dynamic Robot Systems Group) is a fork of the original Di
 
 [![Team MIT DRC day-1 visualization](https://img.youtube.com/vi/em69XtIEEAg/0.jpg)](https://www.youtube.com/watch?v=em69XtIEEAg)
 
-` <https://www.youtube.com/watch?v=em69XtIEEAg>`_
+This previous version was heavily integrated with Drake and did not use ROS. It continues to be developed as the user interface for Drake by Toyota Research Institute. [Link to RobotLocomotion/TRI's Director](https://github.com/RobotLocomotion/director).
 
-This previous version was heavily integrated with Drake and did not use ROS. It continues to be developed as the user interface for Drake by Toyota Research Institute.
+# Citing
 
-#Citing
-
-If you wish to cite the Director, please use this description from the DARPA Robotics Challenge:
-
-::
+If you wish to cite the Director, please use this publication from the MIT DARPA Robotics Challenge Team:
 
     @article{2017JFR_marion,
       title = {Director: A User Interface Designed for Robot Operation With Shared Autonomy},
