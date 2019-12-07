@@ -61,7 +61,7 @@ This repo (from Oxford Dynamic Robot Systems Group) is a fork of the original [D
 
 This previous version was heavily integrated with Drake and did not use ROS. It continues to be developed as the user interface for Drake by Toyota Research Institute. [Link to RobotLocomotion/TRI's version of Director](https://github.com/RobotLocomotion/director).
 
-In addition to Atlas, its been used to operate ANYmal, [NASA's Valkyrie](https://www.youtube.com/watch?v=AjSP8iZyhTE), a Clearpath Husky with [two RE2 arms](https://www.youtube.com/watch?v=_t1c_lrEH1k) and another with [two UE5 arms](https://www.youtube.com/watch?v=1OyAzHcDL5M).
+In addition to Atlas, its been used to operate ANYmal in Oxford Dynamic Robot Systems Group, [NASA's Valkyrie](https://www.youtube.com/watch?v=AjSP8iZyhTE), a Clearpath Husky with [two RE2 arms](https://www.youtube.com/watch?v=_t1c_lrEH1k) and another with [two UE5 arms](https://www.youtube.com/watch?v=1OyAzHcDL5M).
 
 # Citing
 
