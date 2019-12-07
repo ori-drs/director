@@ -39,13 +39,14 @@ This should be modified for your specific robot by adapting the (Python) code to
 
 Here is a list of useful features:
 
+* Unlike Rviz, Director is built around operation of the robot rather than analysis of signals/sensors. Efficient operation of the robot is at the centre of the design of the UI.
 * Independent and stable core library (director) with Python-configurable extension for quick integration.
 * Modern rendering library (VTK) with a scenegraph.
 * Integrated within ROS with few specific dependencies. Dependencies and Director compiles in 90 seconds.
 * Proper integrated tools for capturing videos with proper 16:9 aspect ratios. Support for flythroughs, orbiting and setting of camera angles.
 * Shortcuts for changing the view angle which are robot centric e.g. 'r' resets the camera near the robot. 't' gives a top-down view
 * Integrated Python interface directly accessable (via F8).
-* Interactive goal setting. 'Ctrl+click' sets goal for robot. 'Ctrl+Enter' executes the goal.
+* Interactive goal setting. 'Ctrl+click' sets 3D goal for robot. 'Ctrl+Enter' executes the goal.
 * All dependencies are BSD Licensed.
 
 The video below provides an example of the interface applied to ANYmal.
@@ -54,11 +55,11 @@ The video below provides an example of the interface applied to ANYmal.
 
 # History
 
-This repo (from Oxford Dynamic Robot Systems Group) is a fork of the original Director master. Originally Director was developed as the primary user interface used by Team MIT in the DARPA Robotics Challenge.
+This repo (from Oxford Dynamic Robot Systems Group) is a fork of the original [Director master](https://github.com/RobotLocomotion/director). Originally Director was developed as the primary user interface used by Team MIT in the DARPA Robotics Challenge.
 
 [![Team MIT DRC day-1 visualization](https://img.youtube.com/vi/em69XtIEEAg/0.jpg)](https://www.youtube.com/watch?v=em69XtIEEAg)
 
-This previous version was heavily integrated with Drake and did not use ROS. It continues to be developed as the user interface for Drake by Toyota Research Institute. [Link to RobotLocomotion/TRI's Director](https://github.com/RobotLocomotion/director).
+This previous version was heavily integrated with Drake and did not use ROS. It continues to be developed as the user interface for Drake by Toyota Research Institute. [Link to RobotLocomotion/TRI's version of Director](https://github.com/RobotLocomotion/director).
 
 # Citing
 
