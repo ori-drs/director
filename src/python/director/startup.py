@@ -696,13 +696,6 @@ def getBotFrame(frameName):
     return t
 
 
-def showLinkFrame(linkName, model=None):
-    frame = getLinkFrame(linkName, model)
-    if not frame:
-        raise Exception('Link not found: ' + linkName)
-    return vis.updateFrame(frame, linkName, parent='link frames')
-
-
 def sendEstRobotState(pose=None):
     if pose is None:
         pose = robotStateJointController.q
