@@ -2,7 +2,7 @@ import director
 import os
 import sys
 import argparse
-import json
+import yaml
 
 
 class DRCArgParser(object):
@@ -48,43 +48,43 @@ class DRCArgParser(object):
 
     def getDefaultAtlasV3DirectorConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'models/atlas_v3/director_config.json')
+                            'models/atlas_v3/director_config.yaml')
 
     def getDefaultAtlasV4DirectorConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'models/atlas_v4/director_config.json')
+                            'models/atlas_v4/director_config.yaml')
 
     def getDefaultAtlasV5DirectorConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'models/atlas_v5/director_config.json')
+                            'models/atlas_v5/director_config.yaml')
 
     def getDefaultValkyrieDirectorConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'models/val_description/director_config.json')
+                            'models/val_description/director_config.yaml')
 
     def getDefaultValkyrieSimpleDirectorConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'models/val_description/director_config_simple.json')
+                            'models/val_description/director_config_simple.yaml')
 
     def getDefaultHyQDirectorConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'models/hyq_description/director_config.json')
+                            'models/hyq_description/director_config.yaml')
 
     def getDefaultAnymalDirectorConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'config/anymal/director_config.json')
+                            'config/anymal/director_config.yaml')
 
     def getDefaultKukaLWRConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'models/lwr_defs/director_config.json')
+                            'models/lwr_defs/director_config.yaml')
 
     def getDefaultHuskyConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'config/husky/director_config.json')
+                            'config/husky/director_config.yaml')
 
     def getDefaultDualArmHuskyConfigFile(self):
         return os.path.join(director.getDRCBaseDir(),
-                            'models/dual_arm_husky_description/director_config.json')
+                            'models/dual_arm_husky_description/director_config.yaml')
 
 
     def _isPyDrakeAvailable(self):
@@ -104,7 +104,7 @@ class DRCArgParser(object):
             '--iiwa-drake',
             dest='directorConfigFile',
             action='store_const',
-            const=pydrake.common.FindResourceOrThrow('drake/examples/kuka_iiwa_arm/director_config.json'),
+            const=pydrake.common.FindResourceOrThrow('drake/examples/kuka_iiwa_arm/director_config.yaml'),
             help='Use KUKA IIWA from drake/examples')
 
     def addOpenHumanoidsConfigShortcuts(self, directorConfig):
@@ -170,7 +170,7 @@ class DRCArgParser(object):
         directorConfig = parser.add_mutually_exclusive_group(required=False)
         directorConfig.add_argument('--director-config', '--director_config', dest='directorConfigFile',
                                     type=str, default='', metavar='filename',
-                                    help='JSON file specifying which urdfs to use')
+                                    help='YAML file specifying which urdfs to use')
 
         if director.getDRCBaseIsSet():
             self.addOpenHumanoidsConfigShortcuts(directorConfig)
@@ -216,7 +216,7 @@ class DirectorConfig(object):
             raise Exception('Director config file not found: %s' % filename)
 
         self.dirname = os.path.dirname(os.path.abspath(filename))
-        self.config = json.load(open(filename))
+        self.config = yaml.safe_load(open(filename))
 
         if self.config.get('fixedPointFile'):
             self.config['fixedPointFile'] = os.path.join(self.dirname, self.config['fixedPointFile'])

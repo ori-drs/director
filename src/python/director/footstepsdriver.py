@@ -23,7 +23,7 @@ from director import drcargs
 #from bot_core.pose_t import pose_t
 #from bot_core.robot_state_t import robot_state_t
 import functools
-import json
+import yaml
 
 from PythonQt import QtGui, QtCore
 
@@ -38,7 +38,7 @@ _leftHandLink = ''
 _rightHandLink = ''
 _quadruped = False
 with open(drcargs.args().directorConfigFile) as directorConfigFile:
-    directorConfig = json.load(directorConfigFile)
+    directorConfig = yaml.safe_load(directorConfigFile)
 
     _modelName = directorConfig['modelName']
 
