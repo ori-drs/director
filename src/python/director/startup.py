@@ -16,37 +16,15 @@ from director import camerabookmarks
 from director import cameracontrol
 from director import cameracontrolpanel
 from director import cameraview
-# from director import bihandeddemo
 from director import debrisdemo
 from director import drcargs
 from director import footstepsdriverpanel
 from director import framevisualization
-# from director import lcmloggerwidget
-# from director import lcmgl
-# from director import lcmoctomap
-# from director import lcmcollections
-# from director import atlasdriver
-# from director import atlasdriverpanel
 from director import multisensepanel
 from director import navigationpanel
-# from director import doordemo
-# from director import drilldemo
-# from director import valvedemo
-# from director import drivingplanner
-# from director import egressplanner
-# from director import surprisetask
-# from director import continuouswalkingdemo
-# from director import sitstandplanner
-# from director import walkingtestdemo
-# from director import quadrupedtask
-# from director import terraintask
 from director import objectmodel as om
 from director import perception
-# from director import copmonitor
-# from director import robotplanlistener
-# from director import handdriver
 from director import playbackpanel
-# from director import drakevisualizer
 from director import robotstate
 from director import robotsystem
 from director import roboturdf
@@ -57,16 +35,13 @@ from director import skybox
 from director import splinewidget
 from director import spreadsheet
 from director import teleoppanel
-# from director import lcmUtils
 from director import tfvisualization as tf_vis
 from director import transformUtils
 from director import viewcolors
 from director import viewframes
-# from director import motionplanningpanel
 from director import visualization as vis
 from director import vtkAll as vtk
 from director.debugVis import DebugData
-# from director import handcontrolpanel
 from director.jointpropagator import JointPropagator
 from director.pointpicker import PointPicker, ImagePointPicker
 from director.tasks import robottasks as rt
@@ -74,15 +49,6 @@ from director.tasks import taskmanagerwidget
 from director.tasks.descriptions import loadTaskDescriptions
 from director.timercallback import TimerCallback
 
-# from director import irisdriver
-# from director import coursemodel
-# from director import gamepad
-# from director import blackoutmonitor
-# import drc as lcmdrc
-# import bot_core as lcmbotcore
-
-# remove feb 2019, when moving to roslaunch
-# drcargs.requireStrict()
 drcargs.args()
 app.startup(globals())
 om.init(app.getMainWindow().objectTree(), app.getMainWindow().propertiesPanel())
