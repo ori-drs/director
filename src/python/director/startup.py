@@ -725,10 +725,6 @@ def disableArmEncoders():
     lcmUtils.publish('ENABLE_ENCODERS', msg)
 
 
-def sendDesiredPumpPsi(desiredPsi):
-    atlasDriver.sendDesiredPumpPsi(desiredPsi)
-
-
 app.setCameraTerrainModeEnabled(view, True)
 app.resetCamera(viewDirection=[-1, 0, 0], view=view)
 
