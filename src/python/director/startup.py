@@ -684,11 +684,6 @@ cameraControlPanel = cameracontrolpanel.CameraControlPanel(view)
 app.addWidgetToDock(cameraControlPanel.widget, action=None).hide()
 
 
-def getLinkFrame(linkName, model=None):
-    model = model or robotStateModel
-    return model.getLinkFrame(linkName)
-
-
 def sendEstRobotState(pose=None):
     if pose is None:
         pose = robotStateJointController.q
