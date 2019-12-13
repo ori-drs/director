@@ -712,13 +712,6 @@ def sendEstRobotState(pose=None):
 
 estRobotStatePublisher = TimerCallback(callback=sendEstRobotState)
 
-
-def enableArmEncoders():
-    msg = lcmdrc.utime_t()
-    msg.utime = 1
-    lcmUtils.publish('ENABLE_ENCODERS', msg)
-
-
 app.setCameraTerrainModeEnabled(view, True)
 app.resetCamera(viewDirection=[-1, 0, 0], view=view)
 
