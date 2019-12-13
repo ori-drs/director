@@ -3,3 +3,6 @@
 pod-build
 /build
 .idea
+build
+devel
+*catkin_tools
