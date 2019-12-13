@@ -719,12 +719,6 @@ def enableArmEncoders():
     lcmUtils.publish('ENABLE_ENCODERS', msg)
 
 
-def disableArmEncoders():
-    msg = lcmdrc.utime_t()
-    msg.utime = -1
-    lcmUtils.publish('ENABLE_ENCODERS', msg)
-
-
 app.setCameraTerrainModeEnabled(view, True)
 app.resetCamera(viewDirection=[-1, 0, 0], view=view)
 
