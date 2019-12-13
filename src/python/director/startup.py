@@ -732,15 +732,6 @@ def sendDesiredPumpPsi(desiredPsi):
 app.setCameraTerrainModeEnabled(view, True)
 app.resetCamera(viewDirection=[-1, 0, 0], view=view)
 
-import signal
-
-
-def sendMatlabSigint():
-    ikServer.comm.client.proc.send_signal(signal.SIGINT)
-
-
-# app.addToolbarMacro('Ctrl+C MATLAB', sendMatlabSigint)
-
 
 def drawCenterOfMass(model):
     stanceFrame = footstepsDriver.getFeetMidPoint(model)
