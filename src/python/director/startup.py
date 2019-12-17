@@ -83,7 +83,6 @@ updatePolyData = segmentation.updatePolyData
 
 
 robotSystem = robotsystem.create(view)
-globals().update(dict(robotSystem))
 
 useIk = True
 useRobotState = True
