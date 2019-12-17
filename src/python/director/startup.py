@@ -28,9 +28,6 @@ from director import footstepsdriverpanel
 from director import framevisualization
 from director import gamepad
 from director import handcontrolpanel
-from director import lcmUtils
-from director import lcmcollections
-from director import lcmgl
 from director import motionplanningpanel
 from director import multisensepanel
 from director import navigationpanel
@@ -38,7 +35,6 @@ from director import objectmodel as om
 from director import perception
 from director import playbackpanel
 from director import quadrupedtask
-from director import robotstate
 from director import robotsystem
 from director import roboturdf
 from director import screengrabberpanel
@@ -51,7 +47,6 @@ from director import surprisetask
 from director import teleoppanel
 from director import terraintask
 from director import tfvisualization as tf_vis
-from director import transformUtils
 from director import viewcolors
 from director import viewframes
 from director import visualization as vis
@@ -64,69 +59,6 @@ from director.tasks import robottasks as rt
 from director.tasks import taskmanagerwidget
 from director.tasks.descriptions import loadTaskDescriptions
 from director.timercallback import TimerCallback
-
-
-class RandomWalk(object):
-    def __init__(self, max_distance_per_plan=2):
-        self.subs = []
-        self.max_distance_per_plan = max_distance_per_plan
-
-    def handleStatus(self, msg):
-        if msg.plan_type == msg.STANDING:
-            goal = transformUtils.frameFromPositionAndRPY(
-                np.array([robotSystem.robotStateJointController.q[0] + 2 * self.max_distance_per_plan * (
-                        np.random.random() - 0.5),
-                          robotSystem.robotStateJointController.q[1] + 2 * self.max_distance_per_plan * (
-                                  np.random.random() - 0.5),
-                          robotSystem.robotStateJointController.q[2] - 0.84]),
-                [0, 0, robotSystem.robotStateJointController.q[5] + 2 * np.degrees(np.pi) * (np.random.random() - 0.5)])
-            request = robotSystem.footstepsDriver.constructFootstepPlanRequest(robotSystem.robotStateJointController.q,
-                                                                               goal)
-            request.params.max_num_steps = 18
-            robotSystem.footstepsDriver.sendFootstepPlanRequest(request)
-
-    def handleFootstepPlan(self, msg):
-        robotSystem.footstepsDriver.commitFootstepPlan(msg)
-
-    def start(self):
-        sub = lcmUtils.addSubscriber('PLAN_EXECUTION_STATUS', lcmdrc.plan_status_t, self.handleStatus)
-        sub.setSpeedLimit(0.2)
-        self.subs.append(sub)
-        self.subs.append(
-            lcmUtils.addSubscriber('FOOTSTEP_PLAN_RESPONSE', lcmdrc.footstep_plan_t, self.handleFootstepPlan))
-
-    def stop(self):
-        for sub in self.subs:
-            lcmUtils.removeSubscriber(sub)
-
-
-class LCMForceDisplay(object):
-    """
-    Displays foot force sensor signals in a status bar widget or label widget
-    """
-
-    def onRobotState(self, msg):
-        self.l_foot_force_z = msg.force_torque.l_foot_force_z
-        self.r_foot_force_z = msg.force_torque.r_foot_force_z
-
-    def __init__(self, channel, statusBar=None):
-        self.sub = lcmUtils.addSubscriber(channel, lcmbotcore.robot_state_t, self.onRobotState)
-        self.label = QtGui.QLabel('')
-        statusBar.addPermanentWidget(self.label)
-
-        self.timer = TimerCallback(targetFps=10)
-        self.timer.callback = self.showRate
-        self.timer.start()
-
-        self.l_foot_force_z = 0
-        self.r_foot_force_z = 0
-
-    def __del__(self):
-        lcmUtils.removeSubscriber(self.sub)
-
-    def showRate(self):
-        global leftInContact, rightInContact
-        self.label.text = '%.2f | %.2f' % (self.l_foot_force_z, self.r_foot_force_z)
 
 
 class RobotLinkHighlighter(object):
@@ -159,27 +91,6 @@ class RobotLinkHighlighter(object):
         self.robotModel.model.setLinkColor(linkName, color)
 
 
-class LCMContactDisplay(object):
-    """
-    Displays (controller) contact state by changing foot mesh color
-    """
-
-    def onFootContact(self, msg):
-        for linkName, inContact in [[self.leftFootLink, msg.left_contact > 0.0],
-                                    [self.rightFootLink, msg.right_contact > 0.0]]:
-            if inContact:
-                robotHighlighter.highlightLink(linkName, [0, 0, 1])
-            else:
-                robotHighlighter.dehighlightLink(linkName)
-
-    def __init__(self, channel):
-
-        self.leftFootLink = drcargs.getDirectorConfig()['leftFootLink']
-        self.rightFootLink = drcargs.getDirectorConfig()['rightFootLink']
-        footContactSub = lcmUtils.addSubscriber(channel, lcmdrc.foot_contact_estimate_t, self.onFootContact)
-        footContactSub.setSpeedLimit(60)
-
-
 class ControllerRateLabel(object):
     """
     Displays a controller frequency in the status bar
@@ -202,8 +113,8 @@ class ControllerRateLabel(object):
 
 class ImageOverlayManager(object):
 
-    def __init__(self, robotName):
-        monoCameras = drcargs.getDirectorConfig()[robotName]['monoCameras']
+    def __init__(self):
+        monoCameras = drcargs.getDirectorConfig()['monoCameras']
         self.viewName = monoCameras[0]
         self.desiredWidth = 400
         self.position = [0, 0]
@@ -334,7 +245,6 @@ useHands = False
 usePlanning = True
 useHumanoidDRCDemos = False
 useAtlasDriver = False
-useLCMGL = False
 useOctomap = True
 useCollections = False
 useLightColorScheme = True
@@ -455,19 +365,6 @@ if useFootsteps:
                                                robotSystem.robotStateJointController)
 else:
     app.removeToolbarMacro('ActionFootstepPanel')
-
-if useLCMGL:
-    lcmglManager = lcmgl.init(view)
-    app.MenuActionToggleHelper('Tools', 'Renderer - LCM GL', lcmglManager.isEnabled, lcmglManager.setEnabled)
-
-# if useOctomap:
-#    octomapManager = lcmoctomap.init(view)
-#    app.MenuActionToggleHelper('Tools', 'Renderer - Octomap', #octomapManager.isEnabled, octomapManager.setEnabled)
-
-if useCollections:
-    collectionsManager = lcmcollections.init(view)
-    app.MenuActionToggleHelper('Tools', 'Renderer - Collections', collectionsManager.isEnabled,
-                               collectionsManager.setEnabled)
 
 # if useDrakeVisualizer:
 #    drakeVisualizer = drakevisualizer.DrakeVisualizer(view)
@@ -750,18 +647,9 @@ if usePlanning:
 # if useCOPMonitor and not robotSystem.ikPlanner.fixedBaseArm:
 #    copMonitor = copmonitor.COPMonitor(robotSystem, view);
 
-
-# if useLoggingWidget:
-#    w = lcmloggerwidget.LCMLoggerWidget(statusBar=app.getMainWindow().statusBar())
-#    app.getMainWindow().statusBar().addPermanentWidget(w.button)
-
-
 useControllerRate = False
 if useControllerRate:
     controllerRateLabel = ControllerRateLabel(robotSystem.atlasDriver, app.getMainWindow().statusBar())
-
-if useForceDisplay:
-    rateComputer = LCMForceDisplay('EST_ROBOT_STATE', app.getMainWindow().statusBar())
 
 if useSkybox:
     skyboxDataDir = os.path.expanduser('~/Downloads/skybox')
@@ -772,9 +660,6 @@ if useSkybox:
     # view.camera().SetViewAngle(60)
 
 robotHighlighter = RobotLinkHighlighter(robotSystem.robotstatemodel)
-
-if useFootContactVis:
-    footContactVis = LCMContactDisplay('FOOT_CONTACT_ESTIMATE')
 
 if useDataFiles:
 
@@ -793,16 +678,6 @@ cameraBooksmarksPanel = camerabookmarks.init(view)
 
 cameraControlPanel = cameracontrolpanel.CameraControlPanel(view)
 app.addWidgetToDock(cameraControlPanel.widget, action=None).hide()
-
-
-def sendEstRobotState(pose=None):
-    if pose is None:
-        pose = robotSystem.robotStateJointController.q
-    msg = robotstate.drakePoseToRobotState(pose)
-    lcmUtils.publish('EST_ROBOT_STATE', msg)
-
-
-estRobotStatePublisher = TimerCallback(callback=sendEstRobotState)
 
 app.setCameraTerrainModeEnabled(view, True)
 app.resetCamera(viewDirection=[-1, 0, 0], view=view)
@@ -833,15 +708,11 @@ gridUpdater = RobotGridUpdater(grid.getChildFrame(), robotSystem.robotstatemodel
 
 IgnoreOldStateMessagesSelector(robotSystem.robotStateJointController)
 
-if useRandomWalk:
-    randomWalk = RandomWalk()
-
 if useCourseModel:
     courseModel = coursemodel.CourseModel()
 
 if useKinect:
     imageOverlayManager.viewName = "KINECT_RGB"
-    # kinectlcm.startButton()
 
 if useFeetlessRobot:
     robotSystem.ikPlanner.robotNoFeet = True
