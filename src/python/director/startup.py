@@ -12,14 +12,29 @@ import numpy as np
 from PythonQt import QtGui
 from director import actionhandlers
 from director import affordancepanel
+from director import atlasdriverpanel
+from director import blackoutmonitor
 from director import camerabookmarks
 from director import cameracontrol
 from director import cameracontrolpanel
 from director import cameraview
+from director import continuouswalkingdemo
 from director import debrisdemo
 from director import drcargs
+from director import drilldemo
+from director import drivingplanner
+from director import terraintask
+from director import surprisetask
+from director import quadrupedtask
 from director import footstepsdriverpanel
 from director import framevisualization
+from director import gamepad
+from director import handcontrolpanel
+from director import lcmUtils
+from director import coursemodel
+from director import lcmcollections
+from director import lcmgl
+from director import motionplanningpanel
 from director import multisensepanel
 from director import navigationpanel
 from director import objectmodel as om
@@ -41,6 +56,7 @@ from director import viewcolors
 from director import viewframes
 from director import visualization as vis
 from director import vtkAll as vtk
+from director import walkingtestdemo
 from director.debugVis import DebugData
 from director.jointpropagator import JointPropagator
 from director.pointpicker import PointPicker, ImagePointPicker
@@ -115,7 +131,7 @@ costCollection = PythonQt.dd.ddSignalMap()
 
 if 'userConfig' in drcargs.getDirectorConfig():
     if 'fixedBaseArm' in drcargs.getDirectorConfig()['userConfig']:
-        ikPlanner.fixedBaseArm = True
+        robotSystem.ikPlanner.fixedBaseArm = True
 
 if 'disableComponents' in drcargs.getDirectorConfig():
     for component in drcargs.getDirectorConfig()['disableComponents']:
@@ -139,14 +155,14 @@ if useIk:
                                  'Please check the output console for more information.', title='Error starting matlab')
 
 
-    ikServer.outputConsole = app.getOutputConsole()
-    ikServer.infoFunc = app.displaySnoptInfo
-    ikServer.connectStartupCompleted(onIkStartup)
-    startIkServer()
+    robotSystem.ikServer.outputConsole = app.getOutputConsole()
+    robotSystem.ikServer.infoFunc = app.displaySnoptInfo
+    robotSystem.ikServer.connectStartupCompleted(onIkStartup)
+    robotSystem.startIkServer()
 
 if useAtlasDriver:
-    # atlasdriver.systemStatus.outputConsole = app.getOutputConsole()
-    atlasdriverpanel.init(atlasDriver)
+    # robotSystem.atlasDriver.systemStatus.outputConsole = app.getOutputConsole()
+    atlasdriverpanel.init(robotSystem.atlasDriver)
 else:
     app.removeToolbarMacro('ActionAtlasDriverPanel')
 
@@ -180,22 +196,22 @@ if not useLightColorScheme:
 # reset time button and connections
 button = QtGui.QPushButton('')
 button.text = 'Reset time'
-button.connect('clicked()', pointCloudSource.resetTime)
-button.connect('clicked()', gridMapSource.resetTime)
-button.connect('clicked()', headCameraPointCloudSource.resetTime)
-button.connect('clicked()', groundCameraPointCloudSource.resetTime)
-button.connect('clicked()', robotStateJointController.resetTime)
+button.connect('clicked()', robotSystem.pointCloudSource.resetTime)
+button.connect('clicked()', robotSystem.gridMapSource.resetTime)
+button.connect('clicked()', robotSystem.headCameraPointCloudSource.resetTime)
+button.connect('clicked()', robotSystem.groundCameraPointCloudSource.resetTime)
+button.connect('clicked()', robotSystem.robotStateJointController.resetTime)
 button.connect('clicked()', cameraview.cameraView.resetTime)
 button.connect('clicked()', tf_vis.TfFrameSync.resetTime)
 app.getMainWindow().statusBar().addPermanentWidget(button)
 
 if useHands:
-    handcontrolpanel.init(lHandDriver, rHandDriver, robotStateModel, robotStateJointController, view)
+    handcontrolpanel.init(robotSystem.lHandDriver, robotSystem.rHandDriver, robotSystem.robotstatemodel, robotSystem.robotStateJointController, view)
 else:
     app.removeToolbarMacro('ActionHandControlPanel')
 
 if useFootsteps:
-    footstepsPanel = footstepsdriverpanel.init(footstepsDriver, robotStateModel, robotStateJointController)
+    footstepsPanel = footstepsdriverpanel.init(robotSystem.footstepsDriver, robotSystem.robotstatemodel, robotSystem.robotStateJointController)
 else:
     app.removeToolbarMacro('ActionFootstepPanel')
 
@@ -218,14 +234,14 @@ if useCollections:
 
 
 if useNavigationPanel:
-    navigationPanel = navigationpanel.init(robotStateJointController, footstepsDriver)
+    navigationPanel = navigationpanel.init(robotSystem.robotStateJointController, robotSystem.footstepsDriver)
     picker = PointPicker(view, callback=navigationPanel.pointPickerStoredFootsteps, numberOfPoints=2)
     # picker.start()
 
 if usePlanning:
     def showPose(pose):
-        playbackRobotModel.setProperty('Visible', True)
-        playbackJointController.setPose('show_pose', pose)
+        robotSystem.playbackRobotModel.setProperty('Visible', True)
+        robotSystem.playbackJointController.setPose('show_pose', pose)
 
 
     def playPlan(plan):
@@ -233,53 +249,53 @@ if usePlanning:
 
 
     def playPlans(plans):
-        planPlayback.stopAnimation()
-        playbackRobotModel.setProperty('Visible', True)
-        planPlayback.playPlans(plans, playbackJointController)
+        robotSystem.planPlayback.stopAnimation()
+        robotSystem.playbackRobotModel.setProperty('Visible', True)
+        robotSystem.planPlayback.playPlans(plans, robotSystem.playbackJointController)
 
 
     def playManipPlan():
-        playPlan(manipPlanner.lastManipPlan)
+        playPlan(robotSystem.manipPlanner.lastManipPlan)
 
 
     def playWalkingPlan():
-        playPlan(footstepsDriver.lastWalkingPlan)
+        playPlan(robotSystem.footstepsDriver.lastWalkingPlan)
 
 
     def plotManipPlan():
-        planPlayback.plotPlan(manipPlanner.lastManipPlan)
+        robotSystem.planPlayback.plotPlan(robotSystem.manipPlanner.lastManipPlan)
 
 
     def planStand():
-        ikPlanner.computeStandPlan(robotStateJointController.q)
+        robotSystem.ikPlanner.computeStandPlan(robotSystem.robotStateJointController.q)
 
 
     def planNominal():
-        ikPlanner.computeNominalPlan(robotStateJointController.q)
+        robotSystem.ikPlanner.computeNominalPlan(robotSystem.robotStateJointController.q)
 
 
     def planHomeStand():
         ''' Move the robot back to a safe posture, 1m above its feet, w/o moving the hands '''
-        ikPlanner.computeHomeStandPlan(robotStateJointController.q, footstepsDriver.getFeetMidPoint(robotStateModel),
+        robotSystem.ikPlanner.computeHomeStandPlan(robotSystem.robotStateJointController.q, robotSystem.footstepsDriver.getFeetMidPoint(robotSystem.robotstatemodel),
                                        1.0167)
 
 
     def planHomeNominal():
         ''' Move the robot back to a safe posture, 1m above its feet, w/o moving the hands '''
-        ikPlanner.computeHomeNominalPlan(robotStateJointController.q, footstepsDriver.getFeetMidPoint(robotStateModel),
+        robotSystem.ikPlanner.computeHomeNominalPlan(robotSystem.robotStateJointController.q, robotSystem.footstepsDriver.getFeetMidPoint(robotSystem.robotstatemodel),
                                          1.0167)
 
 
     def planHomeNominalHyq():
         ''' Move the robot back to a safe posture, 0.627m above its feet '''
-        ikPlanner.computeHomeNominalPlanQuadruped(robotStateJointController.q,
-                                                  footstepsDriver.getFeetMidPoint(robotStateModel), 0.627)
+        robotSystem.ikPlanner.computeHomeNominalPlanQuadruped(robotSystem.robotStateJointController.q,
+                                                  robotSystem.footstepsDriver.getFeetMidPoint(robotSystem.robotstatemodel), 0.627)
 
 
     def planHomeNominalAnymal():
         ''' Move the robot back to a safe posture, above the mid point of its 4 feet '''
-        ikPlanner.computeHomeNominalPlanQuadruped(robotStateJointController.q,
-                                                  footstepsDriver.getFeetMidPoint(robotStateModel), 0.5)
+        robotSystem.ikPlanner.computeHomeNominalPlanQuadruped(robotSystem.robotStateJointController.q,
+                                                  robotSystem.footstepsDriver.getFeetMidPoint(robotSystem.robotstatemodel), 0.5)
 
 
     if useMultisense:
@@ -313,23 +329,23 @@ if usePlanning:
     if drcargs.args().directorConfigFile.find('atlas') != -1:
         handJoints = roboturdf.getRobotiqJoints() + ['neck_ay']
     else:
-        for handModel in ikPlanner.handModels:
+        for handModel in robotSystem.ikPlanner.handModels:
             handJoints += handModel.handModel.model.getJointNames()
         # filter base joints out
         handJoints = [joint for joint in handJoints if joint.find('base') == -1]
 
-    teleopJointPropagator = JointPropagator(robotStateModel, teleopRobotModel, handJoints)
-    playbackJointPropagator = JointPropagator(robotStateModel, playbackRobotModel, handJoints)
+    teleopJointPropagator = JointPropagator(robotSystem.robotstatemodel, robotSystem.teleopRobotModel, handJoints)
+    playbackJointPropagator = JointPropagator(robotSystem.robotstatemodel, robotSystem.playbackRobotModel, handJoints)
 
 
     def doPropagation(model=None):
-        if teleopRobotModel.getProperty('Visible'):
+        if robotSystem.teleopRobotModel.getProperty('Visible'):
             teleopJointPropagator.doPropagation()
-        if playbackRobotModel.getProperty('Visible'):
+        if robotSystem.playbackRobotModel.getProperty('Visible'):
             playbackJointPropagator.doPropagation()
 
 
-    robotStateModel.connectModelChanged(doPropagation)
+    robotSystem.robotstatemodel.connectModelChanged(doPropagation)
 
     # app.addToolbarMacro('scene height', sendSceneHeightRequest)
     # app.addToolbarMacro('scene depth', sendSceneDepthRequest)
@@ -337,9 +353,9 @@ if usePlanning:
     # app.addToolbarMacro('stereo depth', sendFusedDepthRequest)
 
     if useLimitJointsSentToPlanner:
-        planningUtils.clampToJointLimits = True
+        robotSystem.planningUtils.clampToJointLimits = True
 
-    jointLimitChecker = teleoppanel.JointLimitChecker(robotStateModel, robotStateJointController)
+    jointLimitChecker = teleoppanel.JointLimitChecker(robotSystem.robotstatemodel, robotSystem.robotStateJointController)
     jointLimitChecker.setupMenuAction()
     jointLimitChecker.start()
 
@@ -347,7 +363,7 @@ if usePlanning:
         spindleSpinChecker = multisensepanel.SpindleSpinChecker(spindleMonitor)
         spindleSpinChecker.setupMenuAction()
 
-    postureShortcuts = teleoppanel.PosturePlanShortcuts(robotStateJointController, ikPlanner, planningUtils)
+    postureShortcuts = teleoppanel.PosturePlanShortcuts(robotSystem.robotStateJointController, robotSystem.ikPlanner, robotSystem.planningUtils)
 
     if useMultisense:
         def drillTrackerOn():
@@ -363,45 +379,45 @@ if usePlanning:
         affordancePanel.onGetRaycastTerrain()
 
 
-    ikPlanner.addPostureGoalListener(robotStateJointController)
+    robotSystem.ikPlanner.addPostureGoalListener(robotSystem.robotStateJointController)
 
-    playbackpanel.addPanelToMainWindow(playbackPanel)
-    teleoppanel.addPanelToMainWindow(teleopPanel)
+    playbackpanel.addPanelToMainWindow(robotSystem.playbackPanel)
+    teleoppanel.addPanelToMainWindow(robotSystem.teleopPanel)
 
-    motionPlanningPanel = motionplanningpanel.init(planningUtils, robotStateModel, robotStateJointController,
-                                                   teleopRobotModel, teleopJointController,
-                                                   ikPlanner, manipPlanner, affordanceManager, playbackPanel.setPlan,
-                                                   playbackPanel.hidePlan, footstepsDriver)
+    motionPlanningPanel = motionplanningpanel.init(robotSystem.planningUtils, robotSystem.robotstatemodel, robotSystem.robotStateJointController,
+                                                   robotSystem.teleopRobotModel, robotSystem.teleopJointController,
+                                                   robotSystem.ikPlanner, robotSystem.manipPlanner, robotSystem.affordanceManager, robotSystem.playbackPanel.setPlan,
+                                                   robotSystem.playbackPanel.hidePlan, robotSystem.footstepsDriver)
 
     if useGamepad:
-        gamePad = gamepad.Gamepad(teleopPanel, teleopJointController, ikPlanner, view)
+        gamePad = gamepad.Gamepad(robotSystem.teleopPanel, robotSystem.teleopJointController, robotSystem.ikPlanner, view)
 
     if useBlackoutText:
-        blackoutMonitor = blackoutmonitor.BlackoutMonitor(robotStateJointController, view, cameraview, mapServerSource)
+        blackoutMonitor = blackoutmonitor.BlackoutMonitor(robotSystem.robotStateJointController, view, cameraview, mapServerSource)
 
     taskPanels = OrderedDict()
 
     if useHumanoidDRCDemos:
-        debrisDemo = debrisdemo.DebrisPlannerDemo(robotStateModel, robotStateJointController, playbackRobotModel,
-                                                  ikPlanner, manipPlanner, atlasdriver.driver, lHandDriver,
+        debrisDemo = debrisdemo.DebrisPlannerDemo(robotSystem.robotstatemodel, robotSystem.robotStateJointController, robotSystem.playbackRobotModel,
+                                                  robotSystem.ikPlanner, robotSystem.manipPlanner, robotSystem.atlasDriver.driver, robotSystem.lHandDriver,
                                                   perception.multisenseDriver, refitBlocks)
 
-        drillDemo = drilldemo.DrillPlannerDemo(robotStateModel, playbackRobotModel, teleopRobotModel, footstepsDriver,
-                                               manipPlanner, ikPlanner,
-                                               lHandDriver, rHandDriver, atlasdriver.driver,
+        drillDemo = drilldemo.DrillPlannerDemo(robotSystem.robotstatemodel, robotSystem.playbackRobotModel, robotSystem.teleopRobotModel, robotSystem.footstepsDriver,
+                                               robotSystem.manipPlanner, robotSystem.ikPlanner,
+                                               robotSystem.lHandDriver, robotSystem.rHandDriver, robotSystem.atlasDriver.driver,
                                                perception.multisenseDriver,
-                                               fitDrillMultisense, robotStateJointController,
-                                               playPlans, teleopPanel.showPose, cameraview, segmentationpanel)
+                                               fitDrillMultisense, robotSystem.robotStateJointController,
+                                               playPlans, robotSystem.teleopPanel.showPose, cameraview, segmentationpanel)
         drillTaskPanel = drilldemo.DrillTaskPanel(drillDemo)
 
-        # valveDemo = valvedemo.ValvePlannerDemo(robotStateModel, footstepsDriver, footstepsPanel, manipPlanner, ikPlanner,
-        #                                  lHandDriver, rHandDriver, robotStateJointController)
+        # valveDemo = valvedemo.ValvePlannerDemo(robotSystem.robotstatemodel, robotSystem.footstepsDriver, footstepsPanel, robotSystem.manipPlanner, robotSystem.ikPlanner,
+        #                                  robotSystem.lHandDriver, robotSystem.rHandDriver, robotSystem.robotStateJointController)
         # valveTaskPanel = valvedemo.ValveTaskPanel(valveDemo)
 
-        continuouswalkingDemo = continuouswalkingdemo.ContinousWalkingDemo(robotStateModel, footstepsPanel,
-                                                                           footstepsDriver, playbackPanel,
-                                                                           robotStateJointController, ikPlanner,
-                                                                           teleopJointController, navigationPanel,
+        continuouswalkingDemo = continuouswalkingdemo.ContinousWalkingDemo(robotSystem.robotstatemodel, footstepsPanel,
+                                                                           robotSystem.footstepsDriver, robotSystem.playbackPanel,
+                                                                           robotSystem.robotStateJointController, robotSystem.ikPlanner,
+                                                                           robotSystem.teleopJointController, navigationPanel,
                                                                            cameraview)
         continuousWalkingTaskPanel = continuouswalkingdemo.ContinuousWalkingTaskPanel(continuouswalkingDemo)
 
@@ -410,16 +426,16 @@ if usePlanning:
         if useDrivingPlanner:
             drivingPlannerPanel = drivingplanner.DrivingPlannerPanel(robotSystem)
 
-        walkingDemo = walkingtestdemo.walkingTestDemo(robotStateModel, playbackRobotModel, teleopRobotModel,
-                                                      footstepsDriver, manipPlanner, ikPlanner,
-                                                      lHandDriver, rHandDriver, atlasdriver.driver,
+        walkingDemo = walkingtestdemo.walkingTestDemo(robotSystem.robotstatemodel, robotSystem.playbackRobotModel, robotSystem.teleopRobotModel,
+                                                      robotSystem.footstepsDriver, robotSystem.manipPlanner, robotSystem.ikPlanner,
+                                                      robotSystem.lHandDriver, robotSystem.rHandDriver, robotSystem.atlasDriver.driver,
                                                       perception.multisenseDriver,
-                                                      robotStateJointController,
+                                                      robotSystem.robotStateJointController,
                                                       playPlans, showPose)
 
-        # doorDemo = doordemo.DoorDemo(robotStateModel, footstepsDriver, manipPlanner, ikPlanner,
-        #                                  lHandDriver, rHandDriver, atlasdriver.driver, perception.multisenseDriver,
-        #                                  fitDrillMultisense, robotStateJointController,
+        # doorDemo = doordemo.DoorDemo(robotSystem.robotstatemodel, robotSystem.footstepsDriver, robotSystem.manipPlanner, robotSystem.ikPlanner,
+        #                                  robotSystem.lHandDriver, robotSystem.robotSystem.rHandDriver, robotSystem.atlasDriver.driver, perception.multisenseDriver,
+        #                                  fitDrillMultisense, robotSystem.robotStateJointController,
         #                                  playPlans, showPose)
         # doorTaskPanel = doordemo.DoorTaskPanel(doorDemo)
 
@@ -451,7 +467,7 @@ if usePlanning:
 
     # tasklaunchpanel.init(taskPanels)
 
-    splinewidget.init(view, handFactory, robotStateModel)
+    splinewidget.init(view, robotSystem.handFactory, robotSystem.robotstatemodel)
 
     rt.robotSystem = robotSystem
     taskManagerPanel = taskmanagerwidget.init()
@@ -463,7 +479,7 @@ if usePlanning:
     for obj in om.getObjects():
         obj.setProperty('Deletable', False)
 
-# if useCOPMonitor and not ikPlanner.fixedBaseArm:
+# if useCOPMonitor and not robotSystem.ikPlanner.fixedBaseArm:
 #    copMonitor = copmonitor.COPMonitor(robotSystem, view);
 
 
@@ -494,7 +510,7 @@ if useControllerRate:
             self.label.text = 'Controller rate: %s' % rate
 
 
-    controllerRateLabel = ControllerRateLabel(atlasDriver, app.getMainWindow().statusBar())
+    controllerRateLabel = ControllerRateLabel(robotSystem.atlasDriver, app.getMainWindow().statusBar())
 
 if useForceDisplay:
     class LCMForceDisplay(object):
@@ -567,7 +583,7 @@ class RobotLinkHighligher(object):
         self.robotModel.model.setLinkColor(linkName, color)
 
 
-robotHighlighter = RobotLinkHighligher(robotStateModel)
+robotHighlighter = RobotLinkHighligher(robotSystem.robotstatemodel)
 
 if useFootContactVis:
 
@@ -677,7 +693,7 @@ imageViewHandler = ToggleImageViewHandler(imageWidget)
 
 screengrabberpanel.init(view, imageWidget)
 framevisualization.init(view)
-affordancePanel = affordancepanel.init(view, affordanceManager, robotStateJointController)
+affordancePanel = affordancepanel.init(view, robotSystem.affordanceManager, robotSystem.robotStateJointController)
 cameraBooksmarksPanel = camerabookmarks.init(view)
 
 cameraControlPanel = cameracontrolpanel.CameraControlPanel(view)
@@ -686,7 +702,7 @@ app.addWidgetToDock(cameraControlPanel.widget, action=None).hide()
 
 def sendEstRobotState(pose=None):
     if pose is None:
-        pose = robotStateJointController.q
+        pose = robotSystem.robotStateJointController.q
     msg = robotstate.drakePoseToRobotState(pose)
     lcmUtils.publish('EST_ROBOT_STATE', msg)
 
@@ -698,7 +714,7 @@ app.resetCamera(viewDirection=[-1, 0, 0], view=view)
 
 
 def drawCenterOfMass(model):
-    stanceFrame = footstepsDriver.getFeetMidPoint(model)
+    stanceFrame = robotSystem.footstepsDriver.getFeetMidPoint(model)
     com = list(model.model.getCenterOfMass())
     com[2] = stanceFrame.GetPosition()[2]
     d = DebugData()
@@ -708,7 +724,7 @@ def drawCenterOfMass(model):
 
 
 def initCenterOfMassVisualization():
-    for model in [robotStateModel, teleopRobotModel, playbackRobotModel]:
+    for model in [robotSystem.robotstatemodel, robotSystem.teleopRobotModel, robotSystem.robotSystem.playbackRobotModel]:
         model.connectModelChanged(drawCenterOfMass)
         drawCenterOfMass(model)
 
@@ -742,7 +758,7 @@ class RobotGridUpdater(object):
         self.gridFrame.copyFrame(t)
 
 
-gridUpdater = RobotGridUpdater(grid.getChildFrame(), robotStateModel, robotStateJointController)
+gridUpdater = RobotGridUpdater(grid.getChildFrame(), robotSystem.robotstatemodel, robotSystem.robotStateJointController)
 
 
 class IgnoreOldStateMessagesSelector(object):
@@ -758,7 +774,7 @@ class IgnoreOldStateMessagesSelector(object):
         self.jointController.ignoreOldStateMessages = bool(self.action.checked)
 
 
-IgnoreOldStateMessagesSelector(robotStateJointController)
+IgnoreOldStateMessagesSelector(robotSystem.robotStateJointController)
 
 
 class RandomWalk(object):
@@ -769,16 +785,16 @@ class RandomWalk(object):
     def handleStatus(self, msg):
         if msg.plan_type == msg.STANDING:
             goal = transformUtils.frameFromPositionAndRPY(
-                np.array([robotStateJointController.q[0] + 2 * self.max_distance_per_plan * (np.random.random() - 0.5),
-                          robotStateJointController.q[1] + 2 * self.max_distance_per_plan * (np.random.random() - 0.5),
-                          robotStateJointController.q[2] - 0.84]),
-                [0, 0, robotStateJointController.q[5] + 2 * np.degrees(np.pi) * (np.random.random() - 0.5)])
-            request = footstepsDriver.constructFootstepPlanRequest(robotStateJointController.q, goal)
+                np.array([robotSystem.robotStateJointController.q[0] + 2 * self.max_distance_per_plan * (np.random.random() - 0.5),
+                          robotSystem.robotStateJointController.q[1] + 2 * self.max_distance_per_plan * (np.random.random() - 0.5),
+                          robotSystem.robotStateJointController.q[2] - 0.84]),
+                [0, 0, robotSystem.robotStateJointController.q[5] + 2 * np.degrees(np.pi) * (np.random.random() - 0.5)])
+            request = robotSystem.footstepsDriver.constructFootstepPlanRequest(robotSystem.robotStateJointController.q, goal)
             request.params.max_num_steps = 18
-            footstepsDriver.sendFootstepPlanRequest(request)
+            robotSystem.footstepsDriver.sendFootstepPlanRequest(request)
 
     def handleFootstepPlan(self, msg):
-        footstepsDriver.commitFootstepPlan(msg)
+        robotSystem.footstepsDriver.commitFootstepPlan(msg)
 
     def start(self):
         sub = lcmUtils.addSubscriber('PLAN_EXECUTION_STATUS', lcmdrc.plan_status_t, self.handleStatus)
@@ -803,7 +819,7 @@ if useKinect:
     # kinectlcm.startButton()
 
 if useFeetlessRobot:
-    ikPlanner.robotNoFeet = True
+    robotSystem.ikPlanner.robotNoFeet = True
 
 for scriptArgs in drcargs.args().scripts:
     execfile(scriptArgs[0])
