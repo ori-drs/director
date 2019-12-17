@@ -276,7 +276,7 @@ if usePlanning:
 
 
     def planHomeStand():
-        ''' Move the robot back to a safe posture, 1m above its feet, w/o moving the hands '''
+        """ Move the robot back to a safe posture, 1m above its feet, w/o moving the hands """
         robotSystem.ikPlanner.computeHomeStandPlan(robotSystem.robotStateJointController.q,
                                                    robotSystem.footstepsDriver.getFeetMidPoint(
                                                        robotSystem.robotstatemodel),
@@ -284,7 +284,7 @@ if usePlanning:
 
 
     def planHomeNominal():
-        ''' Move the robot back to a safe posture, 1m above its feet, w/o moving the hands '''
+        """ Move the robot back to a safe posture, 1m above its feet, w/o moving the hands """
         robotSystem.ikPlanner.computeHomeNominalPlan(robotSystem.robotStateJointController.q,
                                                      robotSystem.footstepsDriver.getFeetMidPoint(
                                                          robotSystem.robotstatemodel),
@@ -292,14 +292,14 @@ if usePlanning:
 
 
     def planHomeNominalHyq():
-        ''' Move the robot back to a safe posture, 0.627m above its feet '''
+        """ Move the robot back to a safe posture, 0.627m above its feet """
         robotSystem.ikPlanner.computeHomeNominalPlanQuadruped(robotSystem.robotStateJointController.q,
                                                               robotSystem.footstepsDriver.getFeetMidPoint(
                                                                   robotSystem.robotstatemodel), 0.627)
 
 
     def planHomeNominalAnymal():
-        ''' Move the robot back to a safe posture, above the mid point of its 4 feet '''
+        """ Move the robot back to a safe posture, above the mid point of its 4 feet """
         robotSystem.ikPlanner.computeHomeNominalPlanQuadruped(robotSystem.robotStateJointController.q,
                                                               robotSystem.footstepsDriver.getFeetMidPoint(
                                                                   robotSystem.robotstatemodel), 0.5)
@@ -428,8 +428,10 @@ if usePlanning:
                                                segmentationpanel)
         drillTaskPanel = drilldemo.DrillTaskPanel(drillDemo)
 
-        # valveDemo = valvedemo.ValvePlannerDemo(robotSystem.robotstatemodel, robotSystem.footstepsDriver, footstepsPanel, robotSystem.manipPlanner, robotSystem.ikPlanner,
-        #                                  robotSystem.lHandDriver, robotSystem.rHandDriver, robotSystem.robotStateJointController)
+        # valveDemo = valvedemo.ValvePlannerDemo(robotSystem.robotstatemodel, robotSystem.footstepsDriver,
+        #                                        footstepsPanel, robotSystem.manipPlanner,
+        #                                        robotSystem.ikPlanner, robotSystem.lHandDriver,
+#                                                robotSystem.rHandDriver, robotSystem.robotStateJointController)
         # valveTaskPanel = valvedemo.ValveTaskPanel(valveDemo)
 
         continuouswalkingDemo = continuouswalkingdemo.ContinousWalkingDemo(robotSystem.robotstatemodel, footstepsPanel,
@@ -457,10 +459,12 @@ if usePlanning:
                                                       robotSystem.robotStateJointController,
                                                       playPlans, showPose)
 
-        # doorDemo = doordemo.DoorDemo(robotSystem.robotstatemodel, robotSystem.footstepsDriver, robotSystem.manipPlanner, robotSystem.ikPlanner,
-        #                                  robotSystem.lHandDriver, robotSystem.robotSystem.rHandDriver, robotSystem.atlasDriver.driver, perception.multisenseDriver,
-        #                                  fitDrillMultisense, robotSystem.robotStateJointController,
-        #                                  playPlans, showPose)
+        # doorDemo = doordemo.DoorDemo(robotSystem.robotstatemodel, robotSystem.footstepsDriver,
+        #                              robotSystem.manipPlanner, robotSystem.ikPlanner,
+        #                              robotSystem.lHandDriver, robotSystem.robotSystem.rHandDriver,
+        #                              robotSystem.atlasDriver.driver, perception.multisenseDriver,
+        #                              fitDrillMultisense, robotSystem.robotStateJointController,
+        #                              playPlans, showPose)
         # doorTaskPanel = doordemo.DoorTaskPanel(doorDemo)
 
         terrainTaskPanel = terraintask.TerrainTaskPanel(robotSystem)
@@ -515,9 +519,9 @@ if usePlanning:
 useControllerRate = False
 if useControllerRate:
     class ControllerRateLabel(object):
-        '''
+        """
         Displays a controller frequency in the status bar
-        '''
+        """
 
         def __init__(self, atlasDriver, statusBar):
             self.atlasDriver = atlasDriver
@@ -538,9 +542,9 @@ if useControllerRate:
 
 if useForceDisplay:
     class LCMForceDisplay(object):
-        '''
+        """
         Displays foot force sensor signals in a status bar widget or label widget
-        '''
+        """
 
         def onRobotState(self, msg):
             self.l_foot_force_z = msg.force_torque.l_foot_force_z
@@ -612,9 +616,9 @@ robotHighlighter = RobotLinkHighligher(robotSystem.robotstatemodel)
 if useFootContactVis:
 
     class LCMContactDisplay(object):
-        '''
+        """
         Displays (controller) contact state by changing foot mesh color
-        '''
+        """
 
         def onFootContact(self, msg):
             for linkName, inContact in [[self.leftFootLink, msg.left_contact > 0.0],
@@ -811,9 +815,9 @@ class RandomWalk(object):
         if msg.plan_type == msg.STANDING:
             goal = transformUtils.frameFromPositionAndRPY(
                 np.array([robotSystem.robotStateJointController.q[0] + 2 * self.max_distance_per_plan * (
-                            np.random.random() - 0.5),
+                        np.random.random() - 0.5),
                           robotSystem.robotStateJointController.q[1] + 2 * self.max_distance_per_plan * (
-                                      np.random.random() - 0.5),
+                                  np.random.random() - 0.5),
                           robotSystem.robotStateJointController.q[2] - 0.84]),
                 [0, 0, robotSystem.robotStateJointController.q[5] + 2 * np.degrees(np.pi) * (np.random.random() - 0.5)])
             request = robotSystem.footstepsDriver.constructFootstepPlanRequest(robotSystem.robotStateJointController.q,
