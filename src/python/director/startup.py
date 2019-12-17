@@ -23,7 +23,6 @@ from director import coursemodel
 from director import debrisdemo
 from director import drcargs
 from director import drilldemo
-from director import drivingplanner
 from director import footstepsdriverpanel
 from director import framevisualization
 from director import gamepad
@@ -310,7 +309,6 @@ if useIk:
     robotSystem.startIkServer()
 
 if useAtlasDriver:
-    # robotSystem.atlasDriver.systemStatus.outputConsole = app.getOutputConsole()
     atlasdriverpanel.init(robotSystem.atlasDriver)
 else:
     app.removeToolbarMacro('ActionAtlasDriverPanel')
@@ -366,11 +364,6 @@ if useFootsteps:
 else:
     app.removeToolbarMacro('ActionFootstepPanel')
 
-# if useDrakeVisualizer:
-#    drakeVisualizer = drakevisualizer.DrakeVisualizer(view)
-#    app.MenuActionToggleHelper('Tools', 'Renderer - Drake', drakeVisualizer.isEnabled, drakeVisualizer.setEnabled)
-
-
 if useNavigationPanel:
     navigationPanel = navigationpanel.init(robotSystem.robotStateJointController, robotSystem.footstepsDriver)
     picker = PointPicker(view, callback=navigationPanel.pointPickerStoredFootsteps, numberOfPoints=2)
@@ -416,16 +409,14 @@ if usePlanning:
         """ Move the robot back to a safe posture, 1m above its feet, w/o moving the hands """
         robotSystem.ikPlanner.computeHomeStandPlan(robotSystem.robotStateJointController.q,
                                                    robotSystem.footstepsDriver.getFeetMidPoint(
-                                                       robotSystem.robotstatemodel),
-                                                   1.0167)
+                                                       robotSystem.robotstatemodel), 1.0167)
 
 
     def planHomeNominal():
         """ Move the robot back to a safe posture, 1m above its feet, w/o moving the hands """
         robotSystem.ikPlanner.computeHomeNominalPlan(robotSystem.robotStateJointController.q,
                                                      robotSystem.footstepsDriver.getFeetMidPoint(
-                                                         robotSystem.robotstatemodel),
-                                                     1.0167)
+                                                         robotSystem.robotstatemodel), 1.0167)
 
 
     def planHomeNominalHyq():
@@ -490,11 +481,6 @@ if usePlanning:
 
 
     robotSystem.robotstatemodel.connectModelChanged(doPropagation)
-
-    # app.addToolbarMacro('scene height', sendSceneHeightRequest)
-    # app.addToolbarMacro('scene depth', sendSceneDepthRequest)
-    # app.addToolbarMacro('stereo height', sendFusedHeightRequest)
-    # app.addToolbarMacro('stereo depth', sendFusedDepthRequest)
 
     if useLimitJointsSentToPlanner:
         robotSystem.planningUtils.clampToJointLimits = True
@@ -565,12 +551,6 @@ if usePlanning:
                                                segmentationpanel)
         drillTaskPanel = drilldemo.DrillTaskPanel(drillDemo)
 
-        # valveDemo = valvedemo.ValvePlannerDemo(robotSystem.robotstatemodel, robotSystem.footstepsDriver,
-        #                                        footstepsPanel, robotSystem.manipPlanner,
-        #                                        robotSystem.ikPlanner, robotSystem.lHandDriver,
-#                                                robotSystem.rHandDriver, robotSystem.robotStateJointController)
-        # valveTaskPanel = valvedemo.ValveTaskPanel(valveDemo)
-
         continuouswalkingDemo = continuouswalkingdemo.ContinousWalkingDemo(robotSystem.robotstatemodel, footstepsPanel,
                                                                            robotSystem.footstepsDriver,
                                                                            robotSystem.playbackPanel,
@@ -580,11 +560,6 @@ if usePlanning:
                                                                            navigationPanel,
                                                                            cameraview)
         continuousWalkingTaskPanel = continuouswalkingdemo.ContinuousWalkingTaskPanel(continuouswalkingDemo)
-
-        # useDrivingPlanner = drivingplanner.DrivingPlanner.isCompatibleWithConfig()
-        useDrivingPlanner = False
-        if useDrivingPlanner:
-            drivingPlannerPanel = drivingplanner.DrivingPlannerPanel(robotSystem)
 
         walkingDemo = walkingtestdemo.walkingTestDemo(robotSystem.robotstatemodel, robotSystem.playbackRobotModel,
                                                       robotSystem.teleopRobotModel,
@@ -596,30 +571,12 @@ if usePlanning:
                                                       robotSystem.robotStateJointController,
                                                       playPlans, showPose)
 
-        # doorDemo = doordemo.DoorDemo(robotSystem.robotstatemodel, robotSystem.footstepsDriver,
-        #                              robotSystem.manipPlanner, robotSystem.ikPlanner,
-        #                              robotSystem.lHandDriver, robotSystem.robotSystem.rHandDriver,
-        #                              robotSystem.atlasDriver.driver, perception.multisenseDriver,
-        #                              fitDrillMultisense, robotSystem.robotStateJointController,
-        #                              playPlans, showPose)
-        # doorTaskPanel = doordemo.DoorTaskPanel(doorDemo)
-
         terrainTaskPanel = terraintask.TerrainTaskPanel(robotSystem)
         terrainTask = terrainTaskPanel.terrainTask
 
         surpriseTaskPanel = surprisetask.SurpriseTaskPanel(robotSystem)
         surpriseTask = surpriseTaskPanel.planner
-        # egressPanel = egressplanner.EgressPanel(robotSystem)
-        # egressPlanner = egressPanel.egressPlanner
 
-        if useDrivingPlanner:
-            taskPanels['Driving'] = drivingPlannerPanel.widget
-
-        # taskPanels['Egress'] = egressPanel.widget
-        # taskPanels['Door'] = doorTaskPanel.widget
-        # taskPanels['Valve'] = valveTaskPanel.widget
-        # taskPanels['Drill'] = drillTaskPanel.widget
-        # taskPanels['Surprise'] = surpriseTaskPanel.widget
         taskPanels['Terrain'] = terrainTaskPanel.widget
         taskPanels['Continuous Walking'] = continuousWalkingTaskPanel.widget
 
@@ -627,10 +584,7 @@ if usePlanning:
         quadrupedTaskPanel = quadrupedtask.QuadrupedTaskPanel(robotSystem)
         quadrupedTask = quadrupedTaskPanel.planner
 
-        # taskPanels['Surprise'] = surpriseTaskPanel.widget
         taskPanels['Quadruped'] = quadrupedTaskPanel.widget
-
-    # tasklaunchpanel.init(taskPanels)
 
     splinewidget.init(view, robotSystem.handFactory, robotSystem.robotstatemodel)
 
@@ -644,9 +598,6 @@ if usePlanning:
     for obj in om.getObjects():
         obj.setProperty('Deletable', False)
 
-# if useCOPMonitor and not robotSystem.ikPlanner.fixedBaseArm:
-#    copMonitor = copmonitor.COPMonitor(robotSystem, view);
-
 useControllerRate = False
 if useControllerRate:
     controllerRateLabel = ControllerRateLabel(robotSystem.atlasDriver, app.getMainWindow().statusBar())
@@ -656,8 +607,6 @@ if useSkybox:
     imageMap = skybox.getSkyboxImages(skyboxDataDir)
     skyboxObjs = skybox.createSkybox(imageMap, view)
     skybox.connectSkyboxCamera(view)
-    # skybox.createTextureGround(os.path.join(skyboxDataDir, 'Dirt_seamless.jpg'), view)
-    # view.camera().SetViewAngle(60)
 
 robotHighlighter = RobotLinkHighlighter(robotSystem.robotstatemodel)
 
@@ -682,7 +631,6 @@ app.addWidgetToDock(cameraControlPanel.widget, action=None).hide()
 app.setCameraTerrainModeEnabled(view, True)
 app.resetCamera(viewDirection=[-1, 0, 0], view=view)
 
-
 def drawCenterOfMass(model):
     stanceFrame = robotSystem.footstepsDriver.getFeetMidPoint(model)
     com = list(model.model.getCenterOfMass())
@@ -702,7 +650,6 @@ def initCenterOfMassVisualization():
 
 if useCOMMonitor:
     initCenterOfMassVisualization()
-
 
 gridUpdater = RobotGridUpdater(grid.getChildFrame(), robotSystem.robotstatemodel, robotSystem.robotStateJointController)
 
