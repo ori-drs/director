@@ -353,13 +353,13 @@ button.connect('clicked()', tf_vis.TfFrameSync.resetTime)
 app.getMainWindow().statusBar().addPermanentWidget(button)
 
 if useHands:
-    handcontrolpanel.init(robotSystem.lHandDriver, robotSystem.rHandDriver, robotSystem.robotstatemodel,
+    handcontrolpanel.init(robotSystem.lHandDriver, robotSystem.rHandDriver, robotSystem.robotStateModel,
                           robotSystem.robotStateJointController, view)
 else:
     app.removeToolbarMacro('ActionHandControlPanel')
 
 if useFootsteps:
-    footstepsPanel = footstepsdriverpanel.init(robotSystem.footstepsDriver, robotSystem.robotstatemodel,
+    footstepsPanel = footstepsdriverpanel.init(robotSystem.footstepsDriver, robotSystem.robotStateModel,
                                                robotSystem.robotStateJointController)
 else:
     app.removeToolbarMacro('ActionFootstepPanel')
@@ -409,28 +409,28 @@ if usePlanning:
         """ Move the robot back to a safe posture, 1m above its feet, w/o moving the hands """
         robotSystem.ikPlanner.computeHomeStandPlan(robotSystem.robotStateJointController.q,
                                                    robotSystem.footstepsDriver.getFeetMidPoint(
-                                                       robotSystem.robotstatemodel), 1.0167)
+                                                       robotSystem.robotStateModel), 1.0167)
 
 
     def planHomeNominal():
         """ Move the robot back to a safe posture, 1m above its feet, w/o moving the hands """
         robotSystem.ikPlanner.computeHomeNominalPlan(robotSystem.robotStateJointController.q,
                                                      robotSystem.footstepsDriver.getFeetMidPoint(
-                                                         robotSystem.robotstatemodel), 1.0167)
+                                                         robotSystem.robotStateModel), 1.0167)
 
 
     def planHomeNominalHyq():
         """ Move the robot back to a safe posture, 0.627m above its feet """
         robotSystem.ikPlanner.computeHomeNominalPlanQuadruped(robotSystem.robotStateJointController.q,
                                                               robotSystem.footstepsDriver.getFeetMidPoint(
-                                                                  robotSystem.robotstatemodel), 0.627)
+                                                                  robotSystem.robotStateModel), 0.627)
 
 
     def planHomeNominalAnymal():
         """ Move the robot back to a safe posture, above the mid point of its 4 feet """
         robotSystem.ikPlanner.computeHomeNominalPlanQuadruped(robotSystem.robotStateJointController.q,
                                                               robotSystem.footstepsDriver.getFeetMidPoint(
-                                                                  robotSystem.robotstatemodel), 0.5)
+                                                                  robotSystem.robotStateModel), 0.5)
 
 
     if useMultisense:
@@ -469,8 +469,8 @@ if usePlanning:
         # filter base joints out
         handJoints = [joint for joint in handJoints if joint.find('base') == -1]
 
-    teleopJointPropagator = JointPropagator(robotSystem.robotstatemodel, robotSystem.teleopRobotModel, handJoints)
-    playbackJointPropagator = JointPropagator(robotSystem.robotstatemodel, robotSystem.playbackRobotModel, handJoints)
+    teleopJointPropagator = JointPropagator(robotSystem.robotStateModel, robotSystem.teleopRobotModel, handJoints)
+    playbackJointPropagator = JointPropagator(robotSystem.robotStateModel, robotSystem.playbackRobotModel, handJoints)
 
 
     def doPropagation(model=None):
@@ -480,12 +480,12 @@ if usePlanning:
             playbackJointPropagator.doPropagation()
 
 
-    robotSystem.robotstatemodel.connectModelChanged(doPropagation)
+    robotSystem.robotStateModel.connectModelChanged(doPropagation)
 
     if useLimitJointsSentToPlanner:
         robotSystem.planningUtils.clampToJointLimits = True
 
-    jointLimitChecker = teleoppanel.JointLimitChecker(robotSystem.robotstatemodel,
+    jointLimitChecker = teleoppanel.JointLimitChecker(robotSystem.robotStateModel,
                                                       robotSystem.robotStateJointController)
     jointLimitChecker.setupMenuAction()
     jointLimitChecker.start()
@@ -516,7 +516,7 @@ if usePlanning:
     playbackpanel.addPanelToMainWindow(robotSystem.playbackPanel)
     teleoppanel.addPanelToMainWindow(robotSystem.teleopPanel)
 
-    motionPlanningPanel = motionplanningpanel.init(robotSystem.planningUtils, robotSystem.robotstatemodel,
+    motionPlanningPanel = motionplanningpanel.init(robotSystem.planningUtils, robotSystem.robotStateModel,
                                                    robotSystem.robotStateJointController,
                                                    robotSystem.teleopRobotModel, robotSystem.teleopJointController,
                                                    robotSystem.ikPlanner, robotSystem.manipPlanner,
@@ -534,13 +534,13 @@ if usePlanning:
     taskPanels = OrderedDict()
 
     if useHumanoidDRCDemos:
-        debrisDemo = debrisdemo.DebrisPlannerDemo(robotSystem.robotstatemodel, robotSystem.robotStateJointController,
+        debrisDemo = debrisdemo.DebrisPlannerDemo(robotSystem.robotStateModel, robotSystem.robotStateJointController,
                                                   robotSystem.playbackRobotModel,
                                                   robotSystem.ikPlanner, robotSystem.manipPlanner,
                                                   robotSystem.atlasDriver.driver, robotSystem.lHandDriver,
                                                   perception.multisenseDriver, refitBlocks)
 
-        drillDemo = drilldemo.DrillPlannerDemo(robotSystem.robotstatemodel, robotSystem.playbackRobotModel,
+        drillDemo = drilldemo.DrillPlannerDemo(robotSystem.robotStateModel, robotSystem.playbackRobotModel,
                                                robotSystem.teleopRobotModel, robotSystem.footstepsDriver,
                                                robotSystem.manipPlanner, robotSystem.ikPlanner,
                                                robotSystem.lHandDriver, robotSystem.rHandDriver,
@@ -551,7 +551,7 @@ if usePlanning:
                                                segmentationpanel)
         drillTaskPanel = drilldemo.DrillTaskPanel(drillDemo)
 
-        continuouswalkingDemo = continuouswalkingdemo.ContinousWalkingDemo(robotSystem.robotstatemodel, footstepsPanel,
+        continuouswalkingDemo = continuouswalkingdemo.ContinousWalkingDemo(robotSystem.robotStateModel, footstepsPanel,
                                                                            robotSystem.footstepsDriver,
                                                                            robotSystem.playbackPanel,
                                                                            robotSystem.robotStateJointController,
@@ -561,7 +561,7 @@ if usePlanning:
                                                                            cameraview)
         continuousWalkingTaskPanel = continuouswalkingdemo.ContinuousWalkingTaskPanel(continuouswalkingDemo)
 
-        walkingDemo = walkingtestdemo.walkingTestDemo(robotSystem.robotstatemodel, robotSystem.playbackRobotModel,
+        walkingDemo = walkingtestdemo.walkingTestDemo(robotSystem.robotStateModel, robotSystem.playbackRobotModel,
                                                       robotSystem.teleopRobotModel,
                                                       robotSystem.footstepsDriver, robotSystem.manipPlanner,
                                                       robotSystem.ikPlanner,
@@ -586,7 +586,7 @@ if usePlanning:
 
         taskPanels['Quadruped'] = quadrupedTaskPanel.widget
 
-    splinewidget.init(view, robotSystem.handFactory, robotSystem.robotstatemodel)
+    splinewidget.init(view, robotSystem.handFactory, robotSystem.robotStateModel)
 
     rt.robotSystem = robotSystem
     taskManagerPanel = taskmanagerwidget.init()
@@ -608,7 +608,7 @@ if useSkybox:
     skyboxObjs = skybox.createSkybox(imageMap, view)
     skybox.connectSkyboxCamera(view)
 
-robotHighlighter = RobotLinkHighlighter(robotSystem.robotstatemodel)
+robotHighlighter = RobotLinkHighlighter(robotSystem.robotStateModel)
 
 if useDataFiles:
 
@@ -616,7 +616,7 @@ if useDataFiles:
         actionhandlers.onOpenFile(filename)
 
 monoCameras = drcargs.getDirectorConfig()['monoCameras']
-imageOverlayManager = ImageOverlayManager(drcargs.getDirectorConfig()['monoCameras'])
+imageOverlayManager = ImageOverlayManager()
 imageWidget = cameraview.ImageWidget(cameraview.imageManager, monoCameras, view, visible=False)
 imageViewHandler = ToggleImageViewHandler(imageWidget)
 
@@ -631,6 +631,7 @@ app.addWidgetToDock(cameraControlPanel.widget, action=None).hide()
 app.setCameraTerrainModeEnabled(view, True)
 app.resetCamera(viewDirection=[-1, 0, 0], view=view)
 
+
 def drawCenterOfMass(model):
     stanceFrame = robotSystem.footstepsDriver.getFeetMidPoint(model)
     com = list(model.model.getCenterOfMass())
@@ -642,7 +643,7 @@ def drawCenterOfMass(model):
 
 
 def initCenterOfMassVisualization():
-    for model in [robotSystem.robotstatemodel, robotSystem.teleopRobotModel,
+    for model in [robotSystem.robotStateModel, robotSystem.teleopRobotModel,
                   robotSystem.robotSystem.playbackRobotModel]:
         model.connectModelChanged(drawCenterOfMass)
         drawCenterOfMass(model)
@@ -651,7 +652,7 @@ def initCenterOfMassVisualization():
 if useCOMMonitor:
     initCenterOfMassVisualization()
 
-gridUpdater = RobotGridUpdater(grid.getChildFrame(), robotSystem.robotstatemodel, robotSystem.robotStateJointController)
+gridUpdater = RobotGridUpdater(grid.getChildFrame(), robotSystem.robotStateModel, robotSystem.robotStateJointController)
 
 IgnoreOldStateMessagesSelector(robotSystem.robotStateJointController)
 
