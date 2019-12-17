@@ -65,6 +65,249 @@ from director.tasks import taskmanagerwidget
 from director.tasks.descriptions import loadTaskDescriptions
 from director.timercallback import TimerCallback
 
+
+class RandomWalk(object):
+    def __init__(self, max_distance_per_plan=2):
+        self.subs = []
+        self.max_distance_per_plan = max_distance_per_plan
+
+    def handleStatus(self, msg):
+        if msg.plan_type == msg.STANDING:
+            goal = transformUtils.frameFromPositionAndRPY(
+                np.array([robotSystem.robotStateJointController.q[0] + 2 * self.max_distance_per_plan * (
+                        np.random.random() - 0.5),
+                          robotSystem.robotStateJointController.q[1] + 2 * self.max_distance_per_plan * (
+                                  np.random.random() - 0.5),
+                          robotSystem.robotStateJointController.q[2] - 0.84]),
+                [0, 0, robotSystem.robotStateJointController.q[5] + 2 * np.degrees(np.pi) * (np.random.random() - 0.5)])
+            request = robotSystem.footstepsDriver.constructFootstepPlanRequest(robotSystem.robotStateJointController.q,
+                                                                               goal)
+            request.params.max_num_steps = 18
+            robotSystem.footstepsDriver.sendFootstepPlanRequest(request)
+
+    def handleFootstepPlan(self, msg):
+        robotSystem.footstepsDriver.commitFootstepPlan(msg)
+
+    def start(self):
+        sub = lcmUtils.addSubscriber('PLAN_EXECUTION_STATUS', lcmdrc.plan_status_t, self.handleStatus)
+        sub.setSpeedLimit(0.2)
+        self.subs.append(sub)
+        self.subs.append(
+            lcmUtils.addSubscriber('FOOTSTEP_PLAN_RESPONSE', lcmdrc.footstep_plan_t, self.handleFootstepPlan))
+
+    def stop(self):
+        for sub in self.subs:
+            lcmUtils.removeSubscriber(sub)
+
+
+class LCMForceDisplay(object):
+    """
+    Displays foot force sensor signals in a status bar widget or label widget
+    """
+
+    def onRobotState(self, msg):
+        self.l_foot_force_z = msg.force_torque.l_foot_force_z
+        self.r_foot_force_z = msg.force_torque.r_foot_force_z
+
+    def __init__(self, channel, statusBar=None):
+        self.sub = lcmUtils.addSubscriber(channel, lcmbotcore.robot_state_t, self.onRobotState)
+        self.label = QtGui.QLabel('')
+        statusBar.addPermanentWidget(self.label)
+
+        self.timer = TimerCallback(targetFps=10)
+        self.timer.callback = self.showRate
+        self.timer.start()
+
+        self.l_foot_force_z = 0
+        self.r_foot_force_z = 0
+
+    def __del__(self):
+        lcmUtils.removeSubscriber(self.sub)
+
+    def showRate(self):
+        global leftInContact, rightInContact
+        self.label.text = '%.2f | %.2f' % (self.l_foot_force_z, self.r_foot_force_z)
+
+
+class RobotLinkHighlighter(object):
+
+    def __init__(self, robotModel):
+        self.robotModel = robotModel
+        self.previousColors = {}
+
+    def highlightLink(self, linkName, color):
+
+        currentColor = self.robotModel.model.getLinkColor(linkName)
+        if not currentColor.isValid():
+            return
+
+        if linkName not in self.previousColors:
+            self.previousColors[linkName] = currentColor
+
+        alpha = self.robotModel.getProperty('Alpha')
+        newColor = QtGui.QColor(color[0] * 255, color[1] * 255, color[2] * 255, alpha * 255)
+
+        self.robotModel.model.setLinkColor(linkName, newColor)
+
+    def dehighlightLink(self, linkName):
+
+        color = self.previousColors.pop(linkName, None)
+        if color is None:
+            return
+
+        color.setAlpha(self.robotModel.getProperty('Alpha') * 255)
+        self.robotModel.model.setLinkColor(linkName, color)
+
+
+class LCMContactDisplay(object):
+    """
+    Displays (controller) contact state by changing foot mesh color
+    """
+
+    def onFootContact(self, msg):
+        for linkName, inContact in [[self.leftFootLink, msg.left_contact > 0.0],
+                                    [self.rightFootLink, msg.right_contact > 0.0]]:
+            if inContact:
+                robotHighlighter.highlightLink(linkName, [0, 0, 1])
+            else:
+                robotHighlighter.dehighlightLink(linkName)
+
+    def __init__(self, channel):
+
+        self.leftFootLink = drcargs.getDirectorConfig()['leftFootLink']
+        self.rightFootLink = drcargs.getDirectorConfig()['rightFootLink']
+        footContactSub = lcmUtils.addSubscriber(channel, lcmdrc.foot_contact_estimate_t, self.onFootContact)
+        footContactSub.setSpeedLimit(60)
+
+
+class ControllerRateLabel(object):
+    """
+    Displays a controller frequency in the status bar
+    """
+
+    def __init__(self, atlasDriver, statusBar):
+        self.atlasDriver = atlasDriver
+        self.label = QtGui.QLabel('')
+        statusBar.addPermanentWidget(self.label)
+
+        self.timer = TimerCallback(targetFps=1)
+        self.timer.callback = self.showRate
+        self.timer.start()
+
+    def showRate(self):
+        rate = self.atlasDriver.getControllerRate()
+        rate = 'unknown' if rate is None else '%d hz' % rate
+        self.label.text = 'Controller rate: %s' % rate
+
+
+class ImageOverlayManager(object):
+
+    def __init__(self, robotName):
+        monoCameras = drcargs.getDirectorConfig()[robotName]['monoCameras']
+        self.viewName = monoCameras[0]
+        self.desiredWidth = 400
+        self.position = [0, 0]
+        self.usePicker = False
+        self.imageView = None
+        self.imagePicker = None
+        self._prevParent = None
+        self._updateAspectRatio()
+
+    def setWidth(self, width):
+        self.desiredWidth = width
+        self._updateAspectRatio()
+        self.hide()
+        self.show()
+
+    def _updateAspectRatio(self):
+        imageExtent = cameraview.imageManager.images[self.viewName].GetExtent()
+        if imageExtent[1] != -1 and imageExtent[3] != -1:
+            self.imageSize = [imageExtent[1] + 1, imageExtent[3] + 1]
+            imageAspectRatio = self.imageSize[0] / self.imageSize[1]
+            self.size = [self.desiredWidth, self.desiredWidth / imageAspectRatio]
+
+    def show(self):
+        if self.imageView:
+            return
+
+        imageView = cameraview.views[self.viewName]
+        self.imageView = imageView
+        self._prevParent = imageView.view.parent()
+
+        self._updateAspectRatio()
+
+        imageView.view.hide()
+        imageView.view.setParent(view)
+        imageView.view.resize(self.size[0], self.size[1])
+        imageView.view.move(self.position[0], self.position[1])
+        imageView.view.show()
+
+        if self.usePicker:
+            self.imagePicker = ImagePointPicker(imageView)
+            self.imagePicker.start()
+
+    def hide(self):
+        if self.imageView:
+            self.imageView.view.hide()
+            self.imageView.view.setParent(self._prevParent)
+            self.imageView.view.show()
+            self.imageView = None
+        if self.imagePicker:
+            self.imagePicker.stop()
+
+
+class ToggleImageViewHandler(object):
+
+    def __init__(self, manager):
+        self.action = app.getToolsMenuActions()['ActionToggleImageView']
+        self.action.connect('triggered()', self.toggle)
+        self.manager = manager
+
+    def toggle(self):
+        if self.action.checked:
+            self.manager.show()
+        else:
+            self.manager.hide()
+
+
+class IgnoreOldStateMessagesSelector(object):
+
+    def __init__(self, jointController):
+        self.jointController = jointController
+        self.action = app.addMenuAction('Tools', 'Ignore Old State Messages')
+        self.action.setCheckable(True)
+        self.action.setChecked(self.jointController.ignoreOldStateMessages)
+        self.action.connect('triggered()', self.toggle)
+
+    def toggle(self):
+        self.jointController.ignoreOldStateMessages = bool(self.action.checked)
+
+
+class RobotGridUpdater(object):
+
+    def __init__(self, gridFrame, robotModel, jointController):
+        self.gridFrame = gridFrame
+        self.robotModel = robotModel
+        self.jointController = jointController
+        self.robotModel.connectModelChanged(self.updateGrid)
+        self.z_offset = 0.627  # for Husky # 0.85 for Atlas
+
+    def setZOffset(self, z_offset):
+        self.z_offset = z_offset
+        self.updateGrid(None)
+
+    def updateGrid(self, model):
+        pos = self.jointController.q[:3]
+
+        x = int(np.round(pos[0])) / 10
+        y = int(np.round(pos[1])) / 10
+        z = np.round((pos[2] - self.z_offset) * 10.0) / 10.0
+
+        t = vtk.vtkTransform()
+        t.Translate((x * 10, y * 10, z))
+        self.gridFrame.copyFrame(t)
+
+
 drcargs.args()
 app.startup(globals())
 om.init(app.getMainWindow().objectTree(), app.getMainWindow().propertiesPanel())
@@ -78,9 +321,6 @@ tree = app.getMainWindow().objectTree()
 orbit = cameracontrol.OrbitController(view)
 showPolyData = segmentation.showPolyData
 updatePolyData = segmentation.updatePolyData
-
-###############################################################################
-
 
 robotSystem = robotsystem.create(view)
 
@@ -518,58 +758,9 @@ if usePlanning:
 
 useControllerRate = False
 if useControllerRate:
-    class ControllerRateLabel(object):
-        """
-        Displays a controller frequency in the status bar
-        """
-
-        def __init__(self, atlasDriver, statusBar):
-            self.atlasDriver = atlasDriver
-            self.label = QtGui.QLabel('')
-            statusBar.addPermanentWidget(self.label)
-
-            self.timer = TimerCallback(targetFps=1)
-            self.timer.callback = self.showRate
-            self.timer.start()
-
-        def showRate(self):
-            rate = self.atlasDriver.getControllerRate()
-            rate = 'unknown' if rate is None else '%d hz' % rate
-            self.label.text = 'Controller rate: %s' % rate
-
-
     controllerRateLabel = ControllerRateLabel(robotSystem.atlasDriver, app.getMainWindow().statusBar())
 
 if useForceDisplay:
-    class LCMForceDisplay(object):
-        """
-        Displays foot force sensor signals in a status bar widget or label widget
-        """
-
-        def onRobotState(self, msg):
-            self.l_foot_force_z = msg.force_torque.l_foot_force_z
-            self.r_foot_force_z = msg.force_torque.r_foot_force_z
-
-        def __init__(self, channel, statusBar=None):
-            self.sub = lcmUtils.addSubscriber(channel, lcmbotcore.robot_state_t, self.onRobotState)
-            self.label = QtGui.QLabel('')
-            statusBar.addPermanentWidget(self.label)
-
-            self.timer = TimerCallback(targetFps=10)
-            self.timer.callback = self.showRate
-            self.timer.start()
-
-            self.l_foot_force_z = 0
-            self.r_foot_force_z = 0
-
-        def __del__(self):
-            lcmUtils.removeSubscriber(self.sub)
-
-        def showRate(self):
-            global leftInContact, rightInContact
-            self.label.text = '%.2f | %.2f' % (self.l_foot_force_z, self.r_foot_force_z)
-
-
     rateComputer = LCMForceDisplay('EST_ROBOT_STATE', app.getMainWindow().statusBar())
 
 if useSkybox:
@@ -580,62 +771,9 @@ if useSkybox:
     # skybox.createTextureGround(os.path.join(skyboxDataDir, 'Dirt_seamless.jpg'), view)
     # view.camera().SetViewAngle(60)
 
-
-class RobotLinkHighligher(object):
-
-    def __init__(self, robotModel):
-        self.robotModel = robotModel
-        self.previousColors = {}
-
-    def highlightLink(self, linkName, color):
-
-        currentColor = self.robotModel.model.getLinkColor(linkName)
-        if not currentColor.isValid():
-            return
-
-        if linkName not in self.previousColors:
-            self.previousColors[linkName] = currentColor
-
-        alpha = self.robotModel.getProperty('Alpha')
-        newColor = QtGui.QColor(color[0] * 255, color[1] * 255, color[2] * 255, alpha * 255)
-
-        self.robotModel.model.setLinkColor(linkName, newColor)
-
-    def dehighlightLink(self, linkName):
-
-        color = self.previousColors.pop(linkName, None)
-        if color is None:
-            return
-
-        color.setAlpha(self.robotModel.getProperty('Alpha') * 255)
-        self.robotModel.model.setLinkColor(linkName, color)
-
-
-robotHighlighter = RobotLinkHighligher(robotSystem.robotstatemodel)
+robotHighlighter = RobotLinkHighlighter(robotSystem.robotstatemodel)
 
 if useFootContactVis:
-
-    class LCMContactDisplay(object):
-        """
-        Displays (controller) contact state by changing foot mesh color
-        """
-
-        def onFootContact(self, msg):
-            for linkName, inContact in [[self.leftFootLink, msg.left_contact > 0.0],
-                                        [self.rightFootLink, msg.right_contact > 0.0]]:
-                if inContact:
-                    robotHighlighter.highlightLink(linkName, [0, 0, 1])
-                else:
-                    robotHighlighter.dehighlightLink(linkName)
-
-        def __init__(self, channel):
-
-            self.leftFootLink = drcargs.getDirectorConfig()['leftFootLink']
-            self.rightFootLink = drcargs.getDirectorConfig()['rightFootLink']
-            footContactSub = lcmUtils.addSubscriber(channel, lcmdrc.foot_contact_estimate_t, self.onFootContact)
-            footContactSub.setSpeedLimit(60)
-
-
     footContactVis = LCMContactDisplay('FOOT_CONTACT_ESTIMATE')
 
 if useDataFiles:
@@ -643,79 +781,8 @@ if useDataFiles:
     for filename in drcargs.args().data_files:
         actionhandlers.onOpenFile(filename)
 
-
-class ImageOverlayManager(object):
-
-    def __init__(self):
-        monoCameras = drcargs.getDirectorConfig()['monoCameras']
-        self.viewName = monoCameras[0]
-        self.desiredWidth = 400
-        self.position = [0, 0]
-        self.usePicker = False
-        self.imageView = None
-        self.imagePicker = None
-        self._prevParent = None
-        self._updateAspectRatio()
-
-    def setWidth(self, width):
-        self.desiredWidth = width
-        self._updateAspectRatio()
-        self.hide()
-        self.show()
-
-    def _updateAspectRatio(self):
-        imageExtent = cameraview.imageManager.images[self.viewName].GetExtent()
-        if imageExtent[1] != -1 and imageExtent[3] != -1:
-            self.imageSize = [imageExtent[1] + 1, imageExtent[3] + 1]
-            imageAspectRatio = self.imageSize[0] / self.imageSize[1]
-            self.size = [self.desiredWidth, self.desiredWidth / imageAspectRatio]
-
-    def show(self):
-        if self.imageView:
-            return
-
-        imageView = cameraview.views[self.viewName]
-        self.imageView = imageView
-        self._prevParent = imageView.view.parent()
-
-        self._updateAspectRatio()
-
-        imageView.view.hide()
-        imageView.view.setParent(view)
-        imageView.view.resize(self.size[0], self.size[1])
-        imageView.view.move(self.position[0], self.position[1])
-        imageView.view.show()
-
-        if self.usePicker:
-            self.imagePicker = ImagePointPicker(imageView)
-            self.imagePicker.start()
-
-    def hide(self):
-        if self.imageView:
-            self.imageView.view.hide()
-            self.imageView.view.setParent(self._prevParent)
-            self.imageView.view.show()
-            self.imageView = None
-        if self.imagePicker:
-            self.imagePicker.stop()
-
-
-class ToggleImageViewHandler(object):
-
-    def __init__(self, manager):
-        self.action = app.getToolsMenuActions()['ActionToggleImageView']
-        self.action.connect('triggered()', self.toggle)
-        self.manager = manager
-
-    def toggle(self):
-        if self.action.checked:
-            self.manager.show()
-        else:
-            self.manager.hide()
-
-
 monoCameras = drcargs.getDirectorConfig()['monoCameras']
-imageOverlayManager = ImageOverlayManager()
+imageOverlayManager = ImageOverlayManager(drcargs.getDirectorConfig()['monoCameras'])
 imageWidget = cameraview.ImageWidget(cameraview.imageManager, monoCameras, view, visible=False)
 imageViewHandler = ToggleImageViewHandler(imageWidget)
 
@@ -762,83 +829,9 @@ if useCOMMonitor:
     initCenterOfMassVisualization()
 
 
-class RobotGridUpdater(object):
-
-    def __init__(self, gridFrame, robotModel, jointController):
-        self.gridFrame = gridFrame
-        self.robotModel = robotModel
-        self.jointController = jointController
-        self.robotModel.connectModelChanged(self.updateGrid)
-        self.z_offset = 0.627  # for Husky # 0.85 for Atlas
-
-    def setZOffset(self, z_offset):
-        self.z_offset = z_offset
-        self.updateGrid(None)
-
-    def updateGrid(self, model):
-        pos = self.jointController.q[:3]
-
-        x = int(np.round(pos[0])) / 10
-        y = int(np.round(pos[1])) / 10
-        z = np.round((pos[2] - self.z_offset) * 10.0) / 10.0
-
-        t = vtk.vtkTransform()
-        t.Translate((x * 10, y * 10, z))
-        self.gridFrame.copyFrame(t)
-
-
 gridUpdater = RobotGridUpdater(grid.getChildFrame(), robotSystem.robotstatemodel, robotSystem.robotStateJointController)
 
-
-class IgnoreOldStateMessagesSelector(object):
-
-    def __init__(self, jointController):
-        self.jointController = jointController
-        self.action = app.addMenuAction('Tools', 'Ignore Old State Messages')
-        self.action.setCheckable(True)
-        self.action.setChecked(self.jointController.ignoreOldStateMessages)
-        self.action.connect('triggered()', self.toggle)
-
-    def toggle(self):
-        self.jointController.ignoreOldStateMessages = bool(self.action.checked)
-
-
 IgnoreOldStateMessagesSelector(robotSystem.robotStateJointController)
-
-
-class RandomWalk(object):
-    def __init__(self, max_distance_per_plan=2):
-        self.subs = []
-        self.max_distance_per_plan = max_distance_per_plan
-
-    def handleStatus(self, msg):
-        if msg.plan_type == msg.STANDING:
-            goal = transformUtils.frameFromPositionAndRPY(
-                np.array([robotSystem.robotStateJointController.q[0] + 2 * self.max_distance_per_plan * (
-                        np.random.random() - 0.5),
-                          robotSystem.robotStateJointController.q[1] + 2 * self.max_distance_per_plan * (
-                                  np.random.random() - 0.5),
-                          robotSystem.robotStateJointController.q[2] - 0.84]),
-                [0, 0, robotSystem.robotStateJointController.q[5] + 2 * np.degrees(np.pi) * (np.random.random() - 0.5)])
-            request = robotSystem.footstepsDriver.constructFootstepPlanRequest(robotSystem.robotStateJointController.q,
-                                                                               goal)
-            request.params.max_num_steps = 18
-            robotSystem.footstepsDriver.sendFootstepPlanRequest(request)
-
-    def handleFootstepPlan(self, msg):
-        robotSystem.footstepsDriver.commitFootstepPlan(msg)
-
-    def start(self):
-        sub = lcmUtils.addSubscriber('PLAN_EXECUTION_STATUS', lcmdrc.plan_status_t, self.handleStatus)
-        sub.setSpeedLimit(0.2)
-        self.subs.append(sub)
-        self.subs.append(
-            lcmUtils.addSubscriber('FOOTSTEP_PLAN_RESPONSE', lcmdrc.footstep_plan_t, self.handleFootstepPlan))
-
-    def stop(self):
-        for sub in self.subs:
-            lcmUtils.removeSubscriber(sub)
-
 
 if useRandomWalk:
     randomWalk = RandomWalk()
