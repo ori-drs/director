@@ -235,7 +235,6 @@ updatePolyData = segmentation.updatePolyData
 robotSystem = robotsystem.create(view)
 
 useIk = True
-useRobotState = True
 usePerception = True
 useGrid = True
 useSpreadsheet = True
@@ -244,20 +243,11 @@ useHands = False
 usePlanning = True
 useHumanoidDRCDemos = False
 useAtlasDriver = False
-useOctomap = True
-useCollections = False
 useLightColorScheme = True
-useLoggingWidget = False
-useDrakeVisualizer = False
 useNavigationPanel = True
-useFallDetectorVis = True
-useCameraFrustumVisualizer = True
 useControllerRate = True
-useForceDisplay = True
 useDataFiles = True
 useGamepad = False
-useRandomWalk = True
-useCOPMonitor = False
 
 useQuadrupedDemos = False
 useSkybox = False
@@ -271,8 +261,6 @@ useCOMMonitor = True
 # Sensor Flags
 useKinect = False
 useMultisense = True
-useOpenniDepthImage = False
-usePointCloudSource = True
 
 poseCollection = PythonQt.dd.ddSignalMap()
 costCollection = PythonQt.dd.ddSignalMap()
