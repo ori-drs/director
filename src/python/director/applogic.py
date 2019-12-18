@@ -255,7 +255,7 @@ def addToolbarMacro(name, func):
 
 
 def removeToolbarMacro(name):
-    action = getToolBarActions()[name]
+    action = getToolBarActions().get(name)
     if action:
         getMainWindow().panelToolBar().removeAction(action)
 

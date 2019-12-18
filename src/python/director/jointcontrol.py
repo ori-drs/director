@@ -15,8 +15,10 @@ import PythonQt
 
 class JointController(object):
 
-    def __init__(self, models, poseCollection=None, jointNames=None):
-        self.jointNames = jointNames or robotstate.getDrakePoseJointNames()
+    def __init__(self, models, poseCollection=None, jointNames=None, robotName=None):
+        self.robotState = robotstate.getRobotState(robotName)
+        self.robotName = robotName
+        self.jointNames = jointNames or self.robotState.getDrakePoseJointNames()
         self.numberOfJoints = len(self.jointNames)
         self.models = list(models)
         self.poses = {}
@@ -88,12 +90,12 @@ class JointController(object):
             if self.ignoreOldStateMessages and self.lastRobotStateMessage is not None and msg.utime < self.lastRobotStateMessage.utime:
                 return
             poseName = channelName
-            pose = robotstate.convertStateMessageToDrakePose(msg)
+            pose = self.robotState.convertStateMessageToDrakePose(msg)
             self.lastRobotStateMessage = msg
 
             # use joint name/positions from robot_state_t and append base_{x,y,z,roll,pitch,yaw}
             jointPositions = np.hstack((msg.joint_position, pose[:6]))
-            jointNames = msg.joint_name + robotstate.getDrakePoseJointNames()[:6]
+            jointNames = msg.joint_name + self.robotState.getDrakePoseJointNames()[:6]
 
             self.setPose(poseName, pose, pushToModel=False)
             for model in self.models:
@@ -127,12 +129,12 @@ class JointController(object):
             #if self.ignoreOldStateMessages and self.lastRobotStateMessage is not None and msg.utime < self.lastRobotStateMessage.utime:
             #    return
             poseName = channelName
-            pose = robotstate.convertStateMessageToDrakePoseBasic(robotPosition, robotOrientation, jointNamesIn, jointPositionsIn)
+            pose = self.robotState.convertStateMessageToDrakePoseBasic(robotPosition, robotOrientation, jointNamesIn, jointPositionsIn)
             #self.lastRobotStateMessage = msg
 
             # use joint name/positions from robot_state_t and append base_{x,y,z,roll,pitch,yaw}
             jointPositions = np.hstack((jointPositionsIn, pose[:6]))
-            jointNames = jointNamesIn + robotstate.getDrakePoseJointNames()[:6]
+            jointNames = jointNamesIn + self.robotState.getDrakePoseJointNames()[:6]
 
             self.setPose(poseName, pose, pushToModel=False)
             for model in self.models:

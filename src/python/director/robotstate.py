@@ -1,225 +1,184 @@
-#import bot_core
 import numpy as np
 import time
 import re
 from director import drcargs
 from director import transformUtils
 
-_robotStateToDrakePoseJointMap = None
-_drakePoseToRobotStateJointMap = None
-_drakePoseJointNames = None
-_robotStateJointNames = None
-_numPositions = None
+robotStates = {}
 
 
-def getRollPitchYawFromRobotState(robotState):
-    return transformUtils.quaternionToRollPitchYaw(robotState[3:7])
+def getRobotState(robotName=None):
+    global robotStates
+    dictKey = robotName or "default";
+    if not robotStates.get(dictKey):
+        robotStates[dictKey] = RobotState(robotName)
 
+    return robotStates[dictKey]
 
-def getPositionFromRobotState(robotState):
-    return robotState[0:4]
 
+class RobotState(object):
 
-def getRobotStateToDrakePoseJointMap():
+    def __init__(self, robotName=None):
+        self._robotStateToDrakePoseJointMap = None
+        self._drakePoseToRobotStateJointMap = None
+        self._drakePoseJointNames = None
+        self._robotStateJointNames = None
+        self._numPositions = None
+        self.robotName = robotName
 
-    global _robotStateToDrakePoseJointMap
+    def getRollPitchYawFromRobotState(self, robotState):
+        return transformUtils.quaternionToRollPitchYaw(robotState[3:7])
 
-    if _robotStateToDrakePoseJointMap is None:
-        robotStateJointNames = getRobotStateJointNames()
-        drakePoseJointNames = getDrakePoseJointNames()
 
-        _robotStateToDrakePoseJointMap = dict()
+    def getPositionFromRobotState(self, robotState):
+        return robotState[0:4]
 
-        for robotStateJointIdx, robotStateJointName in enumerate(robotStateJointNames):
-            drakeJointIdx = drakePoseJointNames.index(robotStateJointName)
-            _robotStateToDrakePoseJointMap[robotStateJointIdx] = drakeJointIdx
 
-    return _robotStateToDrakePoseJointMap
+    def getRobotStateToDrakePoseJointMap(self):
 
+        if self._robotStateToDrakePoseJointMap is None:
+            robotStateJointNames = self.getRobotStateJointNames()
+            drakePoseJointNames = self.getDrakePoseJointNames()
 
-def getDrakePoseToRobotStateJointMap():
+            self._robotStateToDrakePoseJointMap = dict()
 
-    global _drakePoseToRobotStateJointMap
+            for robotStateJointIdx, robotStateJointName in enumerate(robotStateJointNames):
+                drakeJointIdx = drakePoseJointNames.index(robotStateJointName)
+                self._robotStateToDrakePoseJointMap[robotStateJointIdx] = drakeJointIdx
 
-    if _drakePoseToRobotStateJointMap is None:
-        _drakePoseToRobotStateJointMap = dict()
-        for key, value in getRobotStateToDrakePoseJointMap().iteritems():
-            _drakePoseToRobotStateJointMap[value] = key
+        return self._robotStateToDrakePoseJointMap
 
-    return _drakePoseToRobotStateJointMap
 
+    def getDrakePoseToRobotStateJointMap(self):
 
-def convertStateMessageToDrakePose(msg, strict=True):
-    '''
-    If strict is true, then the state message must contain a joint_position
-    for each named joint in the drake pose joint names.  If strict is false,
-    then a default value of 0.0 is used to fill joint positions that are
-    not specified in the robot state msg argument.
-    '''
+        if self._drakePoseToRobotStateJointMap is None:
+            self._drakePoseToRobotStateJointMap = dict()
+            for key, value in self.getRobotStateToDrakePoseJointMap().iteritems():
+                self._drakePoseToRobotStateJointMap[value] = key
 
-    jointMap = {}
-    for name, position in zip(msg.joint_name, msg.joint_position):
-        jointMap[name] = position
+        return self._drakePoseToRobotStateJointMap
 
-    jointPositions = []
-    for name in getDrakePoseJointNames()[6:]:
-        if strict:
-            jointPositions.append(jointMap[name])
-        else:
-            jointPositions.append(jointMap.get(name, 0.0))
 
-    trans = msg.pose.translation
-    quat = msg.pose.rotation
-    trans = [trans.x, trans.y, trans.z]
-    quat = [quat.w, quat.x, quat.y, quat.z]
-    rpy = transformUtils.quaternionToRollPitchYaw(quat)
+    def convertStateMessageToDrakePose(self, msg, strict=True):
+        '''
+        If strict is true, then the state message must contain a joint_position
+        for each named joint in the drake pose joint names.  If strict is false,
+        then a default value of 0.0 is used to fill joint positions that are
+        not specified in the robot state msg argument.
+        '''
 
-    pose = np.hstack((trans, rpy, jointPositions))
-    assert len(pose) == getNumPositions()
-    return pose
+        jointMap = {}
+        for name, position in zip(msg.joint_name, msg.joint_position):
+            jointMap[name] = position
 
-def convertStateMessageToDrakePoseBasic(trans, quat, jointNamesIn, jointPositionsIn, strict=True):
-    '''
-    If strict is true, then the state message must contain a joint_position
-    for each named joint in the drake pose joint names.  If strict is false,
-    then a default value of 0.0 is used to fill joint positions that are
-    not specified in the robot state msg argument.
-    This version is used for ROS messages
-    '''
+        jointPositions = []
+        for name in self.getDrakePoseJointNames()[6:]:
+            if strict:
+                jointPositions.append(jointMap[name])
+            else:
+                jointPositions.append(jointMap.get(name, 0.0))
 
-    jointMap = {}
-    for name, position in zip(jointNamesIn, jointPositionsIn):
-        jointMap[name] = position
+        trans = msg.pose.translation
+        quat = msg.pose.rotation
+        trans = [trans.x, trans.y, trans.z]
+        quat = [quat.w, quat.x, quat.y, quat.z]
+        rpy = transformUtils.quaternionToRollPitchYaw(quat)
 
-    jointPositions = []
-    for name in getDrakePoseJointNames()[6:]:
-        if strict:
-            jointPositions.append(jointMap[name])
-        else:
-            jointPositions.append(jointMap.get(name, 0.0))
+        pose = np.hstack((trans, rpy, jointPositions))
+        assert len(pose) == self.getNumPositions()
+        return pose
 
-    rpy = transformUtils.quaternionToRollPitchYaw(quat)
+    def convertStateMessageToDrakePoseBasic(self, trans, quat, jointNamesIn, jointPositionsIn, strict=True):
+        '''
+        If strict is true, then the state message must contain a joint_position
+        for each named joint in the drake pose joint names.  If strict is false,
+        then a default value of 0.0 is used to fill joint positions that are
+        not specified in the robot state msg argument.
+        This version is used for ROS messages
+        '''
 
-    pose = np.hstack((trans, rpy, jointPositions))
-    assert len(pose) == getNumPositions()
-    return pose
+        jointMap = {}
+        for name, position in zip(jointNamesIn, jointPositionsIn):
+            jointMap[name] = position
 
+        jointPositions = []
+        for name in self.getDrakePoseJointNames()[6:]:
+            if strict:
+                jointPositions.append(jointMap[name])
+            else:
+                jointPositions.append(jointMap.get(name, 0.0))
 
-def atlasCommandToDrakePose(msg):
-    jointIndexMap = getRobotStateToDrakePoseJointMap()
-    drakePose = np.zeros(len(getDrakePoseJointNames()))
-    for jointIdx, drakeIdx in jointIndexMap.iteritems():
-        drakePose[drakeIdx] = msg.position[jointIdx]
-    return drakePose.tolist()
+        rpy = transformUtils.quaternionToRollPitchYaw(quat)
 
+        pose = np.hstack((trans, rpy, jointPositions))
+        assert len(pose) == self.getNumPositions()
+        return pose
 
-def robotStateToDrakePose(robotState):
 
-    drakePose = range(getNumPositions())
-    jointIndexMap = getRobotStateToDrakePoseJointMap()
+    def atlasCommandToDrakePose(self, msg):
+        jointIndexMap = self.getRobotStateToDrakePoseJointMap()
+        drakePose = np.zeros(len(self.getDrakePoseJointNames()))
+        for jointIdx, drakeIdx in jointIndexMap.iteritems():
+            drakePose[drakeIdx] = msg.position[jointIdx]
+        return drakePose.tolist()
 
-    pos = getPositionFromRobotState(robotState)
-    rpy = getRollPitchYawFromRobotState(robotState)
-    robotState = robotState[7:]
 
-    assert len(jointIndexMap) == getNumJoints()
-    assert len(robotState) >= len(jointIndexMap)
+    def robotStateToDrakePose(self, robotState):
 
-    for jointIdx in xrange(len(jointIndexMap)):
-        drakePose[jointIndexMap[jointIdx]] = robotState[jointIdx]
+        drakePose = range(self.getNumPositions())
+        jointIndexMap = self.getRobotStateToDrakePoseJointMap()
 
-    drakePose[0] = pos[0]
-    drakePose[1] = pos[1]
-    drakePose[2] = pos[2]
-    drakePose[3] = rpy[0]
-    drakePose[4] = rpy[1]
-    drakePose[5] = rpy[2]
+        pos = self.getPositionFromRobotState(robotState)
+        rpy = self.getRollPitchYawFromRobotState(robotState)
+        robotState = robotState[7:]
 
-    return drakePose
+        assert len(jointIndexMap) == self.getNumJoints()
+        assert len(robotState) >= len(jointIndexMap)
 
+        for jointIdx in xrange(len(jointIndexMap)):
+            drakePose[jointIndexMap[jointIdx]] = robotState[jointIdx]
 
-def getPoseLCMFromXYZRPY(xyz, rpy):
+        drakePose[0] = pos[0]
+        drakePose[1] = pos[1]
+        drakePose[2] = pos[2]
+        drakePose[3] = rpy[0]
+        drakePose[4] = rpy[1]
+        drakePose[5] = rpy[2]
 
-    wxyz = transformUtils.rollPitchYawToQuaternion(rpy)
+        return drakePose
 
-    trans = bot_core.vector_3d_t()
-    trans.x, trans.y, trans.z = xyz
 
-    quat = bot_core.quaternion_t()
-    quat.w, quat.x, quat.y, quat.z = wxyz
+    def matchJoints(self, regex):
+        search = re.compile(regex).search
+        return [name for name in self.getDrakePoseJointNames() if search(name)]
 
-    pose = bot_core.position_3d_t()
-    pose.translation = trans
-    pose.rotation = quat
 
-    return pose
+    def getDrakePoseJointNames(self):
 
+        if not self._drakePoseJointNames:
+            if not self.robotName:
+                self._drakePoseJointNames = drcargs.getDirectorConfig()['drakeJointNames']
+            else:
+                self._drakePoseJointNames = drcargs.getDirectorConfig()[self.robotName]['drakeJointNames']
 
-def drakePoseToRobotState(drakePose):
+        return self._drakePoseJointNames
 
-    robotState = range(getNumJoints())
-    jointIndexMap = getDrakePoseToRobotStateJointMap()
+    def getRobotStateJointNames(self):
 
-    for jointIdx, jointAngle in enumerate(drakePose):
-        jointIdx =jointIndexMap.get(jointIdx)
-        if jointIdx is not None:
-            robotState[jointIdx] = jointAngle
+        if not self._robotStateJointNames:
+            if not self.robotName:
+                self._robotStateJointNames = drcargs.getDirectorConfig()['robotStateJointNames']
+            else:
+                self._robotStateJointNames = drcargs.getDirectorConfig()[self.robotName]['robotStateJointNames']
 
-    xyz = drakePose[:3]
-    rpy = drakePose[3:6]
+        return self._robotStateJointNames
 
-    m = bot_core.robot_state_t()
-    m.utime = int(time.time() * 1e6)
-    m.pose = getPoseLCMFromXYZRPY(xyz, rpy)
-    m.twist = bot_core.twist_t()
-    m.twist.linear_velocity = bot_core.vector_3d_t()
-    m.twist.angular_velocity = bot_core.vector_3d_t()
-    m.num_joints = getNumJoints()
-    m.joint_name = getRobotStateJointNames()
-    m.joint_position = robotState
-    m.joint_velocity = np.zeros(getNumJoints())
-    m.joint_effort = np.zeros(getNumJoints())
-    m.force_torque = bot_core.force_torque_t()
-    m.force_torque.l_hand_force = np.zeros(3)
-    m.force_torque.l_hand_torque = np.zeros(3)
-    m.force_torque.r_hand_force = np.zeros(3)
-    m.force_torque.r_hand_torque = np.zeros(3)
+    def getNumPositions(self):
 
-    return m
+        if self._numPositions is None:
+            _numPositions = len(self.getDrakePoseJointNames())
 
+        return self._numPositions
 
-def matchJoints(regex):
-    search = re.compile(regex).search
-    return [name for name in getDrakePoseJointNames() if search(name)]
-
-
-def getDrakePoseJointNames():
-    global _drakePoseJointNames
-
-    if _drakePoseJointNames:
-        return _drakePoseJointNames
-    else:
-        _drakePoseJointNames = drcargs.getDirectorConfig()['drakeJointNames']
-
-        return _drakePoseJointNames
-
-def getRobotStateJointNames():
-    global _robotStateJointNames
-
-    if _robotStateJointNames:
-        return _robotStateJointNames
-    else:
-        _robotStateJointNames = drcargs.getDirectorConfig()['robotStateJointNames']
-
-        return _robotStateJointNames
-
-def getNumPositions():
-    global _numPositions
-
-    if _numPositions is None:
-        _numPositions = len(getDrakePoseJointNames())
-
-    return _numPositions
-
-def getNumJoints():
-    return getNumPositions() - 6
+    def getNumJoints(self):
+        return self.getNumPositions() - 6

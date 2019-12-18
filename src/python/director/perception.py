@@ -597,7 +597,10 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
         self.addProperty('Target FPS', 5.0, attributes=om.PropertyAttributes(decimals=1, minimum=0.1, maximum=30.0, singleStep=0.1))
         self.addProperty('Max Range', 5.0,  attributes=om.PropertyAttributes(decimals=2, minimum=0., maximum=30.0, singleStep=0.25))
 
-        cameraMode = drcargs.getDirectorConfig()['cameraMode']
+        if not robotStateJointController.robotName:
+            cameraMode = drcargs.getDirectorConfig()['cameraMode']
+        else:
+            cameraMode = drcargs.getDirectorConfig()[robotStateJointController.robotName]['cameraMode']
 
         self.reader = vtkRos.vtkRosDepthImageSubscriber()
 
@@ -722,7 +725,8 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
 def init(view, robotStateJointController):
     global _multisenseItem
 
-    sensorsFolder = om.getOrCreateContainer('sensors')
+    prefix = robotStateJointController.robotName + " " if robotStateJointController.robotName else ""
+    sensorsFolder = om.getOrCreateContainer(prefix + 'sensors')
 
 
     #queue = PythonQt.dd.ddPointCloudLCM(lcmUtils.getGlobalLCMThread())
@@ -769,8 +773,12 @@ def init(view, robotStateJointController):
     pointCloudSource.addToView(view)
     om.addToObjectModel(pointCloudSource, sensorsFolder)
 
-    depthCameras = drcargs.getDirectorConfig()['depthCameras']
-    depthCamerasShortName = drcargs.getDirectorConfig()['depthCamerasShortName']
+    if not robotStateJointController.robotName:
+        depthCameras = drcargs.getDirectorConfig()['depthCameras']
+        depthCamerasShortName = drcargs.getDirectorConfig()['depthCamerasShortName']
+    else:
+        depthCameras = drcargs.getDirectorConfig()[robotStateJointController.robotName]['depthCameras']
+        depthCamerasShortName = drcargs.getDirectorConfig()[robotStateJointController.robotName]['depthCamerasShortName']
 
     headCameraPointCloudSource = DepthImagePointCloudSource(depthCamerasShortName[0], depthCameras[0], str(depthCameras[0] + '_LEFT'), None,
                                  robotStateJointController)

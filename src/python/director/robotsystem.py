@@ -26,7 +26,7 @@ class RobotSystemFactory(object):
             'Affordances' : [],
             'PlannerPublisher' : ['Planning', 'Affordances'],#x
             #'ViewBehaviors' : ['Footsteps', 'PerceptionDrivers', 'Planning', 'Affordances'],
-            'ViewBehaviors' : ['Footsteps', 'PerceptionDrivers', 'Affordances'], 
+            'ViewBehaviors' : ['Footsteps', 'PerceptionDrivers', 'Affordances'],
             'RobotLinkSelector' : ['ViewBehaviors']} #x
 
         disabledComponents = [
@@ -38,14 +38,17 @@ class RobotSystemFactory(object):
             'Playback',
             'FootstepsPlayback',
             'RaycastDriver',
-	        'HandDrivers',	
+	        'HandDrivers',
             'RobotLinkSelector']
 
         return components, disabledComponents
 
     def initDirectorConfig(self, robotSystem):
 
-        directorConfig = drcargs.getDirectorConfig()
+        if robotSystem.robotName:
+            directorConfig = drcargs.getDirectorConfig()[robotSystem.robotName]
+        else:
+            directorConfig = drcargs.getDirectorConfig()
 
         if 'colorMode' not in directorConfig:
             defaultColorMode = 'URDF Colors'
@@ -66,7 +69,9 @@ class RobotSystemFactory(object):
             color=roboturdf.getRobotGrayColor(),
             colorMode=robotSystem.directorConfig['colorMode'],
             parent='sensors',
-            visible=True)
+            visible=True,
+            robotName=robotSystem.robotName
+        )
 
         robotStateJointController.setPose('EST_ROBOT_STATE', robotStateJointController.getPose('q_nom'))
         #roboturdf.startModelPublisherListener([(robotStateModel, robotStateJointController)])
@@ -81,7 +86,7 @@ class RobotSystemFactory(object):
     def initSegmentationRobotState(self, robotSystem):
 
         from director import segmentationroutines
-        segmentationroutines.SegmentationContext.initWithRobot(robotSystem.robotStateModel)
+        segmentationroutines.SegmentationContext.initWithRobot(robotSystem.robotStateModel, robotSystem.robotName)
 
     def initPerceptionDrivers(self, robotSystem):
 
@@ -123,11 +128,11 @@ class RobotSystemFactory(object):
 
     def initFootsteps(self, robotSystem):
 
-        if 'useFootsteps' in drcargs.getDirectorConfig()['disableComponents']:
+        if 'useFootsteps' in robotSystem.directorConfig['disableComponents']:
             footstepsDriver = None
         else:
             from director import footstepsdriver
-            footstepsDriver = footstepsdriver.FootstepsDriver(robotSystem.robotStateJointController)
+            footstepsDriver = footstepsdriver.FootstepsDriver(robotSystem.robotStateJointController, robotName=robotSystem.robotName)
 
         return FieldContainer(footstepsDriver=footstepsDriver)
 
@@ -140,7 +145,7 @@ class RobotSystemFactory(object):
     def initIRISDriver(self, robotSystem):
 
         from director import irisdriver
-        if 'useFootsteps' in drcargs.getDirectorConfig()['disableComponents']:
+        if 'useFootsteps' in robotSystem.directorConfig['disableComponents']:
             irisDriver = None
         else:
             irisDriver = irisdriver.IRISDriver(robotSystem.robotStateJointController, robotSystem.footstepsDriver.params)
@@ -253,7 +258,7 @@ class RobotSystemFactory(object):
             )
 
     def initFootstepsPlayback(self, robotSystem):
-        if 'useFootsteps' not in drcargs.getDirectorConfig()['disableComponents']:
+        if 'useFootsteps' not in robotSystem.directorConfig['disableComponents']:
             robotSystem.footstepsDriver.walkingPlanCallback = robotSystem.playbackPanel.setPlan
 
     def initAffordances(self, robotSystem):
@@ -339,7 +344,7 @@ class RobotSystemFactory(object):
         return FieldContainer(viewBehaviors=viewBehaviors)
 
 
-def create(view=None, globalsDict=None, options=None, planningOnly=False):
+def create(view=None, globalsDict=None, options=None, planningOnly=False, robotName=None):
     '''
     Convenience function for initializing a robotSystem
     with the default options and populating a globals()
@@ -358,7 +363,7 @@ def create(view=None, globalsDict=None, options=None, planningOnly=False):
         options = factory.getDisabledOptions()
         factory.setDependentOptions(options, usePlannerPublisher=True, useTeleop=True)
 
-    robotSystem = factory.construct(options, view=view)
+    robotSystem = factory.construct(options, view=view, robotName=robotName)
 
     if globalsDict is not None:
         globalsDict.update(dict(robotSystem))

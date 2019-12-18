@@ -101,7 +101,14 @@ class ImageManager(object):
         self.textures[name] = tex
         self.imageRotations180[name] = False
 
-        cameraMode = drcargs.getDirectorConfig()['cameraMode']
+        if 'cameraMode' not in drcargs.getDirectorConfig():
+            for robot in drcargs.getDirectorConfig():
+                if drcargs.getDirectorConfig()[robot].get('cameraMode'):
+                   cameraMode = drcargs.getDirectorConfig()[robot].get('cameraMode')
+            if not cameraMode:
+                raise Exception("ImageManager requires camera mode to be defined.")
+        else:
+            cameraMode = drcargs.getDirectorConfig()['cameraMode']
         self.queue[name] = vtkRos.vtkRosImageSubscriber()
 
         realsense_front_image = rospy.get_param("/director/realsense_front_image")
@@ -170,7 +177,15 @@ class CameraView(object):
         self.updateUtimes = {}
         self.robotModel = None
         self.sphereObjects = {}
-        self.sphereImages = drcargs.getDirectorConfig()['monoCameras']
+
+        if 'monoCameras' not in drcargs.getDirectorConfig():
+            for robot in drcargs.getDirectorConfig():
+                if drcargs.getDirectorConfig()[robot].get('monoCameras'):
+                   self.sphereImages = drcargs.getDirectorConfig()[robot].get('monoCameras')
+            if not self.sphereImages:
+                raise Exception("CameraView requires monoCameras to be defined.")
+        else:
+            self.sphereImages = drcargs.getDirectorConfig()['monoCameras']
 
         for name in self.sphereImages:
             imageManager.addImage(name)
@@ -652,23 +667,26 @@ def addCameraView(channel, viewName=None, cameraName=None, imageType=-1, addToVi
 
 
 
-def init(view=None,addToView=True):
+def init(view=None,addToView=True, robotName=None):
     global imageManager
     imageManager = ImageManager()
 
     global cameraView
     cameraView = CameraView(imageManager,view)
 
-    if "modelName" in drcargs.getDirectorConfig():
-        _modelName = drcargs.getDirectorConfig()['modelName']
-        cameraNames = imageManager.images
+    directorConfig = drcargs.getDirectorConfig()
+    if "modelName" not in directorConfig:
+        directorConfig = drcargs.getDirectorConfig()[robotName]
 
-        monoCameras = drcargs.getDirectorConfig()['monoCameras']
-        monoCamerasShortName = drcargs.getDirectorConfig()['monoCamerasShortName']
+    _modelName = directorConfig['modelName']
+    cameraNames = imageManager.images
 
-        for i in range( len(monoCameras)):
-            monoCamera = monoCameras[i]
-            monoCameraShortName = monoCamerasShortName[i]
-            if monoCamera in cameraNames:
-                addCameraView(monoCamera, monoCameraShortName, addToView=addToView)
+    monoCameras = directorConfig['monoCameras']
+    monoCamerasShortName = directorConfig['monoCamerasShortName']
+
+    for i in range( len(monoCameras)):
+        monoCamera = monoCameras[i]
+        monoCameraShortName = monoCamerasShortName[i]
+        if monoCamera in cameraNames:
+            addCameraView(monoCamera, monoCameraShortName, addToView=addToView)
 

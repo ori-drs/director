@@ -193,10 +193,12 @@ class RobotModelItem(om.ObjectModelItem):
         view.render()
 
 
-def loadRobotModel(name=None, view=None, parent='scene', urdfFile=None, color=None, visible=True, colorMode='URDF Colors', useConfigFile=True):
-
+def loadRobotModel(name=None, view=None, parent='scene', urdfFile=None, color=None, visible=True, colorMode='URDF Colors', useConfigFile=True, robotName=None):
     if not urdfFile:
-        urdfFile = drcargs.getDirectorConfig()['urdfConfig']['default']
+        if not robotName:
+            urdfFile = drcargs.getDirectorConfig()['urdfConfig']['default']
+        else:
+            urdfFile = drcargs.getDirectorConfig()[robotName]['urdfConfig']['default']
 
     if isinstance(parent, str):
         parent = om.getOrCreateContainer(parent)
@@ -228,10 +230,10 @@ def loadRobotModel(name=None, view=None, parent='scene', urdfFile=None, color=No
     else:
         jointNames = model.getJointNames()
 
-    jointController = jointcontrol.JointController([obj], jointNames=jointNames)
+    jointController = jointcontrol.JointController([obj], jointNames=jointNames, robotName=robotName)
 
     if useConfigFile:
-        fixedPointFile = drcargs.getDirectorConfig().get('fixedPointFile')
+        fixedPointFile = drcargs.getDirectorConfig().get('fixedPointFile') or drcargs.getDirectorConfig()[robotName].get('fixedPointFile')
         if fixedPointFile:
             jointController.setPose('q_nom', jointController.loadPoseFromFile(fixedPointFile))
         else:

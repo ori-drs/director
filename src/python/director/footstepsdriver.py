@@ -27,46 +27,10 @@ import yaml
 
 from PythonQt import QtGui, QtCore
 
-_footMeshes = None
-_footMeshFiles = []
-_modelName = "valkyrie" # either atlas_v3/v4/v5 or valkyrie
-_pelvisLink = '' # pelvis
-_leftFootLink = '' # l_foot
-_rightFootLink = '' # r_foot
+footstepsDrivers = {}
 
-_leftHandLink = ''
-_rightHandLink = ''
-_quadruped = False
-with open(drcargs.args().directorConfigFile) as directorConfigFile:
-    directorConfig = yaml.safe_load(directorConfigFile)
-
-    _modelName = directorConfig['modelName']
-
-    directorConfigDirectory = os.path.dirname(os.path.abspath(directorConfigFile.name))
-
-    if 'leftFootMeshFiles' in directorConfig:
-        _footMeshFiles.append( directorConfig['leftFootMeshFiles'] )
-        _footMeshFiles.append( directorConfig['rightFootMeshFiles'] )
-        for j in range(0,2):
-            for i in range(len(_footMeshFiles[j])):
-                _footMeshFiles[j][i] = os.path.join(directorConfigDirectory, _footMeshFiles[j][i])
-
-    if 'pelvisLink' in directorConfig:
-        _pelvisLink =  directorConfig['pelvisLink']
-
-    if 'leftFootLink' in directorConfig:
-        _leftFootLink = directorConfig['leftFootLink']
-        _rightFootLink = directorConfig['rightFootLink']
-
-
-    if 'quadruped' in drcargs.getDirectorConfig():
-        _quadruped = True
-        # Using 'hands' to signify quadruped front feet, for now:
-        # Note: there has not been the use of leftHandLink for previous bipeds
-        if 'leftHandLink' in drcargs.getDirectorConfig():
-            _leftHandLink =  drcargs.getDirectorConfig()['leftHandLink']
-            _rightHandLink = drcargs.getDirectorConfig()['rightHandLink']
-
+def getFootstepsDriver(robotName=None):
+    return footstepsDrivers.get(robotName)
 
 DEFAULT_PARAM_SET = 'Drake Nominal'
 DEFAULT_STEP_PARAMS = {'BDI': {'Min Num Steps': 0,
@@ -166,12 +130,13 @@ DEFAULT_CONTACT_SLICES = {(0.05, 0.3): np.array([[-0.13, -0.13, 0.13, 0.13],
                           }
 
 
-def loadFootMeshes():
+def loadFootMeshes(robotName=None):
     meshes = []
+    driver = getFootstepsDriver(robotName)
     for i in  range(0,2):
         d = DebugData()
 
-        for footMeshFile in _footMeshFiles[i]:
+        for footMeshFile in driver._footMeshFiles[i]:
           d.addPolyData(ioUtils.readPolyData( footMeshFile , computeNormals=True))
 
         t = vtk.vtkTransform()
@@ -198,11 +163,11 @@ def getRightFootColor():
 
 
 
-def getFootMeshes():
-    global _footMeshes
-    if not _footMeshes:
-        _footMeshes = loadFootMeshes()
-    return _footMeshes
+def getFootMeshes(robotName=None):
+    driver = getFootstepsDriver(robotName)
+    if not driver._footMeshes:
+        driver._footMeshes = loadFootMeshes()
+    return driver._footMeshes
 
 
 def getFootstepsFolder():
@@ -239,7 +204,7 @@ def getBDIAdjustedFootstepsFolder():
 
 class FootstepsDriver(object):
 
-    def __init__(self, jointController):
+    def __init__(self, jointController, robotName=None):
         self.jointController = jointController
         self.lastFootstepPlan = None
         self.lastFootstepRequest = None
@@ -277,6 +242,52 @@ class FootstepsDriver(object):
 
         self.committedPlans = []
 
+        self._footMeshes = None
+        self._footMeshFiles = []
+        self._modelName = "valkyrie"  # either atlas_v3/v4/v5 or valkyrie
+        self._pelvisLink = ''  # pelvis
+        self._leftFootLink = ''  # l_foot
+        self._rightFootLink = ''  # r_foot
+
+        self._leftHandLink = ''
+        self._rightHandLink = ''
+        self._quadruped = False
+
+        with open(drcargs.args().directorConfigFile) as directorConfigFile:
+            directorConfigFull = yaml.safe_load(directorConfigFile)
+            directorConfig = directorConfigFull[robotName] if robotName else directorConfigFull
+
+            self._modelName = directorConfig['modelName']
+
+            directorConfigDirectory = os.path.dirname(os.path.abspath(directorConfigFile.name))
+
+            if 'leftFootMeshFiles' in directorConfig:
+                self._footMeshFiles.append(directorConfig['leftFootMeshFiles'])
+                self._footMeshFiles.append(directorConfig['rightFootMeshFiles'])
+                for j in range(0, 2):
+                    for i in range(len(self._footMeshFiles[j])):
+                        self._footMeshFiles[j][i] = os.path.join(directorConfigDirectory, self._footMeshFiles[j][i])
+
+            if 'pelvisLink' in directorConfig:
+                self._pelvisLink = directorConfig['pelvisLink']
+
+            if 'leftFootLink' in directorConfig:
+                self._leftFootLink = directorConfig['leftFootLink']
+                self._rightFootLink = directorConfig['rightFootLink']
+
+            if 'quadruped' in drcargs.getDirectorConfig():
+                _quadruped = True
+                # Using 'hands' to signify quadruped front feet, for now:
+                # Note: there has not been the use of leftHandLink for previous bipeds
+                if 'leftHandLink' in drcargs.getDirectorConfig():
+                    self._leftHandLink = drcargs.getDirectorConfig()['leftHandLink']
+                    self._rightHandLink = drcargs.getDirectorConfig()['rightHandLink']
+
+        global footstepsDrivers
+        if robotName:
+            footstepsDrivers[robotName] = self
+        else:
+            footstepsDrivers["default"] = self
 
     def _setupProperties(self):
         self.params = om.ObjectModelItem('Footstep Params')
@@ -585,7 +596,7 @@ class FootstepsDriver(object):
         contact_pts_left = np.zeros((4,3))
         contact_pts_right = np.zeros((4,3))
 
-        if "atlas" in _modelName: # atlas_v3/v4/v5
+        if "atlas" in self._modelName: # atlas_v3/v4/v5
             if support_contact_groups == lcmdrc.footstep_params_t.SUPPORT_GROUPS_HEEL_TOE:
                 contact_pts_left[0,:] = [-0.0876,  0.0626, -0.07645]
                 contact_pts_left[1,:] = [-0.0876, -0.0626, -0.07645]
@@ -606,7 +617,7 @@ class FootstepsDriver(object):
 
             contact_pts_right = contact_pts_left.copy()
 
-        elif (_modelName == "valkyrie"):  #valkyrie
+        elif (self._modelName == "valkyrie"):  #valkyrie
             #these values were taken from ihmc code: ValkyriePhysicalProperties.java
             #they are also used in createFootstepList in lcm2ros_ihmc.cpp
             if support_contact_groups == lcmdrc.footstep_params_t.SUPPORT_GROUPS_HEEL_TOE:
@@ -627,7 +638,7 @@ class FootstepsDriver(object):
             else:
                 raise ValueError("Unrecognized support contact group: {:d}".format(support_contact_groups))
 
-        elif (_modelName == "hyq"):  #hyq fake
+        elif (self._modelName == "hyq"):  #hyq fake
             if support_contact_groups == lcmdrc.footstep_params_t.SUPPORT_GROUPS_HEEL_TOE:
                 contact_pts_left[0,:] = [-0.038,  0.055, -0.09]
                 contact_pts_left[1,:] = [-0.038, -0.055, -0.09]
@@ -648,7 +659,7 @@ class FootstepsDriver(object):
 
             contact_pts_right = contact_pts_left.copy()
 
-        elif (_modelName == "anymal"):  #anymal fake
+        elif (self._modelName == "anymal"):  #anymal fake
             #if support_contact_groups == lcmdrc.footstep_params_t.SUPPORT_GROUPS_HEEL_TOE:
             contact_pts_left[0,:] = [-0.038,  0.055, -0.09]
             contact_pts_left[1,:] = [-0.038, -0.055, -0.09]
@@ -670,28 +681,27 @@ class FootstepsDriver(object):
             contact_pts_right = contact_pts_left.copy()
 
         else:
-                print _modelName
+                print self._modelName
                 raise ValueError("modelName not recognised")
 
         return contact_pts_left, contact_pts_right
 
-    @staticmethod
-    def getFeetMidPoint(model, useWorldZ=True):
+    def getFeetMidPoint(self, model, useWorldZ=True):
         '''
         Returns a frame in world coordinate system that is the average of the left
         and right foot reference point positions in world frame, the average of the
         left and right foot yaw in world frame, and Z axis aligned with world Z.
         The foot reference point is the average of the foot contact points in the foot frame.
         '''
-        if (_quadruped):
-            t_lf = np.array( model.getLinkFrame(_leftHandLink).GetPosition() )
-            t_rf = np.array( model.getLinkFrame(_rightHandLink).GetPosition() )
-            t_lh = np.array( model.getLinkFrame(_leftFootLink).GetPosition() )
-            t_rh = np.array( model.getLinkFrame(_rightFootLink).GetPosition() )
+        if (self._quadruped):
+            t_lf = np.array( model.getLinkFrame(self._leftHandLink).GetPosition() )
+            t_rf = np.array( model.getLinkFrame(self._rightHandLink).GetPosition() )
+            t_lh = np.array( model.getLinkFrame(self._leftFootLink).GetPosition() )
+            t_rh = np.array( model.getLinkFrame(self._rightFootLink).GetPosition() )
             mid = (t_lf + t_rf + t_lh + t_rh)/4
             # this is not optimal, correct approach should use contact points to
             # determine desired orientation, not the current orientation
-            rpy = [0.0, 0.0, model.getLinkFrame(_pelvisLink).GetOrientation()[2]]
+            rpy = [0.0, 0.0, model.getLinkFrame(self._pelvisLink).GetOrientation()[2]]
             return transformUtils.frameFromPositionAndRPY(mid, rpy)
 
         contact_pts_left, contact_pts_right = FootstepsDriver.getContactPts()
@@ -699,21 +709,21 @@ class FootstepsDriver(object):
         contact_pts_mid_left = np.mean(contact_pts_left, axis=0) # mid point on foot relative to foot frame
         contact_pts_mid_right = np.mean(contact_pts_right, axis=0) # mid point on foot relative to foot frame
 
-        t_lf_mid = model.getLinkFrame(_leftFootLink)
+        t_lf_mid = model.getLinkFrame(self._leftFootLink)
         t_lf_mid.PreMultiply()
         t_lf_mid.Translate(contact_pts_mid_left)
 
-        t_rf_mid = model.getLinkFrame(_rightFootLink)
+        t_rf_mid = model.getLinkFrame(self._rightFootLink)
         t_rf_mid.PreMultiply()
         t_rf_mid.Translate(contact_pts_mid_right)
 
-        if "atlas" in _modelName: # atlas_v3/v4/v5
+        if "atlas" in self._modelName: # atlas_v3/v4/v5
             t_feet_mid = transformUtils.frameInterpolate(t_lf_mid, t_rf_mid, 0.5)
-        elif (_modelName == "valkyrie"): # valkyrie
+        elif (self._modelName == "valkyrie"): # valkyrie
             t_feet_mid = transformUtils.frameInterpolate(t_lf_mid, t_rf_mid, 0.5)
-        elif (_modelName == "hyq"): # hyq (not used)
+        elif (self._modelName == "hyq"): # hyq (not used)
             t_feet_mid = transformUtils.frameInterpolate(t_lf_mid, t_rf_mid, 0.5)
-        elif (_modelName == "anymal"): # anymal (not used)
+        elif (self._modelName == "anymal"): # anymal (not used)
             t_feet_mid = transformUtils.frameInterpolate(t_lf_mid, t_rf_mid, 0.5)
         else:
             raise ValueError("Model Name not recognised")
@@ -725,17 +735,16 @@ class FootstepsDriver(object):
             return t_feet_mid
 
 
-    @staticmethod
-    def debugDrawFootPoints(model):
+    def debugDrawFootPoints(self, model):
         pts_left, pts_right = FootstepsDriver.getContactPts()
         d = DebugData()
 
-        for linkName in [_leftFootLink, _rightFootLink]:
+        for linkName in [self._leftFootLink, self._rightFootLink]:
 
             t = model.getLinkFrame(linkName)
             d.addFrame(t, scale=0.2)
 
-            if (linkName is _leftFootLink):
+            if (linkName is self._leftFootLink):
                 pts = pts_left
             else:
                 pts = pts_right
@@ -752,9 +761,9 @@ class FootstepsDriver(object):
     def createGoalSteps(self, model, pose):
         distanceForward = 1.0
 
-        fr = model.getLinkFrame(_leftFootLink)
-        fl = model.getLinkFrame(_rightFootLink)
-        pelvisT = model.getLinkFrame(_pelvisLink)
+        fr = model.getLinkFrame(self._leftFootLink)
+        fl = model.getLinkFrame(self._rightFootLink)
+        pelvisT = model.getLinkFrame(self._pelvisLink)
 
         xaxis = [1.0, 0.0, 0.0]
         pelvisT.TransformVector(xaxis, xaxis)
