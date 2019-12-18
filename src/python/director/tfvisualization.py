@@ -68,7 +68,7 @@ class TfFrameSync(object):
         newBaseItemsToUpdate = []
         for i, baseItem in enumerate(self.baseItemsToUpdate):
             try:
-                baseItem.baseTransform = self._getTransform(self._rootFrame, baseItem.frame, baseItem.timestamp, i == 0)
+                baseItem.baseTransform = self._getTransform(self._rootFrame, baseItem.frame, baseItem.timestamp)
                 self._onBaseItemModified(baseItem)
             except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException,
                      tf2_ros.TransformException) as e:
@@ -168,14 +168,19 @@ class TfFrameSync(object):
         if baseItem not in self.baseItemsToUpdate:
             self.baseItemsToUpdate.append(baseItem)
 
-        return transformUtils.frameFromPositionAndRPY([0,0,0],[0,0,0])
+        #return latest transform received between frames
+        try:
+            tfPose = TfFrameSync.listener.lookupTransform(self._rootFrame, baseItem.frame, rospy.Time(0))
+            return rosutils.rosTfPoseToTransform(tfPose)
+        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException, tf2_ros.TransformException) as e:
+            return transformUtils.frameFromPositionAndRPY([0, 0, 0], [0, 0, 0])
 
-    def _getTransform(self, targetFrame, sourceFrame, timestamp, waitForTransform=True):
+
+    def _getTransform(self, targetFrame, sourceFrame, timestamp):
         """
         :return: the transform between sourceFrame and targetFrame
         """
-        if waitForTransform:
-            TfFrameSync.listener.waitForTransform(targetFrame, sourceFrame, timestamp, rospy.Duration(0.1))
+
         (trans, rot) = TfFrameSync.listener.lookupTransform(targetFrame, sourceFrame, timestamp)
         pose = Pose()
         pose.position.x = trans[0]

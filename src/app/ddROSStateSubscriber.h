@@ -146,10 +146,8 @@ public:
     mapInOdomTranslation[6] = 1;
 
     tf::StampedTransform transform;
-    ros::Time time = ros::Time(mSec, mNsec);
-    mTfListener->waitForTransform("map", "odom", time, ros::Duration(2.0));
     try {
-      mTfListener->lookupTransform("map", "odom", time, transform);
+      mTfListener->lookupTransform("map", "odom", ros::Time(0), transform);
     }
     catch (tf::TransformException& ex){
       ROS_ERROR("%s",ex.what());
