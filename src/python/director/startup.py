@@ -18,8 +18,8 @@ from director import camerabookmarks
 from director import cameracontrol
 from director import cameracontrolpanel
 from director import cameraview
-#from director import continuouswalkingdemo
-#from director import coursemodel
+from director import continuouswalkingdemo
+from director import coursemodel
 from director import debrisdemo
 from director import drcargs
 from director import drilldemo
@@ -27,7 +27,7 @@ from director import footstepsdriverpanel
 from director import framevisualization
 from director import gamepad
 from director import handcontrolpanel
-#from director import motionplanningpanel
+from director import motionplanningpanel
 from director import multisensepanel
 from director import navigationpanel
 from director import objectmodel as om
@@ -44,7 +44,7 @@ from director import splinewidget
 from director import spreadsheet
 from director import surprisetask
 from director import teleoppanel
-#from director import terraintask
+from director import terraintask
 from director import tfvisualization as tf_vis
 from director import viewcolors
 from director import viewframes
