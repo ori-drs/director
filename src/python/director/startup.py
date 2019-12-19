@@ -321,14 +321,15 @@ for robotSystem in robotSystems:
         if not useMultisense:
             app.removeToolbarMacro('ActionMultisensePanel')
 
+    robotObjectModelRoot = om.getOrCreateContainer(robotSystem.robotName)
     if useGrid:
-        grid = vis.showGrid(view, color=[0, 0, 0], alpha=0.1)
+        grid = vis.showGrid(view, color=[0, 0, 0], alpha=0.1, parent=robotObjectModelRoot)
         grid.setProperty('Surface Mode', 'Surface with edges')
 
     app.setBackgroundColor([0.3, 0.3, 0.35], [0.95, 0.95, 1])
 
     viewOptions = vis.ViewOptionsItem(view)
-    om.addToObjectModel(viewOptions, parentObj=om.findObjectByName('sensors'))
+    om.addToObjectModel(viewOptions, parentObj=robotObjectModelRoot)
 
     viewBackgroundLightHandler = viewcolors.ViewBackgroundLightHandler(viewOptions, grid,
                                                                        app.getToolsMenuActions()[

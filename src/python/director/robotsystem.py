@@ -61,6 +61,7 @@ class RobotSystemFactory(object):
     def initRobotState(self, robotSystem):
 
         from director import roboturdf
+        from director import objectmodel as om
 
         robotStateModel, robotStateJointController = roboturdf.loadRobotModel(
             'robot state model',
@@ -68,7 +69,7 @@ class RobotSystemFactory(object):
             urdfFile=robotSystem.directorConfig['urdfConfig']['robotState'],
             color=roboturdf.getRobotGrayColor(),
             colorMode=robotSystem.directorConfig['colorMode'],
-            parent='sensors',
+            parent=om.getOrCreateContainer('sensors', om.getOrCreateContainer(robotSystem.robotName)),
             visible=True,
             robotName=robotSystem.robotName
         )

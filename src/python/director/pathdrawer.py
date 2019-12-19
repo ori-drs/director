@@ -11,10 +11,10 @@ from geometry_msgs.msg import PoseArray
 
 class PosesSource(om.ContainerItem):
 
-    def __init__(self, name, topicName, tfDrawer, messageClass):
+    def __init__(self, name, topicName, tfDrawer, messageClass, parent=None):
         om.ContainerItem.__init__(self, name)
 
-        om.addToObjectModel(self)
+        om.addToObjectModel(self, parentObj=parent)
         self.topicName = topicName
         self.messageClass = messageClass
         self.subscriber = rosutils.addSubscriber(self.topicName, self.messageClass, self._posesCallback)
@@ -168,8 +168,8 @@ class PathSource(PosesSource):
     """
         A class used to draw a nav_msgs/Path
     """
-    def __init__(self, name, topicName, tfDrawer):
-        super(PathSource, self).__init__(name, topicName, tfDrawer, Path)
+    def __init__(self, name, topicName, tfDrawer, parent=None):
+        super(PathSource, self).__init__(name, topicName, tfDrawer, Path, parent)
 
     def _getPose(self, msg, index):
         return msg.poses[index].pose
@@ -179,8 +179,8 @@ class ArraySource(PosesSource):
     """
         A class used to draw a PoseArray
     """
-    def __init__(self, name, topicName, tfDrawer):
-        super(ArraySource, self).__init__(name, topicName, tfDrawer, PoseArray)
+    def __init__(self, name, topicName, tfDrawer, parent=None):
+        super(ArraySource, self).__init__(name, topicName, tfDrawer, PoseArray, parent)
 
     def _getPose(self, msg, index):
         return msg.poses[index]

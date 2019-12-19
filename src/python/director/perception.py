@@ -725,8 +725,7 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
 def init(view, robotStateJointController):
     global _multisenseItem
 
-    prefix = robotStateJointController.robotName + " " if robotStateJointController.robotName else ""
-    sensorsFolder = om.getOrCreateContainer(prefix + 'sensors')
+    sensorsFolder = om.getOrCreateContainer('sensors', om.getOrCreateContainer(robotStateJointController.robotName))
 
 
     #queue = PythonQt.dd.ddPointCloudLCM(lcmUtils.getGlobalLCMThread())
@@ -783,12 +782,12 @@ def init(view, robotStateJointController):
     headCameraPointCloudSource = DepthImagePointCloudSource(depthCamerasShortName[0], depthCameras[0], str(depthCameras[0] + '_LEFT'), None,
                                  robotStateJointController)
     headCameraPointCloudSource.addToView(view)
-    om.addToObjectModel(headCameraPointCloudSource, parentObj=om.findObjectByName('sensors'))
+    om.addToObjectModel(headCameraPointCloudSource, sensorsFolder)
 
     groundCameraPointCloudSource = DepthImagePointCloudSource(depthCamerasShortName[1], depthCameras[1], str(depthCameras[1] + '_LEFT'), None,
                                                               robotStateJointController)
     groundCameraPointCloudSource.addToView(view)
-    om.addToObjectModel(groundCameraPointCloudSource, parentObj=om.findObjectByName('sensors'))
+    om.addToObjectModel(groundCameraPointCloudSource, sensorsFolder)
 
     #if (i==0):
     #    mainDisparityPointCloud = disparityPointCloud
