@@ -220,10 +220,20 @@ class DirectorConfig(object):
 
         if self.config.get('fixedPointFile'):
             self.config['fixedPointFile'] = os.path.join(self.dirname, self.config['fixedPointFile'])
+        else:
+            for robot in self.config:
+                self.config[robot]['fixedPointFile'] = os.path.join(self.dirname, self.config[robot]['fixedPointFile'])
 
-        self.urdfConfig = self.config['urdfConfig']
-        for key, urdf in list(self.urdfConfig.items()):
-            self.urdfConfig[key] = os.path.join(self.dirname, urdf)
+        urdfConfigs = []
+        if self.config.get('urdfConfig'):
+            urdfConfigs.append(self.config['urdfConfig'])
+        else:
+            for robot in self.config:
+                urdfConfigs.append(self.config[robot]['urdfConfig'])
+
+        for urdfConfig in urdfConfigs:
+            for key, urdf in list(urdfConfig.items()):
+                urdfConfig[key] = os.path.join(self.dirname, urdf)
 
     _defaultInstance = None
 
