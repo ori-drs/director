@@ -67,11 +67,11 @@ def showPythonConsole():
 _exclusiveDockWidgets = {}
 
 def hideDockWidgets(action):
-    for a, w in _exclusiveDockWidgets.iteritems():
+    for a, wList in _exclusiveDockWidgets.iteritems():
         if a is not action:
-            dock, widget = w
-            if not dock.isFloating():
-                dock.hide()
+            for dock, widget in wList:
+                if not dock.isFloating():
+                    dock.hide()
 
 
 def addWidgetToDock(widget, dockArea=QtCore.Qt.RightDockWidgetArea, action=None):
@@ -82,7 +82,10 @@ def addWidgetToDock(widget, dockArea=QtCore.Qt.RightDockWidgetArea, action=None)
     getMainWindow().addDockWidget(dockArea, dock)
 
     if dockArea == QtCore.Qt.RightDockWidgetArea and action:
-        _exclusiveDockWidgets[action] = (dock, widget)
+        if action in _exclusiveDockWidgets:
+            _exclusiveDockWidgets[action].append((dock, widget))
+        else:
+            _exclusiveDockWidgets[action] = [(dock, widget)]
         action.connect('triggered()', functools.partial(hideDockWidgets, action))
 
     if action is None:
