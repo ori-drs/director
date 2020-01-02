@@ -514,6 +514,127 @@ class RosInit(vis.PolyDataItem):
         self.reader.Start()
 
 
+class MarkerSource(vis.PolyDataItem):
+
+    def __init__(self, name, topicName, callbackFunc=None):
+        vis.PolyDataItem.__init__(self, name, vtk.vtkPolyData(), view=None)
+        self.timer = TimerCallback()
+        self.timer.callback = self.showData
+        self.timer.start()
+        self.reader = vtkRos.vtkRosMarkerSubscriber()
+        self.callbackFunc = callbackFunc
+        self.resetColor = True
+        self.topicName = topicName
+
+        self.reader.Start(self.topicName)
+        self.addProperty('Topic name', self.topicName)
+        self.addProperty('Subscribe', True)
+
+
+    def _onPropertyChanged(self, propertySet, propertyName):
+        vis.PolyDataItem._onPropertyChanged(self, propertySet, propertyName)
+        if propertyName == 'Visible':
+            if self.getProperty(propertyName):
+                self.timer.start()
+            else:
+                self.timer.stop()
+        elif propertyName == 'Topic name':
+            self.topicName = self.getProperty(propertyName)
+            self.reader.Stop()
+            if self.getProperty('Subscribe'):
+                self.reader.Start(self.topicName)
+        elif propertyName == 'Subscribe':
+            if self.getProperty(propertyName):
+                self.reader.Start(self.topicName)
+                self.timer.start()
+            else:
+                self.reader.Stop()
+                self.timer.stop()
+
+    def resetTime(self):
+        self.reader.ResetTime()
+
+    def showData(self):
+        polyData = vtk.vtkPolyData()
+        self.reader.GetMesh(polyData)
+
+        if polyData.GetNumberOfPoints() == 0:
+            #if an empty message is received, we will reset the default color when the next message is received
+            self.resetColor = True
+
+        if self.callbackFunc:
+            self.callbackFunc()
+
+        #update view
+        self.setPolyData(polyData)
+
+        if self.resetColor and polyData.GetNumberOfPoints() != 0:
+            self.resetColor = False
+            colorList = self.properties.getPropertyAttribute('Color By', 'enumNames')
+            index = colorList.index('color') if 'color' in colorList else 0
+            self.properties.setProperty('Color By', index)
+
+
+class MarkerArraySource(vis.PolyDataItemList):
+
+    def __init__(self, name, topicName, singlePolyData=False, callbackFunc=None):
+        vis.PolyDataItemList.__init__(self, name, 'color')
+        # if singlePolyData is True, it means that all the markers received are merged into a single one
+        self.singlePolyData = singlePolyData
+        self.timer = TimerCallback()
+        self.timer.callback = self.showData
+        self.timer.start()
+        self.callbackFunc = callbackFunc
+        self.topicName = topicName
+        self.reader = vtkRos.vtkRosMarkerArraySubscriber()
+        self.reader.Start(self.topicName)
+
+        self.addProperty('Topic name', self.topicName)
+        self.addProperty('Subscribe', True)
+
+    def _onPropertyChanged(self, propertySet, propertyName):
+        vis.PolyDataItemList._onPropertyChanged(self, propertySet, propertyName)
+        if propertyName == 'Visible':
+            if self.getProperty(propertyName):
+                self.timer.start()
+            else:
+                self.timer.stop()
+        elif propertyName == 'Topic name':
+            self.topicName = self.getProperty(propertyName)
+            self.reader.Stop()
+            if self.getProperty('Subscribe'):
+                self.reader.Start(self.topicName)
+        elif propertyName == 'Subscribe':
+            if self.getProperty(propertyName):
+                self.reader.Start(self.topicName)
+                self.timer.start()
+            else:
+                self.reader.Stop()
+                self.timer.stop()
+
+    def resetTime(self):
+        self.reader.ResetTime()
+
+    def showData(self):
+        numPoly = self.reader.GetNumberOfMesh()
+        polyDataList = []
+        if self.singlePolyData:
+            polyData = vtk.vtkPolyData()
+            self.reader.GetMesh(polyData)
+            if polyData.GetNumberOfPoints() > 0:
+                polyDataList.append(polyData)
+        else:
+            for i in range(0, numPoly):
+                polyData = vtk.vtkPolyData()
+                self.reader.GetMesh(polyData, i)
+                polyDataList.append(polyData)
+
+        if self.callbackFunc:
+            self.callbackFunc()
+
+        self.setPolyData(polyDataList)
+
+
 class PointCloudSource(vis.PolyDataItem):
 
     def __init__(self, robotStateJointController, callbackFunc=None):
