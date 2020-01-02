@@ -1,4 +1,3 @@
-option(USE_ROS "Build with ROS." ON)
 option(USE_OCTOMAP "Build with octomap." OFF)
 
 

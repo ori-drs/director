@@ -34,7 +34,6 @@ include(cmake/dd-version.cmake)
 
 # dependency options
 option(USE_PORTMIDI "Build director with portmidi dependency." OFF)
-option(USE_ROS "Build director with ros dependency." OFF)
 option(USE_OCTOMAP "Build director with octomap dependency." OFF)
 
 use_cpp11()
