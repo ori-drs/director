@@ -21,7 +21,7 @@ class DD_APP_EXPORT ddROSSubscriber : public QObject
 
 public:
 
-  ddROSSubscriber(const QList<QString>& argv2, const QString& channel, QObject* parent=NULL) 
+  ddROSSubscriber(const QString& channel, QObject* parent=NULL) 
     : QObject(parent)
   {
     mChannel = channel;

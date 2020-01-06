@@ -12,9 +12,12 @@
 class DD_APP_EXPORT ddROSInit : public QObject {
     Q_OBJECT
 public:
+    ddROSInit(){}
+
     static void initialiseROS(const QList<QString>& argv2)
     {
         if (!ros::isInitialized()) {
+            ROS_INFO("Initialising dd ROS.");
             // guarantee contiguous, null terminated strings
             std::vector<std::vector<char>> vstrings;
             // pointers to rhose strings
@@ -32,6 +35,8 @@ public:
 
             ros::init(argc, cstrings.data(), "director_dd", ros::init_options::NoSigintHandler |
                         ros::init_options::AnonymousName);
+        } else {
+            ROS_INFO("dd ROS is already initialised.");
         }
     }
 };
