@@ -1,3 +1,5 @@
 ddROSSubscriber::ddROSSubscriber(const QStringList&, const QString&);
 ddROSSubscriber::ddROSSubscriber(const QStringList&, const QString&, QObject*);
 void ddROSSubscriber::unsubscribe();
+
+static void ddROSInit::initialiseROS(const QStringList&);
