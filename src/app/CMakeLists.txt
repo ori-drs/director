@@ -162,6 +162,23 @@ list(APPEND deps
   ${catkin_LIBRARIES}
 )
 
+if (USE_ROS)
+
+  set(moc_srcs)
+  qt_wrap_cpp(moc_srcs
+    ddROSSubscriber.h
+  )
+
+  list(APPEND srcs
+    ${moc_srcs}
+  )
+
+  list(APPEND wrap_files
+    wrapped_methods_ros.txt
+  )
+
+endif()
+
 add_library(ddApp SHARED ${srcs})
 target_link_libraries(ddApp ${deps} )
 
