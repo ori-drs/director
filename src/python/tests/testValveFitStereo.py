@@ -22,7 +22,7 @@ segmentationroutines.SegmentationContext.initWithRobot(robotStateModel)
 
 # load poly data
 dataDir = app.getTestingDataDirectory()
-polyData = ioUtils.readPolyData(os.path.join(dataDir, 'valve/valve-sparse-stereo.pcd'))
+polyData = ioUtils.readPolyData(os.path.join(dataDir, 'misc/valve/valve-sparse-stereo.pcd'))
 vis.showPolyData(polyData, 'pointcloud snapshot original', colorByName='rgb_colors')
 polyData = segmentationroutines.sparsifyStereoCloud( polyData )
 vis.showPolyData(polyData, 'pointcloud snapshot')
