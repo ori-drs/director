@@ -332,6 +332,63 @@ class PolyDataItem(om.ObjectModelItem):
             renderer.RemoveActor(self.actor)
         view.render()
 
+class PolyDataItemList(PolyDataItem):
+
+    def __init__(self, name, defaultColor):
+        PolyDataItem.__init__(self, name, vtk.vtkPolyData(), view=None)
+        self.name = name
+        self.defaultColor = defaultColor
+
+    def _init(self, size):
+        items = self._getPolyDataItems()
+        for item in items:
+            om.removeFromObjectModel(item)
+
+        for i in range(0, size):
+            name = self.name if i==0 else (self.name + str(i))
+            item = PolyDataItem(name, vtk.vtkPolyData(), view=None)
+            for view in self.views:
+                item.addToView(view)
+            om.addToObjectModel(item, self)
+
+
+    def setPolyData(self, polyDataList):
+        items = self._getPolyDataItems()
+        if len(polyDataList) != len(items):
+            self._init(len(polyDataList))
+            items = self._getPolyDataItems()
+            for i in range(0, len(items)):
+                items[i].setPolyData(polyDataList[i])
+                # set color
+                colorList = items[i].properties.getPropertyAttribute('Color By', 'enumNames')
+                index = colorList.index(self.defaultColor) if self.defaultColor in colorList else 0
+                items[i].properties.setProperty('Color By', index)
+
+        else:
+            for i in range(0, len(items)):
+                items[i].setPolyData(polyDataList[i])
+
+    def addToView(self, view):
+        PolyDataItem.addToView(self, view)
+        items = self._getPolyDataItems()
+        for item in items:
+            item.addToView(view)
+
+    def _getPolyDataItems(self):
+        items = []
+        for child in self.children():
+            if type(child) is PolyDataItem:
+                items.append(child)
+        return items
+
+    def _onPropertyChanged(self, propertySet, propertyName):
+        PolyDataItem._onPropertyChanged(self, propertySet, propertyName)
+        property = self.getProperty(propertyName)
+        for child in self.children():
+            if child.hasProperty(propertyName):
+                child.setProperty(propertyName, property)
+
+
 
 class TextItem(om.ObjectModelItem):
 
