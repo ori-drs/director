@@ -33,6 +33,7 @@ class PosesSource(om.ContainerItem):
         self.addProperty('Subscribe', True)
         self.addProperty('Style', 0, attributes=om.PropertyAttributes(enumNames=['Frames', 'Arrows']))
         self.addProperty('Draw entirety of received messages', False)
+        om.collapse(self)
 
     def unregister(self):
         self.subscriber.unsubscribe()
@@ -74,10 +75,12 @@ class PosesSource(om.ContainerItem):
 
         # only render last poses received, much faster than redrawing everything but sometimes it doesn't make sense
         # so toggle property "draw entirety of received messages to change this behaviour
+        newLines = []
         for i in range(self.prevIndexReceived+1, len(msg.poses)):
             pose = self._getPose(msg, i)
 
             transform = rosutils.rosPoseToTransform(pose)
+
             tfFrame = self.tfDrawer.drawFrame(transform, name + " - pose " + str(i), msg.header.stamp, msg.header.frame_id,
                                     parent=self)
             self.frames.append(tfFrame)
@@ -90,6 +93,7 @@ class PosesSource(om.ContainerItem):
                 line.addToView(view)
                 om.addToObjectModel(line, self.lineContainer)
                 self.lines.append(line)
+                newLines.append(line)
 
             self.prevTfFrame = tfFrame
 
@@ -100,15 +104,16 @@ class PosesSource(om.ContainerItem):
                 self._copyPropertiesToContainer(self.lineContainer, self.lines[0])
                 self.areContainerInitialized = True
         else:
-            self._copyContainerPropertiesToObjects(self.lineContainer, self.lines)
+            self._copyContainerPropertiesToObjects(self.lineContainer, newLines)
 
-        self._displayTfObjects()
 
     @abc.abstractmethod
     def _getPose(self, msg, index):
         pass
 
-
+    """
+       Display lines and arrows according to the properties of the container
+    """
     def _displayTfObjects(self):
         propertyValue = self.getPropertyEnumValue('Style')
         visible = self.getProperty('Visible')
@@ -127,7 +132,6 @@ class PosesSource(om.ContainerItem):
                 obj.setProperty('Visible', False)
 
     def _copyContainerPropertiesToObjects(self, container, objects):
-
 
         for obj in objects:
             for propertyName in container.propertyNames():
