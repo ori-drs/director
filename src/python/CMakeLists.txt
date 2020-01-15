@@ -86,7 +86,6 @@ set(python_files
   director/otdfmodel.py
   director/outputconsole.py
   director/packagepath.py
-  director/pathdrawer.py
   director/perception.py
   director/planningutils.py
   director/planplayback.py
@@ -132,9 +131,6 @@ set(python_files
   director/terrainitem.py
   director/terraintask.py
   director/timercallback.py
-  director/tfdrawer.py
-  director/tfvisualization.py
-  director/transformUtils.py
   director/trackers.py
   director/treeviewer.py
   director/uipanel.py
