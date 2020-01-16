@@ -131,6 +131,7 @@ set(python_files
   director/terraintask.py
   director/timercallback.py
   director/trackers.py
+  director/transformUtils.py
   director/treeviewer.py
   director/uipanel.py
   director/undoredo.py
