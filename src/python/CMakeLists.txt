@@ -87,6 +87,7 @@ set(python_files
   director/outputconsole.py
   director/packagepath.py
   director/perception.py
+  director/perceptionmeta.py
   director/planningutils.py
   director/planplayback.py
   director/playbackpanel.py
