@@ -501,7 +501,8 @@ class RosGridMap(vis.PolyDataItem):
             self.showMap(only_new_data = False)
             self._updateColorBy()
 
-        self.provider._on_property_changed(propertySet, propertyName)
+        if self.provider:
+            self.provider._on_property_changed(propertySet, propertyName)
 
 
     @CheckProvider
@@ -581,7 +582,8 @@ class MarkerSource(vis.PolyDataItem):
             else:
                 self.timer.stop()
 
-        self.provider._on_property_changed(propertySet, propertyName)
+        if self.provider:
+            self.provider._on_property_changed(propertySet, propertyName)
 
     @CheckProvider
     def resetTime(self):
@@ -649,8 +651,8 @@ class MarkerArraySource(vis.PolyDataItemList):
                 self.timer.start()
             else:
                 self.timer.stop()
-
-        self.provider._on_property_changed(propertySet, propertyName)
+        if self.provider:
+            self.provider._on_property_changed(propertySet, propertyName)
 
     def resetTime(self):
         self.provider.ResetTime()
@@ -718,7 +720,8 @@ class PointCloudSource(vis.PolyDataItem):
             numberOfPointCloud = self.getProperty(propertyName)
             self.provider.SetNumberOfPointClouds(numberOfPointCloud)
 
-        self.provider._on_property_changed(propertySet, propertyName)
+        if self.provider:
+            self.provider._on_property_changed(propertySet, propertyName)
 
     @CheckProvider
     def getPointCloud(self):
@@ -779,10 +782,7 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
         self.timer.callback = self.update
         self.lastUtime = 0
         self.lastDataReceivedTime = 0
-        self.addProperty('Remove Stale Data', False)
-        self.addProperty('Stale Data Timeout', 5.0,
-                         attributes=om.PropertyAttributes(decimals=1, minimum=0.1, maximum=30.0, singleStep=0.1))
-        
+
         if provider:
             self.setProvider(provider)
         else:
@@ -801,6 +801,10 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
         decimation = int(self.properties.getPropertyEnumValue('Decimation'))
         removeSize = int(self.properties.getProperty('Remove Size'))
         rangeThreshold = float(self.properties.getProperty('Max Range'))
+        self.addProperty('Remove Stale Data', False)
+        self.addProperty('Stale Data Timeout', 5.0,
+                         attributes=om.PropertyAttributes(decimals=1, minimum=0.1, maximum=30.0, singleStep=0.1))
+
         self.provider.set_decimate(int(decimation))
         self.provider.set_remove_size(removeSize)
         self.provider.set_range_threshold(rangeThreshold)
