@@ -477,8 +477,6 @@ class RosGridMap(vis.PolyDataItem):
         else:
             self.provider = None
 
-        # self.addProperty('Topic name', inputTopic)
-
     def setProvider(self, provider):
         if not issubclass(provider.__class__, self._requiredProviderClass):
             raise TypeError("Attempted to set {} provider to {}, but it was not a"
@@ -487,6 +485,7 @@ class RosGridMap(vis.PolyDataItem):
                                                                      self._requiredProviderClass.__class__))
 
         self.provider = provider
+        self.provider.set_consumer(self)
 
     def _onPropertyChanged(self, propertySet, propertyName):
         vis.PolyDataItem._onPropertyChanged(self, propertySet, propertyName)
@@ -495,16 +494,14 @@ class RosGridMap(vis.PolyDataItem):
                 self.timer.start()
             else:
                 self.timer.stop()  
-        elif propertyName == 'Topic name':
-            topicName = self.getProperty(propertyName)
-            self.provider.stop()
-            self.provider.start(topicName)
         elif propertyName == 'Color By':
             color= self.getPropertyEnumValue(propertyName)
             self.provider.set_color_layer(color)
             #only_new_data = False because the poly_date need to be redraw with the new color layer
             self.showMap(only_new_data = False)
             self._updateColorBy()
+
+        self.provider._on_property_changed(propertySet, propertyName)
 
 
     @CheckProvider
@@ -555,9 +552,6 @@ class MarkerSource(vis.PolyDataItem):
 
         self.callbackFunc = callbackFunc
         self.resetColor = True
-        #self.topicName = topicName
-        # self.addProperty('Topic name', self.topicName)
-        # self.addProperty('Subscribe', True)
 
         if provider:
             self.setProvider(provider)
@@ -572,6 +566,7 @@ class MarkerSource(vis.PolyDataItem):
                                                                      self._requiredProviderClass.__class__))
 
         self.provider = provider
+        self.provider.set_consumer(self)
 
     def _onPropertyChanged(self, propertySet, propertyName):
         vis.PolyDataItem._onPropertyChanged(self, propertySet, propertyName)
@@ -580,18 +575,13 @@ class MarkerSource(vis.PolyDataItem):
                 self.timer.start()
             else:
                 self.timer.stop()
-        elif propertyName == 'Topic name':
-            self.topicName = self.getProperty(propertyName)
-            self.provider.stop()
-            if self.getProperty('Subscribe'):
-                self.provider.start(self.topicName)
         elif propertyName == 'Subscribe':
             if self.getProperty(propertyName):
-                self.provider.start(self.topicName)
                 self.timer.start()
             else:
-                self.provider.stop()
                 self.timer.stop()
+
+        self.provider._on_property_changed(propertySet, propertyName)
 
     @CheckProvider
     def resetTime(self):
@@ -637,9 +627,6 @@ class MarkerArraySource(vis.PolyDataItemList):
         else:
             self.provider = None
 
-        # self.addProperty('Topic name', self.topicName)
-        # self.addProperty('Subscribe', True)
-
     def setProvider(self, provider):
         if not issubclass(provider.__class__, self._requiredProviderClass):
             raise TypeError("Attempted to set {} provider to {}, but it was not a"
@@ -648,6 +635,7 @@ class MarkerArraySource(vis.PolyDataItemList):
                                                                      self._requiredProviderClass.__class__))
 
         self.provider = provider
+        self.provider.set_consumer(self)
 
     def _onPropertyChanged(self, propertySet, propertyName):
         vis.PolyDataItemList._onPropertyChanged(self, propertySet, propertyName)
@@ -656,18 +644,13 @@ class MarkerArraySource(vis.PolyDataItemList):
                 self.timer.start()
             else:
                 self.timer.stop()
-        elif propertyName == 'Topic name':
-            self.topicName = self.getProperty(propertyName)
-            self.provider.stop()
-            if self.getProperty('Subscribe'):
-                self.provider.start(self.topicName)
         elif propertyName == 'Subscribe':
             if self.getProperty(propertyName):
-                self.provider.start(self.topicName)
                 self.timer.start()
             else:
-                self.provider.stop()
                 self.timer.stop()
+
+        self.provider._on_property_changed(propertySet, propertyName)
 
     def resetTime(self):
         self.provider.ResetTime()
@@ -718,8 +701,8 @@ class PointCloudSource(vis.PolyDataItem):
                                                                      self._requiredProviderClass.__class__))
 
         self.provider = provider
+        self.provider.set_consumer(self)
         self.addProperty('Updates Enabled', True)
-        #self.addProperty('Topic name', topicName)
         self.addProperty('Number of Point Clouds', 10,
                          attributes=om.PropertyAttributes(decimals=0, minimum=1, maximum=100, singleStep=1, hidden=False))
 
@@ -731,13 +714,11 @@ class PointCloudSource(vis.PolyDataItem):
                 self.timer.start()
             else:
                 self.timer.stop()
-        elif propertyName == 'Topic name':
-            topicName = self.getProperty(propertyName)
-            self.provider.stop()
-            self.provider.start(topicName)
         elif propertyName == 'Number of Point Clouds':
             numberOfPointCloud = self.getProperty(propertyName)
             self.provider.SetNumberOfPointClouds(numberOfPointCloud)
+
+        self.provider._on_property_changed(propertySet, propertyName)
 
     @CheckProvider
     def getPointCloud(self):
@@ -815,6 +796,8 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
                                                                      self._requiredProviderClass.__class__))
 
         self.provider = provider
+        self.provider.set_consumer(self)
+
         decimation = int(self.properties.getPropertyEnumValue('Decimation'))
         removeSize = int(self.properties.getProperty('Remove Size'))
         rangeThreshold = float(self.properties.getProperty('Max Range'))
