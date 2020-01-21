@@ -1,4 +1,4 @@
-option(USE_ROS "Build director with ros dependency." ON)
+option(USE_ROS "Build with ROS." ON)
 option(USE_OCTOMAP "Build with octomap." OFF)
 
 
