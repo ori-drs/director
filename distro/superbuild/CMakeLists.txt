@@ -14,9 +14,7 @@ catkin_package(
     pcl_ros pcl_plugin
     forward_kinematics ctk_python_console
     qt_property_browser python_qt
-    anymal_msgs vtk_ros
-  INCLUDE_DIRS ../../src/app ../../src/common
-)
+    anymal_msgs vtk_ros)
 
 
 

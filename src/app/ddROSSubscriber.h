@@ -21,8 +21,7 @@ class DD_APP_EXPORT ddROSSubscriber : public QObject
 
 public:
 
-  ddROSSubscriber(const QString& channel, QObject* parent=NULL) 
-    : QObject(parent)
+  ddROSSubscriber(const QString& channel, QObject* parent=NULL) : QObject(parent)
   {
     mChannel = channel;
 
@@ -45,6 +44,7 @@ signals:
   void messageReceived(const QByteArray& messageData, const QString& channel, const QString& md5sum);
 
 protected:
+
 QByteArray decodeMessage(const topic_tools::ShapeShifter::ConstPtr& msg)
   {
     // Once again, it would be nice to access directly the 
