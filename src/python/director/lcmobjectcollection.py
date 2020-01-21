@@ -8,15 +8,8 @@ from director import callbacks
 from director.utime import getUtime
 from director.uuidutil import newUUID
 
-try:
-    import bot_core as lcmbotcore
-    USE_LCM = True
-except ImportError:
-    USE_LCM = False
-
-if USE_LCM:
-    from director import lcmUtils
-
+# TODO remove all references to LCM and USE_LCM
+USE_LCM = False
 
 class LCMObjectCollection(object):
 

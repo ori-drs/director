@@ -45,7 +45,6 @@ from director import spreadsheet
 from director import surprisetask
 from director import teleoppanel
 from director import terraintask
-from director import tfvisualization as tf_vis
 from director import viewcolors
 from director import viewframes
 from director import visualization as vis
@@ -177,19 +176,6 @@ class ToggleImageViewHandler(object):
             self.manager.show()
         else:
             self.manager.hide()
-
-
-class IgnoreOldStateMessagesSelector(object):
-
-    def __init__(self, jointController):
-        self.jointController = jointController
-        self.action = app.addMenuAction('Tools', 'Ignore Old State Messages')
-        self.action.setCheckable(True)
-        self.action.setChecked(self.jointController.ignoreOldStateMessages)
-        self.action.connect('triggered()', self.toggle)
-
-    def toggle(self):
-        self.jointController.ignoreOldStateMessages = bool(self.action.checked)
 
 
 class RobotGridUpdater(object):
@@ -341,15 +327,15 @@ for robotSystem in robotSystems:
         viewBackgroundLightHandler.action.trigger()
 
     # reset time button and connections
-    button = QtGui.QPushButton('')
-    button.text = 'Reset time'
+    button = QtGui.QPushButton('Reset time')
+    button.setObjectName("resettime")
     button.connect('clicked()', robotSystem.pointCloudSource.resetTime)
     button.connect('clicked()', robotSystem.gridMapSource.resetTime)
+    button.connect('clicked()', robotSystem.gridMapLidarSource.resetTime)
     button.connect('clicked()', robotSystem.headCameraPointCloudSource.resetTime)
     button.connect('clicked()', robotSystem.groundCameraPointCloudSource.resetTime)
     button.connect('clicked()', robotSystem.robotStateJointController.resetTime)
     button.connect('clicked()', cameraview.cameraView.resetTime)
-    button.connect('clicked()', tf_vis.TfFrameSync.resetTime)
     app.getMainWindow().statusBar().addPermanentWidget(button)
 
     if useHands:
@@ -653,8 +639,6 @@ for robotSystem in robotSystems:
         initCenterOfMassVisualization()
 
     gridUpdater = RobotGridUpdater(grid.getChildFrame(), robotSystem.robotStateModel, robotSystem.robotStateJointController)
-
-    IgnoreOldStateMessagesSelector(robotSystem.robotStateJointController)
 
     if useCourseModel:
         courseModel = coursemodel.CourseModel()

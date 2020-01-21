@@ -1,5 +1,6 @@
 import os
 import sys
+import rospkg
 
 
 def _initCoverage():
@@ -12,10 +13,16 @@ def _initCoverage():
 
 
 def getDRCBaseDir():
-    return os.environ['DRC_BASE']
+    rp = rospkg.RosPack()
+    return rp.get_path('director_drs')
 
 def getDRCBaseIsSet():
-    return 'DRC_BASE' in os.environ
+    try:
+        rp = rospkg.RosPack()
+        rp.get_path('director_drs')
+        return True
+    except rospkg.ResourceNotFound:
+        return False
 
 def updateSysPath(path):
     if path and os.path.isdir(path) and path not in sys.path:

@@ -1,15 +1,6 @@
-ddROSStateSubscriber::ddROSStateSubscriber(const QStringList&, const QString&);
-ddROSStateSubscriber::ddROSStateSubscriber(const QStringList&, const QString&, QObject*);
-QString ddROSStateSubscriber::channel() const;
-QVector<double> ddROSStateSubscriber::getJointPositions() const;
-QStringList ddROSStateSubscriber::getJointNames() const;
-QVector<double> ddROSStateSubscriber::getRobotPose() const;
-QVector<double> ddROSStateSubscriber::getOdomInMap() const;
-void ddROSStateSubscriber::setSpeedLimit(double);
-void ddROSStateSubscriber::resetTime();
-
 ddROSSubscriber::ddROSSubscriber(const QString&);
 ddROSSubscriber::ddROSSubscriber(const QString&, QObject*);
-QString ddROSSubscriber::channel() const;
-void ddROSSubscriber::setSpeedLimit(double);
 void ddROSSubscriber::unsubscribe();
+
+ddROSInit::ddROSInit();
+static void ddROSInit::initialiseROS(const QStringList&);

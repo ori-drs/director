@@ -3,6 +3,7 @@ import os
 import time
 import math
 import director.vtkAll as vtk
+import director
 import PythonQt
 from PythonQt import QtCore
 from PythonQt import QtGui
@@ -320,12 +321,8 @@ def startup(globals):
     global _mainWindow
     _mainWindow = globals['_mainWindow']
 
-    if 'DRC_BASE' not in os.environ:
-        showErrorMessage('DRC_BASE environment variable is not set')
-        return
-
-    if not os.path.isdir(getDRCBase()):
-        showErrorMessage('DRC_BASE directory does not exist: ' + getDRCBase())
+    if not director.getDRCBaseIsSet():
+        showErrorMessage('director_drs package cannot be found')
         return
 
     _mainWindow.connect('resetCamera()', resetCamera)
