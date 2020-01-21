@@ -65,7 +65,7 @@ def rayDebug(position, ray):
 
 class ImageManager(object):
 
-    requiredProviderClass = perceptionmeta.ImageSourceMeta
+    _requiredProviderClass = perceptionmeta.ImageSourceMeta
 
     def __init__(self):
 
@@ -112,12 +112,11 @@ class ImageManager(object):
             self.queue[name] = None
 
     def setProviderClass(self, provider):
-        if not issubclass(provider, self.requiredProviderClass):
-            print("Attempted to set {} provider to {}, "
-                  "but it was not a subclass of {} as is required.".format(self.__class__,
-                                                                           provider.__class__,
-                                                                           self.requiredProviderClass.__class__))
-            return
+        if not issubclass(provider, self._requiredProviderClass):
+            raise TypeError("Attempted to set {} provider to {}, but it was not a"
+                            " subclass of {} as is required.".format(self.__class__,
+                                                                     provider.__class__,
+                                                                     self._requiredProviderClass.__class__))
 
         self.providerClass = provider
         # Initialise the provider for names which were added to the object before this point
@@ -137,10 +136,10 @@ class ImageManager(object):
         if not self.queue[imageName]:
             return self.imageUtimes[imageName]
 
-        imageUtime = self.queue[imageName].GetCurrentImageTime()
+        imageUtime = self.queue[imageName].get_current_image_time()
         if imageUtime != self.imageUtimes[imageName]:
             image = self.images[imageName]
-            self.imageUtimes[imageName] = self.queue[imageName].GetImage(image)
+            self.imageUtimes[imageName] = self.queue[imageName].get_image(image)
 
             if self.imageRotations180[imageName]:
                 self.images[imageName].ShallowCopy(filterUtils.rotateImage180(image))
@@ -257,7 +256,7 @@ class CameraView(object):
         sphereRadii = 20
 
         geometry = makeSphere(sphereRadii, sphereResolution)
-        self.imageManager.queue[imageName].ComputeTextureCoords(imageName, geometry)
+        self.imageManager.queue[imageName].compute_texture_coords(imageName, geometry)
 
         tcoordsArrayName = 'tcoords_%s' % imageName
         vtkNumpy.addNumpyToVtk(geometry, vtkNumpy.getNumpyFromVtk(geometry, tcoordsArrayName)[:,0].copy(), 'tcoords_U')
@@ -285,7 +284,7 @@ class CameraView(object):
                 continue
 
             transform = vtk.vtkTransform()
-            self.imageManager.queue[imageName].GetBodyToCameraTransform(transform)
+            self.imageManager.queue[imageName].get_body_to_camera_transform(transform)
             sphereObj.actor.SetUserTransform(transform.GetLinearInverse())
 
     def updateImages(self):

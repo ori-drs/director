@@ -42,7 +42,7 @@ class CheckProvider(object):
 
     def __call__(self, *args, **kwargs):
         if args[0].provider:
-            return self.func(args, kwargs)
+            return self.func(*args, **kwargs)
         else:
             if self.num_calls % 50 == 0:
                 print("Provider not yet intialised, skipping execution of {}.{}"
@@ -461,7 +461,7 @@ class SpindleMonitor(object):
 
 class RosGridMap(vis.PolyDataItem):
 
-    requiredProviderClass = perceptionmeta.RosGridMapMeta
+    _requiredProviderClass = perceptionmeta.RosGridMapMeta
 
     def __init__(self, robotStateJointController, name, callbackFunc=None):
         vis.PolyDataItem.__init__(self, name, vtk.vtkPolyData(), view=None)
@@ -476,12 +476,11 @@ class RosGridMap(vis.PolyDataItem):
         # self.addProperty('Topic name', inputTopic)
 
     def setProvider(self, provider):
-        if not issubclass(provider, self.requiredProviderClass):
-            print("Attempted to set {} provider to {}, "
-                  "but it was not a subclass of {} as is required.".format(self.__class__,
-                                                                           provider.__class__,
-                                                                           self.requiredProviderClass.__class__))
-            return
+        if not issubclass(provider.__class__, self._requiredProviderClass):
+            raise TypeError("Attempted to set {} provider to {}, but it was not a"
+                            " subclass of {} as is required.".format(self.__class__,
+                                                                     provider.__class__,
+                                                                     self._requiredProviderClass.__class__))
 
         self.provider = provider
 
@@ -494,11 +493,11 @@ class RosGridMap(vis.PolyDataItem):
                 self.timer.stop()  
         elif propertyName == 'Topic name':
             topicName = self.getProperty(propertyName)
-            self.provider.Stop()
-            self.provider.Start(topicName)
+            self.provider.stop()
+            self.provider.start(topicName)
         elif propertyName == 'Color By':
             color= self.getPropertyEnumValue(propertyName)
-            self.provider.SetColorLayer(color)
+            self.provider.set_color_layer(color)
             #only_new_data = False because the poly_date need to be redraw with the new color layer
             self.showMap(only_new_data = False)
             self._updateColorBy()
@@ -508,7 +507,7 @@ class RosGridMap(vis.PolyDataItem):
     def showMap(self, only_new_data = True):
 
         polyData = vtk.vtkPolyData()
-        self.provider.GetMesh(polyData, only_new_data)
+        self.provider.get_mesh(polyData, only_new_data)
         if polyData.GetNumberOfPoints() == 0:
             return
 
@@ -528,12 +527,12 @@ class RosGridMap(vis.PolyDataItem):
 
     @CheckProvider
     def resetTime(self):
-        self.provider.ResetTime()
+        self.provider.reset_time()
 
     @CheckProvider
     def getPointCloud(self):
         polyData = vtk.vtkPolyData()
-        self.provider.GetPointCloud(polyData)
+        self.provider.get_point_cloud(polyData)
         if polyData.GetNumberOfPoints() == 0:
             return None
         else:
@@ -542,7 +541,7 @@ class RosGridMap(vis.PolyDataItem):
 
 class MarkerSource(vis.PolyDataItem):
 
-    requiredProviderClass = perceptionmeta.MarkerSourceMeta
+    _requiredProviderClass = perceptionmeta.MarkerSourceMeta
 
     def __init__(self, name, callbackFunc=None):
         vis.PolyDataItem.__init__(self, name, vtk.vtkPolyData(), view=None)
@@ -560,12 +559,11 @@ class MarkerSource(vis.PolyDataItem):
         # self.addProperty('Subscribe', True)
 
     def setProvider(self, provider):
-        if not issubclass(provider, self.requiredProviderClass):
-            print("Attempted to set {} provider to {}, "
-                  "but it was not a subclass of {} as is required.".format(self.__class__,
-                                                                           provider.__class__,
-                                                                           self.requiredProviderClass.__class__))
-            return
+        if not issubclass(provider.__class__, self._requiredProviderClass):
+            raise TypeError("Attempted to set {} provider to {}, but it was not a"
+                            " subclass of {} as is required.".format(self.__class__,
+                                                                     provider.__class__,
+                                                                     self._requiredProviderClass.__class__))
 
         self.provider = provider
 
@@ -578,25 +576,25 @@ class MarkerSource(vis.PolyDataItem):
                 self.timer.stop()
         elif propertyName == 'Topic name':
             self.topicName = self.getProperty(propertyName)
-            self.provider.Stop()
+            self.provider.stop()
             if self.getProperty('Subscribe'):
-                self.provider.Start(self.topicName)
+                self.provider.start(self.topicName)
         elif propertyName == 'Subscribe':
             if self.getProperty(propertyName):
-                self.provider.Start(self.topicName)
+                self.provider.start(self.topicName)
                 self.timer.start()
             else:
-                self.provider.Stop()
+                self.provider.stop()
                 self.timer.stop()
 
     @CheckProvider
     def resetTime(self):
-        self.provider.ResetTime()
+        self.provider.reset_time()
 
     @CheckProvider
     def showData(self):
         polyData = vtk.vtkPolyData()
-        self.provider.GetMesh(polyData)
+        self.provider.get_mesh(polyData)
 
         if polyData.GetNumberOfPoints() == 0:
             #if an empty message is received, we will reset the default color when the next message is received
@@ -617,7 +615,7 @@ class MarkerSource(vis.PolyDataItem):
 
 class MarkerArraySource(vis.PolyDataItemList):
 
-    requiredProviderClass = perceptionmeta.MarkerArraySourceMeta
+    _requiredProviderClass = perceptionmeta.MarkerArraySourceMeta
 
     def __init__(self, name, singlePolyData=False, callbackFunc=None):
         vis.PolyDataItemList.__init__(self, name, 'color')
@@ -636,12 +634,11 @@ class MarkerArraySource(vis.PolyDataItemList):
         # self.addProperty('Subscribe', True)
 
     def setProvider(self, provider):
-        if not issubclass(provider, self.requiredProviderClass):
-            print("Attempted to set {} provider to {}, "
-                  "but it was not a subclass of {} as is required.".format(self.__class__,
-                                                                           provider.__class__,
-                                                                           self.requiredProviderClass.__class__))
-            return
+        if not issubclass(provider.__class__, self._requiredProviderClass):
+            raise TypeError("Attempted to set {} provider to {}, but it was not a"
+                            " subclass of {} as is required.".format(self.__class__,
+                                                                     provider.__class__,
+                                                                     self._requiredProviderClass.__class__))
 
         self.provider = provider
 
@@ -654,15 +651,15 @@ class MarkerArraySource(vis.PolyDataItemList):
                 self.timer.stop()
         elif propertyName == 'Topic name':
             self.topicName = self.getProperty(propertyName)
-            self.provider.Stop()
+            self.provider.stop()
             if self.getProperty('Subscribe'):
-                self.provider.Start(self.topicName)
+                self.provider.start(self.topicName)
         elif propertyName == 'Subscribe':
             if self.getProperty(propertyName):
-                self.provider.Start(self.topicName)
+                self.provider.start(self.topicName)
                 self.timer.start()
             else:
-                self.provider.Stop()
+                self.provider.stop()
                 self.timer.stop()
 
     def resetTime(self):
@@ -670,17 +667,17 @@ class MarkerArraySource(vis.PolyDataItemList):
 
     @CheckProvider
     def showData(self):
-        numPoly = self.provider.GetNumberOfMesh()
+        numPoly = self.provider.get_number_of_mesh()
         polyDataList = []
         if self.singlePolyData:
             polyData = vtk.vtkPolyData()
-            self.provider.GetMesh(polyData)
+            self.provider.get_mesh(polyData)
             if polyData.GetNumberOfPoints() > 0:
                 polyDataList.append(polyData)
         else:
             for i in range(0, numPoly):
                 polyData = vtk.vtkPolyData()
-                self.provider.GetMesh(polyData, i)
+                self.provider.get_mesh(polyData, i)
                 polyDataList.append(polyData)
 
         if self.callbackFunc:
@@ -691,7 +688,7 @@ class MarkerArraySource(vis.PolyDataItemList):
 
 class PointCloudSource(vis.PolyDataItem):
 
-    requiredProviderClass = perceptionmeta.PointCloudSourceMeta
+    _requiredProviderClass = perceptionmeta.PointCloudSourceMeta
 
     def __init__(self, robotStateJointController, callbackFunc=None):
         vis.PolyDataItem.__init__(self, 'point cloud', vtk.vtkPolyData(), view=None)
@@ -704,12 +701,11 @@ class PointCloudSource(vis.PolyDataItem):
         self.provider = None
 
     def setProvider(self, provider):
-        if not issubclass(provider, self.requiredProviderClass):
-            print("Attempted to set {} provider to {}, "
-                  "but it was not a subclass of {} as is required.".format(self.__class__,
-                                                                           provider.__class__,
-                                                                           self.requiredProviderClass.__class__))
-            return
+        if not issubclass(provider.__class__, self._requiredProviderClass):
+            raise TypeError("Attempted to set {} provider to {}, but it was not a"
+                            " subclass of {} as is required.".format(self.__class__,
+                                                                     provider.__class__,
+                                                                     self._requiredProviderClass.__class__))
 
         self.provider = provider
         self.addProperty('Updates Enabled', True)
@@ -727,8 +723,8 @@ class PointCloudSource(vis.PolyDataItem):
                 self.timer.stop()
         elif propertyName == 'Topic name':
             topicName = self.getProperty(propertyName)
-            self.provider.Stop()
-            self.provider.Start(topicName)
+            self.provider.stop()
+            self.provider.start(topicName)
         elif propertyName == 'Number of Point Clouds':
             numberOfPointCloud = self.getProperty(propertyName)
             self.provider.SetNumberOfPointClouds(numberOfPointCloud)
@@ -736,7 +732,7 @@ class PointCloudSource(vis.PolyDataItem):
     @CheckProvider
     def getPointCloud(self):
         polyData = vtk.vtkPolyData()
-        self.provider.GetPointCloud(polyData)
+        self.provider.get_point_cloud(polyData)
         if polyData.GetNumberOfPoints() == 0:
             return None
         else:
@@ -744,12 +740,12 @@ class PointCloudSource(vis.PolyDataItem):
 
     @CheckProvider
     def resetTime(self):
-        self.provider.ResetTime()
+        self.provider.reset_time()
 
     @CheckProvider
     def showPointCloud(self):   
         polyData = vtk.vtkPolyData()
-        self.provider.GetPointCloud(polyData, True)
+        self.provider.get_point_cloud(polyData, True)
         if polyData.GetNumberOfPoints() == 0:
             return
 
@@ -771,7 +767,7 @@ class PointCloudSource(vis.PolyDataItem):
 
 class DepthImagePointCloudSource(vis.PolyDataItem):
 
-    requiredProviderClass = perceptionmeta.DepthImageSourceMeta
+    _requiredProviderClass = perceptionmeta.DepthImageSourceMeta
 
     def __init__(self, name, imagesChannel, cameraName, imageManager, robotStateJointController):
         vis.PolyDataItem.__init__(self, name, vtk.vtkPolyData(), view=None)
@@ -799,12 +795,11 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
                          attributes=om.PropertyAttributes(decimals=1, minimum=0.1, maximum=30.0, singleStep=0.1))
 
     def setProvider(self, provider):
-        if not issubclass(provider, self.requiredProviderClass):
-            print("Attempted to set {} provider to {}, "
-                  "but it was not a subclass of {} as is required.".format(self.__class__,
-                                                                           provider.__class__,
-                                                                           self.requiredProviderClass.__class__))
-            return
+        if not issubclass(provider.__class__, self._requiredProviderClass):
+            raise TypeError("Attempted to set {} provider to {}, but it was not a"
+                            " subclass of {} as is required.".format(self.__class__,
+                                                                     provider.__class__,
+                                                                     self._requiredProviderClass.__class__))
 
         self.provider = provider
         decimation = int(self.properties.getPropertyEnumValue('Decimation'))
@@ -829,18 +824,18 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
             self.lastUtime = 0
         if propertyName == 'Decimation':
             decimate = self.getPropertyEnumValue(propertyName)
-            self.provider.SetDecimate(int(decimate))
+            self.provider.set_decimate(int(decimate))
         elif propertyName == 'Remove Size':
             remove_size = self.getProperty(propertyName)
-            self.provider.SetRemoveSize(remove_size)
+            self.provider.set_remove_size(remove_size)
         elif propertyName == 'Max Range':
             max_range = self.getProperty(propertyName)
-            self.provider.SetRangeThreshold(max_range)
+            self.provider.set_range_threshold(max_range)
 
     @CheckProvider
     def getPointCloud(self):
         polyData = vtk.vtkPolyData()
-        self.provider.GetPointCloud(polyData)
+        self.provider.get_point_cloud(polyData)
         if polyData.GetNumberOfPoints() == 0:
             return None
         else:
@@ -852,12 +847,12 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
 
     @CheckProvider
     def resetTime(self):
-        self.provider.ResetTime()
+        self.provider.reset_time()
 
     @CheckProvider
     def update(self):
         #utime = self.imageManager.queue.getCurrentImageTime(self.cameraName)
-        utime =  self.provider.GetSec() *1E6 + round( self.provider.GetNsec() *1E-3)
+        utime =  self.provider.get_sec() *1E6 + round( self.provider.get_nsec() *1E-3)
 
         if utime == self.lastUtime:
             if self.getProperty('Remove Stale Data') and ((time.time()-self.lastDataReceivedTime) > self.getProperty('Stale Data Timeout')):
@@ -871,7 +866,7 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
             return
 
         polyData = vtk.vtkPolyData()
-        new_data = self.provider.GetPointCloud(polyData, True)
+        new_data = self.provider.get_point_cloud(polyData, True)
         if polyData.GetNumberOfPoints() == 0:
             return
 

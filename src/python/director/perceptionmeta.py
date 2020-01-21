@@ -6,7 +6,7 @@ class ImageSourceMeta(object):
 
     @abc.abstractmethod
     def __init__(self, initialisation_object):
-        super(ImageSourceMeta, self).__init__()
+        pass
 
     @staticmethod
     @abc.abstractmethod
@@ -84,7 +84,7 @@ class PointCloudSourceMeta(object):
         :param initialisation_object: An object required by the implementing class to initialise the provider
         :return:
         """
-        super(PointCloudSourceMeta, self).__init__()
+        pass
 
     @abc.abstractmethod
     def stop(self):
@@ -155,7 +155,7 @@ class DepthImageSourceMeta(object):
         :param initialisation_object: An object required by the implementing class to initialise the provider
         :return: 
         """
-        super(DepthImageSourceMeta, self).__init__()
+        pass
 
     @abc.abstractmethod
     def stop(self):
@@ -248,7 +248,7 @@ class RosGridMapMeta(object):
         :param initialisation_object: An object required by the implementing class to initialise the provider
         :return:
         """
-        super(RosGridMapMeta, self).__init__()
+        pass
 
     @abc.abstractmethod
     def stop(self):
@@ -320,7 +320,7 @@ class MarkerSourceMeta(object):
         :param initialisation_object: An object required by the implementing class to initialise the provider
         :return:
         """
-        super(MarkerSourceMeta, self).__init__()
+        pass
 
     @abc.abstractmethod
     def stop(self):
@@ -361,7 +361,7 @@ class MarkerArraySourceMeta(object):
         :param initialisation_object: An object required by the implementing class to initialise the provider
         :return:
         """
-        super(MarkerArraySourceMeta, self).__init__()
+        pass
 
     @abc.abstractmethod
     def stop(self):
