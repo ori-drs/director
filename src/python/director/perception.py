@@ -463,7 +463,7 @@ class RosGridMap(vis.PolyDataItem):
 
     _requiredProviderClass = perceptionmeta.RosGridMapMeta
 
-    def __init__(self, robotStateJointController, name, callbackFunc=None):
+    def __init__(self, robotStateJointController, name, callbackFunc=None, provider=None):
         vis.PolyDataItem.__init__(self, name, vtk.vtkPolyData(), view=None)
         self.firstData = True
         self.robotStateJointController = robotStateJointController
@@ -471,7 +471,11 @@ class RosGridMap(vis.PolyDataItem):
         self.timer.callback = self.showMap
         self.timer.start()
         self.callbackFunc = callbackFunc
-        self.provider = None
+
+        if provider:
+            self.setProvider(provider)
+        else:
+            self.provider = None
 
         # self.addProperty('Topic name', inputTopic)
 
@@ -543,20 +547,22 @@ class MarkerSource(vis.PolyDataItem):
 
     _requiredProviderClass = perceptionmeta.MarkerSourceMeta
 
-    def __init__(self, name, callbackFunc=None):
+    def __init__(self, name, callbackFunc=None, provider=None):
         vis.PolyDataItem.__init__(self, name, vtk.vtkPolyData(), view=None)
         self.timer = TimerCallback()
         self.timer.callback = self.showData
         self.timer.start()
-        self.provider = None
-        #self.reader = vtkRos.vtkRosMarkerSubscriber()
+
         self.callbackFunc = callbackFunc
         self.resetColor = True
         #self.topicName = topicName
-
-        #self.reader.Start(self.topicName)
         # self.addProperty('Topic name', self.topicName)
         # self.addProperty('Subscribe', True)
+
+        if provider:
+            self.setProvider(provider)
+        else:
+            self.provider = None
 
     def setProvider(self, provider):
         if not issubclass(provider.__class__, self._requiredProviderClass):
@@ -617,7 +623,7 @@ class MarkerArraySource(vis.PolyDataItemList):
 
     _requiredProviderClass = perceptionmeta.MarkerArraySourceMeta
 
-    def __init__(self, name, singlePolyData=False, callbackFunc=None):
+    def __init__(self, name, singlePolyData=False, callbackFunc=None, provider=None):
         vis.PolyDataItemList.__init__(self, name, 'color')
         # if singlePolyData is True, it means that all the markers received are merged into a single one
         self.singlePolyData = singlePolyData
@@ -626,9 +632,10 @@ class MarkerArraySource(vis.PolyDataItemList):
         self.timer.start()
         self.callbackFunc = callbackFunc
         #self.topicName = topicName
-        self.provider = None
-        #self.reader = vtkRos.vtkRosMarkerArraySubscriber()
-        #self.reader.Start(self.topicName)
+        if provider:
+            self.setProvider(provider)
+        else:
+            self.provider = None
 
         # self.addProperty('Topic name', self.topicName)
         # self.addProperty('Subscribe', True)
@@ -690,7 +697,7 @@ class PointCloudSource(vis.PolyDataItem):
 
     _requiredProviderClass = perceptionmeta.PointCloudSourceMeta
 
-    def __init__(self, robotStateJointController, callbackFunc=None):
+    def __init__(self, robotStateJointController, callbackFunc=None, provider=None):
         vis.PolyDataItem.__init__(self, 'point cloud', vtk.vtkPolyData(), view=None)
         self.firstData = True
         self.robotStateJointController = robotStateJointController
@@ -698,7 +705,10 @@ class PointCloudSource(vis.PolyDataItem):
         self.timer.callback = self.showPointCloud
         self.timer.start()
         self.callbackFunc = callbackFunc
-        self.provider = None
+        if provider:
+            self.setProvider(provider)
+        else:
+            self.provider = None
 
     def setProvider(self, provider):
         if not issubclass(provider.__class__, self._requiredProviderClass):
@@ -769,7 +779,7 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
 
     _requiredProviderClass = perceptionmeta.DepthImageSourceMeta
 
-    def __init__(self, name, imagesChannel, cameraName, imageManager, robotStateJointController):
+    def __init__(self, name, imagesChannel, cameraName, imageManager, robotStateJointController, provider=None):
         vis.PolyDataItem.__init__(self, name, vtk.vtkPolyData(), view=None)
 
         self.robotStateJointController = robotStateJointController
@@ -781,8 +791,6 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
         self.addProperty('Target FPS', 5.0, attributes=om.PropertyAttributes(decimals=1, minimum=0.1, maximum=30.0, singleStep=0.1))
         self.addProperty('Max Range', 5.0,  attributes=om.PropertyAttributes(decimals=2, minimum=0., maximum=30.0, singleStep=0.25))
 
-        self.provider = None
-
         self.imageManager = imageManager
         self.cameraName = cameraName
         self.firstData = True
@@ -793,6 +801,11 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
         self.addProperty('Remove Stale Data', False)
         self.addProperty('Stale Data Timeout', 5.0,
                          attributes=om.PropertyAttributes(decimals=1, minimum=0.1, maximum=30.0, singleStep=0.1))
+        
+        if provider:
+            self.setProvider(provider)
+        else:
+            self.provider = None
 
     def setProvider(self, provider):
         if not issubclass(provider.__class__, self._requiredProviderClass):
