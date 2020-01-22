@@ -1,12 +1,110 @@
 import abc
 
 
-class ImageSourceMeta(object):
+class SourceMeta(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def __init__(self, initialisation_object):
+        """
+        Initialise and start the source
+        :param initialisation_object:
+        """
+        self.consumer = None
+        self.init_object = initialisation_object
+
+    @abc.abstractmethod
+    def start(self):
+        """
+        Start the provider
+        :return:
+        """
         pass
+
+    @abc.abstractmethod
+    def stop(self):
+        """
+        Stop the provider
+        :return:
+        """
+        pass
+
+    def restart(self):
+        """
+        Restarts this provider
+        :return:
+        """
+        self.stop()
+        self.start()
+
+    @abc.abstractmethod
+    def set_consumer(self, consumer):
+        """
+        Set the consumer for this provider
+        :param consumer: The consumer which uses this provider to provide it with data. This is a vis.PolyDataItem
+        TODO use typing library to enforce this requirement
+        :return:
+        """
+        pass
+
+    @abc.abstractmethod
+    def _on_property_changed(self, property_set, property_name):
+        """
+        This function can be used to pass information about changing properties on the object which uses this as a
+        provider. This function should be called from that class' _onPropertyChanged function.
+        :param property_set: The set of properties on the object
+        :param property_name: The name of the property that changed
+        :return:
+        """
+        pass
+
+
+class CloudSourceMeta(SourceMeta):
+
+    @abc.abstractmethod
+    def get_point_cloud(self, poly_data, only_new_data=True):
+        """
+        Get a point cloud by combining data from the depth and rgb images
+        :param poly_data: This vtk.vtkPolyData item should be populated as the output of this function
+        :param only_new_data: If true, only return data if it is different from the value in the previous call to this
+        function
+        :return:
+        """
+        pass
+    
+    @abc.abstractmethod
+    def get_sec(self):
+        """
+        :return: The second at which the last cloud was retrieved
+        """
+        pass
+
+    @abc.abstractmethod
+    def get_nsec(self):
+        """
+        :return: The nsec at which the last cloud was received
+        """
+        pass
+
+    @abc.abstractmethod
+    def set_fixed_frame(self, fixed_frame):
+        """
+        Set the fixed frame of the provider
+        :param fixed_frame: The name of the fixed frame to use
+        :return:
+        """
+        pass
+
+    @abc.abstractmethod
+    def reset_time(self):
+        """
+        Reset the time used by whatever provides the frame transformations
+        :return:
+        """
+        pass
+
+
+class ImageSourceMeta(SourceMeta):
 
     @staticmethod
     @abc.abstractmethod
@@ -15,14 +113,6 @@ class ImageSourceMeta(object):
         Initialise an image source object from a camera name. This is used to help with deferred intialisation
         :param name: The name from which to initialise. This is assumed to refer to a camera name in the director
         configuration
-        :return:
-        """
-        pass
-
-    @abc.abstractmethod
-    def stop(self):
-        """
-        Stop the provider for the image
         :return:
         """
         pass
@@ -73,60 +163,7 @@ class ImageSourceMeta(object):
         pass
 
 
-class PointCloudSourceMeta(object):
-    __metaclass__ = abc.ABCMeta
-
-    @abc.abstractmethod
-    def __init__(self, initialisation_object):
-        """
-        Start the provider for the cloud
-
-        :param initialisation_object: An object required by the implementing class to initialise the provider
-        :return:
-        """
-        pass
-
-    @abc.abstractmethod
-    def stop(self):
-        """
-        Stop the provider for the cloud
-        :return:
-        """
-        pass
-
-    @abc.abstractmethod
-    def get_point_cloud(self, poly_data, only_new_data=True):
-        """
-        Get a point cloud by combining data from the depth and rgb images
-        :param poly_data: This vtk.vtkPolyData item should be populated as the output of this function
-        :param only_new_data: If true, only return data if it is different from the value in the previous call to this
-        function
-        :return:
-        """
-        pass
-
-    @abc.abstractmethod
-    def get_sec(self):
-        """
-        :return: The second at which the last cloud was retrieved
-        """
-        pass
-
-    @abc.abstractmethod
-    def get_nsec(self):
-        """
-        :return: The nsec at which the last cloud was received
-        """
-        pass
-
-    @abc.abstractmethod
-    def set_fixed_frame(self, fixed_frame):
-        """
-        Set the fixed frame of the provider
-        :param fixed_frame: The name of the fixed frame to use
-        :return:
-        """
-        pass
+class PointCloudSourceMeta(CloudSourceMeta):
 
     @abc.abstractmethod
     def set_num_pointclouds(self, num_clouds):
@@ -136,45 +173,8 @@ class PointCloudSourceMeta(object):
         :return:
         """
 
-    @abc.abstractmethod
-    def reset_time(self):
-        """
-        Reset the time used by whatever provides the frame transformations
-        :return:
-        """
-        pass
 
-
-class DepthImageSourceMeta(object):
-    __metaclass__ = abc.ABCMeta
-
-    @abc.abstractmethod
-    def __init__(self, initialisation_object):
-        """
-        Start the provider for the rgb and depth image. Subsequent calls to get_point_cloud should return a valid object
-        :param initialisation_object: An object required by the implementing class to initialise the provider
-        :return: 
-        """
-        pass
-
-    @abc.abstractmethod
-    def stop(self):
-        """
-        Stop the provider for the rgb and depth image
-        :return:
-        """
-        pass
-
-    @abc.abstractmethod
-    def get_point_cloud(self, poly_data, only_new_data=True):
-        """
-        Get a point cloud by combining data from the depth and rgb images
-        :param poly_data: This vtk.vtkPolyData item should be populated as the output of this function
-        :param only_new_data: If true, only return data if it is different from the value in the previous call to this
-        function
-        :return:
-        """
-        pass
+class DepthImageSourceMeta(CloudSourceMeta):
 
     @abc.abstractmethod
     def set_decimate(self, decimate):
@@ -205,58 +205,8 @@ class DepthImageSourceMeta(object):
         """
         pass
 
-    @abc.abstractmethod
-    def get_sec(self):
-        """
-        :return: The second at which the last cloud was retrieved
-        """
-        pass
 
-    @abc.abstractmethod
-    def get_nsec(self):
-        """
-        :return: The nsec at which the last cloud was received
-        """
-        pass
-
-    @abc.abstractmethod
-    def set_fixed_frame(self, fixed_frame):
-        """
-        Set the fixed frame of the provider
-        :param fixed_frame: The name of the fixed frame to use
-        :return:
-        """
-        pass
-
-    @abc.abstractmethod
-    def reset_time(self):
-        """
-        Reset the time used by whatever provides the frame transformations
-        :return:
-        """
-        pass
-
-
-class RosGridMapMeta(object):
-    __metaclass__ = abc.ABCMeta
-
-    @abc.abstractmethod
-    def __init__(self, initialisation_object):
-        """
-        Start the provider for the grid map. After this function is called a call to get_mesh or get_point_cloud should
-        return valid data
-        :param initialisation_object: An object required by the implementing class to initialise the provider
-        :return:
-        """
-        pass
-
-    @abc.abstractmethod
-    def stop(self):
-        """
-        Stop the provider. After this function is called get_mesh and get_point_cloud should return None or invalid data
-        :return:
-        """
-        pass
+class RosGridMapMeta(SourceMeta):
 
     @abc.abstractmethod
     def get_mesh(self, poly_data, only_new_data=True):
@@ -309,26 +259,7 @@ class RosGridMapMeta(object):
         pass
 
 
-class MarkerSourceMeta(object):
-    __metaclass__ = abc.ABCMeta
-
-    @abc.abstractmethod
-    def __init__(self, initialisation_object):
-        """
-        Start the provider for the grid map. After this function is called a call to get_mesh or get_point_cloud should
-        return valid data
-        :param initialisation_object: An object required by the implementing class to initialise the provider
-        :return:
-        """
-        pass
-
-    @abc.abstractmethod
-    def stop(self):
-        """
-        Stop the provider. After this function is called get_mesh and get_point_cloud should return None or invalid data
-        :return:
-        """
-        pass
+class MarkerSourceMeta(SourceMeta):
 
     @abc.abstractmethod
     def get_mesh(self, poly_data):
@@ -350,26 +281,7 @@ class MarkerSourceMeta(object):
         pass
 
 
-class MarkerArraySourceMeta(object):
-    __metaclass__ = abc.ABCMeta
-
-    @abc.abstractmethod
-    def __init__(self, initialisation_object):
-        """
-        Initialise and start the provider for the grid map. After this function is called a call to get_mesh or
-        get_point_cloud should return valid data
-        :param initialisation_object: An object required by the implementing class to initialise the provider
-        :return:
-        """
-        pass
-
-    @abc.abstractmethod
-    def stop(self):
-        """
-        Stop the provider. After this function is called get_mesh and get_point_cloud should return None or invalid data
-        :return:
-        """
-        pass
+class MarkerArraySourceMeta(SourceMeta):
 
     @abc.abstractmethod
     def get_mesh(self, poly_data, index=None):
