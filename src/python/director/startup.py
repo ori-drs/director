@@ -253,7 +253,6 @@ button.connect('clicked()', pointCloudSource.resetTime)
 button.connect('clicked()', gridMapSource.resetTime)
 button.connect('clicked()', headCameraPointCloudSource.resetTime)
 button.connect('clicked()', groundCameraPointCloudSource.resetTime)
-button.connect('clicked()', robotStateJointController.resetTime)
 button.connect('clicked()', cameraview.cameraView.resetTime)
 app.getMainWindow().statusBar().addPermanentWidget(button)
 
