@@ -4,6 +4,7 @@
 #include <QObject>
 #include <ddMacros.h>
 #include <PythonQt.h>
+#include <memory>
 
 #include <ros/ros.h>
 
@@ -12,9 +13,12 @@
 class DD_APP_EXPORT ddROSInit : public QObject {
     Q_OBJECT
 public:
-    ddROSInit(){}
 
-    static void initialiseROS(const QList<QString>& argv2)
+    ~ddROSInit(){
+        ros::shutdown();
+    }
+
+    ddROSInit(const QList<QString>& argv2)
     {
         if (!ros::isInitialized()) {
             ROS_INFO("Initialising dd ROS.");
@@ -38,7 +42,15 @@ public:
         } else {
             ROS_INFO("dd ROS is already initialised.");
         }
+
+        if (!spinner) {
+            spinner = std::make_shared<ros::AsyncSpinner>(8);
+        }
+        spinner->start();
     }
+
+private:
+    std::shared_ptr<ros::AsyncSpinner> spinner;
 };
 
 #endif    
