@@ -334,7 +334,6 @@ for robotSystem in robotSystems:
     button.connect('clicked()', robotSystem.gridMapLidarSource.resetTime)
     button.connect('clicked()', robotSystem.headCameraPointCloudSource.resetTime)
     button.connect('clicked()', robotSystem.groundCameraPointCloudSource.resetTime)
-    button.connect('clicked()', robotSystem.robotStateJointController.resetTime)
     button.connect('clicked()', cameraview.cameraView.resetTime)
     app.getMainWindow().statusBar().addPermanentWidget(button)
 

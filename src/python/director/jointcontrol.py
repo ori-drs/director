@@ -56,9 +56,6 @@ class JointController(object):
         if self.poseCollection is not None:
             self.poseCollection.setItem(poseName, poseData)
 
-    def resetTime(self):
-        self.subscriberRos.resetTime()
-
     def loadPoseFromFile(self, filename):
         ext = os.path.splitext(filename)[1].lower()
 

@@ -87,7 +87,7 @@ class ImageManager(object):
 
     def resetTime(self):
         for cameraName, subscriber in self.queue.iteritems():
-            subscriber.ResetTime()
+            subscriber.reset_time()
 
     def addImage(self, name):
 
