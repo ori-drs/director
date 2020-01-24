@@ -111,13 +111,14 @@ class ControllerRateLabel(object):
 
 class ImageOverlayManager(object):
 
-    def __init__(self, monoCamerasConfig):
+    def __init__(self, monoCamerasConfig, robotName):
         self.viewName = monoCamerasConfig[0]
         self.desiredWidth = 400
         self.position = [0, 0]
         self.usePicker = False
         self.imageView = None
         self.imagePicker = None
+        self.robotName = robotName
         self._prevParent = None
         self._updateAspectRatio()
 
@@ -128,7 +129,7 @@ class ImageOverlayManager(object):
         self.show()
 
     def _updateAspectRatio(self):
-        imageExtent = cameraview.imageManager.images[self.viewName].GetExtent()
+        imageExtent = cameraview.imageManager.images[self.robotName][self.viewName].GetExtent()
         if imageExtent[1] != -1 and imageExtent[3] != -1:
             self.imageSize = [imageExtent[1] + 1, imageExtent[3] + 1]
             imageAspectRatio = self.imageSize[0] / self.imageSize[1]
@@ -601,7 +602,7 @@ for robotSystem in robotSystems:
             actionhandlers.onOpenFile(filename)
 
     monoCameras = directorConfig['monoCameras']
-    imageOverlayManager = ImageOverlayManager(monoCameras)
+    imageOverlayManager = ImageOverlayManager(monoCameras, robotSystem.robotName)
     imageWidget = cameraview.ImageWidget(cameraview.imageManager, monoCameras, view, visible=False)
     imageViewHandler = ToggleImageViewHandler(imageWidget)
 

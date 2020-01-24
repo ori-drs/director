@@ -176,7 +176,7 @@ class RobotState(object):
     def getNumPositions(self):
 
         if self._numPositions is None:
-            _numPositions = len(self.getDrakePoseJointNames())
+            self._numPositions = len(self.getDrakePoseJointNames())
 
         return self._numPositions
 

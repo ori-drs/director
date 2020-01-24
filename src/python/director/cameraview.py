@@ -73,7 +73,7 @@ class ImageManager(object):
         self.imageUtimes = {}
         self.textures = {}
         self.imageRotations180 = {}
-        self.providerClass = None
+        self.providerClasses = {}
 
         self.queue = {}
 
@@ -89,9 +89,9 @@ class ImageManager(object):
         for cameraName, subscriber in self.queue.iteritems():
             subscriber.reset_time()
 
-    def addImage(self, name):
+    def addImage(self, name, robotName):
 
-        if name in self.images:
+        if robotName in self.images and name in self.images[robotName]:
             return
 
         image = vtk.vtkImageData()
@@ -100,29 +100,39 @@ class ImageManager(object):
         tex.EdgeClampOn()
         tex.RepeatOff()
 
-        self.imageUtimes[name] = 0
-        self.images[name] = image
-        self.textures[name] = tex
-        self.imageRotations180[name] = False
+        if robotName not in self.images:
+            self.imageUtimes[robotName] = {}
+            self.images[robotName] = {}
+            self.textures[robotName] = {}
+            self.imageRotations180[robotName] = {}
+            self.queue[robotName] = {}
+            self.providerClasses[robotName] = None
 
-        if self.providerClass:
-            self.queue[name] = self.providerClass.initialise_from_name(name)
+        self.imageUtimes[robotName][name] = 0
+        self.images[robotName][name] = image
+        self.textures[robotName][name] = tex
+        self.imageRotations180[robotName][name] = False
+
+        if self.providerClasses[robotName]:
+            self.queue[robotName][name] = self.providerClasses[robotName].initialise_from_name(name, robotName)
         else:
             print("Could not initialise camera {} as the provider class is not initialised.".format(name))
-            self.queue[name] = None
+            self.queue[robotName][name] = None
 
-    def setProviderClass(self, provider):
+    def setProviderClass(self, provider, robotName):
         if not issubclass(provider, self._requiredProviderClass):
             raise TypeError("Attempted to set {} provider to {}, but it was not a"
                             " subclass of {} as is required.".format(self.__class__,
                                                                      provider.__class__,
                                                                      self._requiredProviderClass.__class__))
 
-        self.providerClass = provider
+        self.providerClasses[robotName] = provider
+        if robotName not in self.images:
+            return
         # Initialise the provider for names which were added to the object before this point
-        for name in self.images.keys():
-            print("Initialising image provider for {}".format(name))
-            self.queue[name] = self.providerClass.initialise_from_name(name)
+        for name in self.images[robotName].keys():
+            print("Initialising image provider for {}:{}".format(robotName, name))
+            self.queue[robotName][name] = self.providerClasses[robotName].initialise_from_name(name, robotName)
 
     def writeImage(self, imageName, outFile):
         writer = vtk.vtkPNGWriter()
@@ -130,41 +140,42 @@ class ImageManager(object):
         writer.SetFileName(outFile)
         writer.Write()
 
-    def updateImage(self, imageName):
+    def updateImage(self, imageName, robotName):
         # If the given imagename has not had its provider initialised, use the original utime to indicate that no
         # data was received.
-        if not self.queue[imageName]:
-            return self.imageUtimes[imageName]
+        if not self.queue[robotName][imageName]:
+            return self.imageUtimes[robotName][imageName]
 
-        imageUtime = self.queue[imageName].get_current_image_time()
-        if imageUtime != self.imageUtimes[imageName]:
-            image = self.images[imageName]
-            self.imageUtimes[imageName] = self.queue[imageName].get_image(image)
+        imageUtime = self.queue[robotName][imageName].get_current_image_time()
+        if imageUtime != self.imageUtimes[robotName][imageName]:
+            image = self.images[robotName][imageName]
+            self.imageUtimes[robotName][imageName] = self.queue[robotName][imageName].get_image(image)
 
-            if self.imageRotations180[imageName]:
-                self.images[imageName].ShallowCopy(filterUtils.rotateImage180(image))
+            if self.imageRotations180[robotName][imageName]:
+                self.images[robotName][imageName].ShallowCopy(filterUtils.rotateImage180(image))
 
         return imageUtime
 
     def updateImages(self):
-        for imageName in self.images.keys():
-            self.updateImage(imageName)
+        for robotName in self.images.keys():
+            for imageName in self.images[robotName].keys():
+                self.updateImage(imageName, robotName)
 
-    def setImageRotation180(self, imageName):
+    def setImageRotation180(self, imageName, robotName):
         assert imageName in self.images
-        self.imageRotations180[imageName] = True
+        self.imageRotations180[robotName][imageName] = True
 
-    def hasImage(self, imageName):
-        return imageName in self.images
+    def hasImage(self, imageName, robotName):
+        return imageName in self.images[robotName]
 
-    def getImage(self, imageName):
-        return self.images[imageName]
+    def getImage(self, imageName, robotName):
+        return self.images[robotName][imageName]
 
-    def getUtime(self, imageName):
-        return self.imageUtimes[imageName]
+    def getUtime(self, imageName, robotName):
+        return self.imageUtimes[robotName][imageName]
 
-    def getTexture(self, imageName):
-        return self.textures[imageName]
+    def getTexture(self, imageName, robotName):
+        return self.textures[robotName][imageName]
 
 
 def disableCameraTexture(obj):
@@ -175,24 +186,25 @@ def disableCameraTexture(obj):
 
 class CameraView(object):
 
-    def __init__(self, imageManager, view=None):
+    def __init__(self, imageManager, view=None, robotName=None):
 
         self.imageManager = imageManager
         self.updateUtimes = {}
         self.robotModel = None
         self.sphereObjects = {}
+        self.robotName = robotName
 
-        if 'monoCameras' not in drcargs.getDirectorConfig():
+        if self.robotName:
             for robot in drcargs.getDirectorConfig():
-                if drcargs.getDirectorConfig()[robot].get('monoCameras'):
-                   self.sphereImages = drcargs.getDirectorConfig()[robot].get('monoCameras')
+                if drcargs.getDirectorConfig()[self.robotName].get('monoCameras'):
+                    self.sphereImages = drcargs.getDirectorConfig()[self.robotName].get('monoCameras')
             if not self.sphereImages:
                 raise Exception("CameraView requires monoCameras to be defined.")
         else:
             self.sphereImages = drcargs.getDirectorConfig()['monoCameras']
 
         for name in self.sphereImages:
-            imageManager.addImage(name)
+            imageManager.addImage(name, self.robotName)
             self.updateUtimes[name] = 0
 
         self.initView(view)
@@ -299,7 +311,7 @@ class CameraView(object):
 
         updated = False
         for imageName, lastUtime in self.updateUtimes.iteritems():
-            currentUtime = self.imageManager.updateImage(imageName)
+            currentUtime = self.imageManager.updateImage(imageName, self.robotName)
             if currentUtime != lastUtime:
                 self.updateUtimes[imageName] = currentUtime
                 updated = True
@@ -460,11 +472,11 @@ class ImageWidget(object):
 
 class CameraImageView(object):
 
-    def __init__(self, imageManager, imageName, viewName=None, view=None):
-
-        imageManager.addImage(imageName)
+    def __init__(self, imageManager, imageName, viewName=None, view=None, robotName=None):
+        imageManager.addImage(imageName, robotName)
 
         self.cameraRoll = None
+        self.robotName = robotName
         self.imageManager = imageManager
         self.viewName = viewName or imageName
         self.imageName = imageName
@@ -533,7 +545,7 @@ class CameraImageView(object):
         imagePoints = [vis.pickImage(point, self.view)[1] for point in displayPoints]
 
     def getImage(self):
-        return self.imageManager.getImage(self.imageName)
+        return self.imageManager.getImage(self.imageName, self.robotName)
 
     def initView(self, view):
         self.view = view or app.getViewManager().createView(self.viewName, 'VTK View')
@@ -633,7 +645,7 @@ class CameraImageView(object):
         if self.useImageColorMap and self.imageMapToColors:
             self.imageMapToColors.Update()
 
-        currentUtime = self.imageManager.updateImage(self.imageName)
+        currentUtime = self.imageManager.updateImage(self.imageName, self.robotName)
         if currentUtime != self.updateUtime:
             self.updateUtime = currentUtime
             self.view.render()
@@ -653,18 +665,19 @@ class CameraImageView(object):
 views = {}
 
 
-def addCameraView(channel, viewName=None, cameraName=None, imageType=-1, addToView=True):
+def addCameraView(channel, viewName=None, cameraName=None, imageType=-1, addToView=True, robotName=None):
     cameraName = cameraName or channel
 
     if (addToView):
-        #print "will add to view", cameraName
-        imageManager.addImage(cameraName)
-        view = CameraImageView(imageManager, cameraName, viewName)
+        print("will add {} to view".format(cameraName))
+        imageManager.addImage(cameraName, robotName)
+        view = CameraImageView(imageManager, cameraName, viewName, robotName=robotName)
         global views
-        views[channel] = view
+        views[robotName] = {}
+        views[robotName][channel] = view
         return view
     else:
-        print "will NOT camera add to view", cameraName
+        print("will NOT add {} to view".format(cameraName))
         return None
 
 
@@ -676,14 +689,14 @@ def init(view=None,addToView=True, robotName=None):
     imageManager = ImageManager()
 
     global cameraView
-    cameraView = CameraView(imageManager,view)
+    cameraView = CameraView(imageManager, view, robotName)
 
     directorConfig = drcargs.getDirectorConfig()
     if "modelName" not in directorConfig:
         directorConfig = drcargs.getDirectorConfig()[robotName]
 
     _modelName = directorConfig['modelName']
-    cameraNames = imageManager.images
+    cameraNames = imageManager.images[robotName]
 
     monoCameras = directorConfig['monoCameras']
     monoCamerasShortName = directorConfig['monoCamerasShortName']
@@ -692,5 +705,5 @@ def init(view=None,addToView=True, robotName=None):
         monoCamera = monoCameras[i]
         monoCameraShortName = monoCamerasShortName[i]
         if monoCamera in cameraNames:
-            addCameraView(monoCamera, monoCameraShortName, addToView=addToView)
+            addCameraView(monoCamera, monoCameraShortName, addToView=addToView, robotName=robotName)
 
