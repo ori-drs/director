@@ -343,7 +343,7 @@ class RobotSystemFactory(object):
         return FieldContainer(viewBehaviors=viewBehaviors)
 
 
-def create(view=None, globalsDict=None, options=None, planningOnly=False, robotName=None):
+def create(view=None, globalsDict=None, options=None, planningOnly=False, robotName=""):
     '''
     Convenience function for initializing a robotSystem
     with the default options and populating a globals()

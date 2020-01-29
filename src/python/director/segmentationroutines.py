@@ -85,7 +85,7 @@ class SegmentationContext(object):
                                                                           providerName))
 
     @staticmethod
-    def initWithRobot(model, robotName="defaultRobot"):
+    def initWithRobot(model, robotName=""):
         SegmentationContext.initContext(RobotModelGroundHeightProvider(model, robotName),
                                         RobotModelViewProvider(model), robotName)
 
@@ -102,7 +102,7 @@ class SegmentationContext(object):
 
 class RobotModelGroundHeightProvider(object):
 
-    def __init__(self, model, robotName=None):
+    def __init__(self, model, robotName=""):
         self.model = model
         self.robotName = robotName
 

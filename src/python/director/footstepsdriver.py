@@ -29,7 +29,7 @@ from PythonQt import QtGui, QtCore
 
 footstepsDrivers = {}
 
-def getFootstepsDriver(robotName=None):
+def getFootstepsDriver(robotName=""):
     return footstepsDrivers.get(robotName)
 
 DEFAULT_PARAM_SET = 'Drake Nominal'
@@ -130,7 +130,7 @@ DEFAULT_CONTACT_SLICES = {(0.05, 0.3): np.array([[-0.13, -0.13, 0.13, 0.13],
                           }
 
 
-def loadFootMeshes(robotName=None):
+def loadFootMeshes(robotName=""):
     meshes = []
     driver = getFootstepsDriver(robotName)
     for i in  range(0,2):
@@ -163,7 +163,7 @@ def getRightFootColor():
 
 
 
-def getFootMeshes(robotName=None):
+def getFootMeshes(robotName=""):
     driver = getFootstepsDriver(robotName)
     if not driver._footMeshes:
         driver._footMeshes = loadFootMeshes()
@@ -204,7 +204,7 @@ def getBDIAdjustedFootstepsFolder():
 
 class FootstepsDriver(object):
 
-    def __init__(self, jointController, robotName=None):
+    def __init__(self, jointController, robotName=""):
         self.jointController = jointController
         self.lastFootstepPlan = None
         self.lastFootstepRequest = None
@@ -287,7 +287,7 @@ class FootstepsDriver(object):
         if robotName:
             footstepsDrivers[robotName] = self
         else:
-            footstepsDrivers["default"] = self
+            footstepsDrivers[""] = self
 
     def _setupProperties(self):
         self.params = om.ObjectModelItem('Footstep Params')

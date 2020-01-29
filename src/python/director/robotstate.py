@@ -7,9 +7,9 @@ from director import transformUtils
 robotStates = {}
 
 
-def getRobotState(robotName=None):
+def getRobotState(robotName=""):
     global robotStates
-    dictKey = robotName or "default";
+    dictKey = robotName;
     if not robotStates.get(dictKey):
         robotStates[dictKey] = RobotState(robotName)
 
@@ -18,7 +18,7 @@ def getRobotState(robotName=None):
 
 class RobotState(object):
 
-    def __init__(self, robotName=None):
+    def __init__(self, robotName=""):
         self._robotStateToDrakePoseJointMap = None
         self._drakePoseToRobotStateJointMap = None
         self._drakePoseJointNames = None

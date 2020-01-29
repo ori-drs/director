@@ -11,7 +11,7 @@ import numpy as np
 
 class JointController(object):
 
-    def __init__(self, models, poseCollection=None, jointNames=None, robotName=None):
+    def __init__(self, models, poseCollection=None, jointNames=None, robotName=""):
         self.robotState = robotstate.getRobotState(robotName)
         self.robotName = robotName
         self.jointNames = jointNames or self.robotState.getDrakePoseJointNames()

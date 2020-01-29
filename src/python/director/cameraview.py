@@ -128,6 +128,8 @@ class ImageManager(object):
 
         self.providerClasses[robotName] = provider
         if robotName not in self.images:
+            print("Could not set provider class. Robot name {} not in ImageManager name "
+                  "list {}".format(robotName, self.images.keys()))
             return
         # Initialise the provider for names which were added to the object before this point
         for name in self.images[robotName].keys():
@@ -186,7 +188,7 @@ def disableCameraTexture(obj):
 
 class CameraView(object):
 
-    def __init__(self, imageManager, view=None, robotName=None):
+    def __init__(self, imageManager, view=None, robotName=""):
 
         self.imageManager = imageManager
         self.updateUtimes = {}
@@ -472,7 +474,7 @@ class ImageWidget(object):
 
 class CameraImageView(object):
 
-    def __init__(self, imageManager, imageName, viewName=None, view=None, robotName=None):
+    def __init__(self, imageManager, imageName, viewName=None, view=None, robotName=""):
         imageManager.addImage(imageName, robotName)
 
         self.cameraRoll = None
@@ -665,7 +667,7 @@ class CameraImageView(object):
 views = {}
 
 
-def addCameraView(channel, viewName=None, cameraName=None, imageType=-1, addToView=True, robotName=None):
+def addCameraView(channel, viewName=None, cameraName=None, imageType=-1, addToView=True, robotName=""):
     cameraName = cameraName or channel
 
     if (addToView):
@@ -684,7 +686,7 @@ def addCameraView(channel, viewName=None, cameraName=None, imageType=-1, addToVi
 
 
 
-def init(view=None,addToView=True, robotName=None):
+def init(view=None,addToView=True, robotName=""):
     global imageManager
     imageManager = ImageManager()
 
