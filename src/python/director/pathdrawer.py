@@ -36,6 +36,15 @@ class PathSource(om.ContainerItem):
         self.readerPath.SetFixedFrame(rootFrame)
         self.timerPath = TimerCallback()
         self.timerPath.callback = self.showPath
+        defaultTubeWidth = 0.03
+        defaultScale = 0.35
+        useTube = False
+        self.addProperty('Tube Width', defaultTubeWidth, attributes=om.PropertyAttributes(decimals=3, minimum=0.001, maximum=10, singleStep=0.01, hidden=True))
+        self.addProperty('Tube', useTube)
+        self.addProperty('Scale', defaultScale, attributes=om.PropertyAttributes(decimals=2, minimum=0.01, maximum=100, singleStep=0.1, hidden=False))
+        self.readerPath.SetTubeWidth(defaultTubeWidth)
+        self.readerPath.UseTube(useTube)
+        self.readerPath.SetScale(defaultScale)
 
         om.collapse(self)
 
@@ -69,6 +78,17 @@ class PathSource(om.ContainerItem):
             colorList = obj.properties.getPropertyAttribute('Color By', 'enumNames')
             colorIndex = colorList.index('Color') if 'Color' in colorList else 0
             obj.setProperty('Color By', colorIndex)
+
+    def _onPropertyChanged(self, propertySet, propertyName):
+        om.ContainerItem._onPropertyChanged(self, propertySet, propertyName)
+        propertyValue = self.getProperty(propertyName)
+        if propertyName == 'Tube Width':
+            self.readerPath.SetTubeWidth(propertyValue)
+        elif propertyName == 'Tube':
+            self.readerPath.UseTube(propertyValue)
+            self.properties.setPropertyAttribute('Tube Width', 'hidden', not self.getProperty(propertyName))
+        elif propertyName == 'Scale':
+            self.readerPath.SetScale(propertyValue)
 
 
 
