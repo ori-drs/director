@@ -62,13 +62,13 @@ class RobotSystemFactory(object):
         robotStateModel, robotStateJointController = roboturdf.loadRobotModel(
             'robot state model',
             robotSystem.view,
-            urdfFile=robotSystem.directorConfig['urdfConfig']['robotState'],
+            #urdfFile=robotSystem.directorConfig['urdfConfig']['robotState'],
             color=roboturdf.getRobotGrayColor(),
             colorMode=robotSystem.directorConfig['colorMode'],
             parent='sensors',
             visible=True)
 
-        robotStateJointController.setPose('EST_ROBOT_STATE', robotStateJointController.getPose('q_nom'))
+        #robotStateJointController.setPose('EST_ROBOT_STATE', robotStateJointController.getPose('q_nom'))
         #roboturdf.startModelPublisherListener([(robotStateModel, robotStateJointController)])
         robotStateJointController.addLCMUpdater('EST_ROBOT_STATE')
 

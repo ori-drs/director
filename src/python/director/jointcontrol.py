@@ -15,7 +15,7 @@ import PythonQt
 
 class JointController(object):
 
-    def __init__(self, models, poseCollection=None, jointNames=None):
+    def __init__(self, models, poseCollection=None, jointNames=None, pushToModel=True):
         self.jointNames = jointNames or robotstate.getDrakePoseJointNames()
         self.numberOfJoints = len(self.jointNames)
         self.models = list(models)
@@ -24,7 +24,7 @@ class JointController(object):
         self.currentPoseName = None
         self.lastRobotStateMessage = None
         self.ignoreOldStateMessages = False
-        self.setPose('q_zero', np.zeros(self.numberOfJoints))
+        self.setPose('q_zero', np.zeros(self.numberOfJoints), pushToModel)
 
     def setJointPosition(self, jointId, position):
         '''
