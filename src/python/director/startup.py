@@ -204,6 +204,58 @@ class RobotGridUpdater(object):
         self.gridFrame.copyFrame(t)
 
 
+class RobotSelector(QtGui.QWidget):
+
+    def __init__(self, robotNames=[]):
+        super(RobotSelector, self).__init__()
+        self.objectName = "RobotSelector"
+        self.robotNames = robotNames
+        self.associatedWidgets = {}
+
+        self.robotSelectLabel = QtGui.QLabel("Controlling:")
+
+        self.robotSelectCombo = QtGui.QComboBox()
+        self.robotSelectCombo.connect("currentIndexChanged(QString)", self.showWidgets)
+
+        for robotName in self.robotNames:
+            self.addRobot(robotName)
+
+        self.horizLayout = QtGui.QHBoxLayout(self)
+        self.horizLayout.addWidget(self.robotSelectLabel)
+        self.horizLayout.addWidget(self.robotSelectCombo)
+
+    def addRobot(self, robotName):
+        self.robotNames.append(robotName)
+        self.robotSelectCombo.addItem(robotName)
+        self.associatedWidgets[robotName] = {}
+        self.associatedWidgets[robotName]["widgets"] = []
+        self.associatedWidgets[robotName]["views"] = []  # or tabs
+
+    def associateWidgetWithRobot(self, widget, robotName):
+        if (robotName in self.robotNames) and (widget not in self.associatedWidgets[robotName]["widgets"]):
+            self.associatedWidgets[robotName]["widgets"].append(widget)
+
+    def associateViewWithRobot(self, view, robotName):
+        if (robotName in self.robotNames) and (view not in self.associatedWidgets[robotName]["views"]):
+            self.associatedWidgets[robotName]["views"].append(view)
+
+    def showWidgets(self, robotName):
+        print(self.associatedWidgets)
+        print("Showing widgets for {}".format(robotName))
+        for robot in self.associatedWidgets.keys():
+            for widget in self.associatedWidgets[robot]["widgets"]:
+                print("{} {} of {}".format("hiding" if robot == robotName else "showing", widget, robot))
+                widget.setVisible(robot == robotName)
+
+            for view in self.associatedWidgets[robot]["views"]:
+                if robot == robotName:
+                    print("Showing view {} of {}".format(view, robot))
+                    app.getViewManager().showView(view)
+                else:
+                    print("Hiding view {} of {}".format(view, robot))
+                    app.getViewManager().hideView(view)
+                # view.setVisible(robot == robotName)
+
 drcargs.args()
 app.startup(globals())
 om.init(app.getMainWindow().objectTree(), app.getMainWindow().propertiesPanel())
@@ -220,16 +272,25 @@ updatePolyData = segmentation.updatePolyData
 
 directorConfigFull = drcargs.getDirectorConfig()
 
+selector = RobotSelector()
+# To hide the selector if there is only one robot we actually need to hide the action that is created by the
+# toolbar's addwidget
+selectorAction = app.getMainWindow().toolBar().addWidget(selector)
+
 # If this is a single robot configuration, we expect modelName as a top level key. Otherwise it will be a second
 # level one.
 if "modelName" not in directorConfigFull:
     robotSystems = []
     for robot in directorConfigFull:
         robotSystems.append(robotsystem.create(view, robotName=robot))
+
+    app.getMainWindow().toolBar().addSeparator()
 else:
     robotSystems = [robotsystem.create(view)]
+    selectorAction.setVisible(False)
 
 for robotSystem in robotSystems:
+    selector.addRobot(robotSystem.robotName)
     directorConfig = directorConfigFull[robotSystem.robotName] if robotSystem.robotName else directorConfigFull
 
     useIk = True
@@ -278,7 +339,7 @@ for robotSystem in robotSystems:
             locals()[component] = True
 
     if useSpreadsheet:
-        spreadsheet.init(poseCollection, costCollection)
+        spreadsheet.init(poseCollection, costCollection, robotSystem.robotName)
 
     if useIk:
         def onIkStartup(ikServer, startSuccess):

@@ -240,7 +240,7 @@ class CameraView(object):
     def initView(self, view):
 
         self.view = view or app.getViewManager().createView('Camera View', 'VTK View')
-
+        app.getRobotSelector().associateViewWithRobot(self.view, self.robotName)
         self.renderers = [self.view.renderer()]
         renWin = self.view.renderWindow()
         renWin.SetNumberOfLayers(3)
@@ -551,6 +551,7 @@ class CameraImageView(object):
 
     def initView(self, view):
         self.view = view or app.getViewManager().createView(self.viewName, 'VTK View')
+        app.getRobotSelector().associateViewWithRobot(self.view, self.robotName)
         self.view.installImageInteractor()
         #self.interactorStyle = self.view.renderWindow().GetInteractor().GetInteractorStyle()
         #self.interactorStyle.AddObserver('SelectionChangedEvent', self.onRubberBandPick)

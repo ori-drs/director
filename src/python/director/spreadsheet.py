@@ -80,10 +80,11 @@ def initSpreadsheetColumns(costCollection):
     setSpreadsheetColumnData(1, 'default_costs', costData)
 
 
-def init(poseCollection, costCollection):
+def init(poseCollection, costCollection, robotName=""):
 
     global _spreadsheetView
     _spreadsheetView = app.getViewManager().createView('Spreadsheet View', 'Spreadsheet View')
+    app.getRobotSelector().associateViewWithRobot(_spreadsheetView, robotName)
 
     updateMethod = functools.partial(updateSpreadsheetPoses, poseCollection)
     poseCollection.connect('itemChanged(const QString&)', updateMethod)

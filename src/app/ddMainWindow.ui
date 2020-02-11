@@ -122,6 +122,7 @@
    <addaction name="ActionToggleFramesSize"/>
    <addaction name="ActionToggleCameraTerrainMode"/>
    <addaction name="ActionResetCamera"/>
+   <addaction name="separator"/>
   </widget>
   <widget class="QDockWidget" name="PropertiesDock">
    <property name="windowTitle">

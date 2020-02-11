@@ -26,6 +26,8 @@ def getMainWindow():
 
     return _mainWindow
 
+def getRobotSelector():
+    return getMainWindow().toolBar().findChild("QWidget", "RobotSelector")
 
 def quit():
     QtGui.QApplication.instance().quit()
@@ -252,11 +254,11 @@ def onCurrentViewChanged(previousView, currentView):
     updateToggleTerrainAction(currentView)
 
 
-def addToolbarMacro(name, func):
+def addToolbarMacro(name, func, robotName=""):
     toolbar = getMainWindow().macrosToolBar()
     action = toolbar.addAction(name)
     action.connect('triggered()', func)
-
+    getRobotSelector().associateWidgetWithRobot(action, robotName)
 
 def removeToolbarMacro(name):
     action = getToolBarActions().get(name)

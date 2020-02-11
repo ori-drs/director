@@ -180,6 +180,32 @@ ddViewBase* ddViewManager::createView(const QString& viewName, const QString& vi
   return view;
 }
 
+void ddViewManager::showView(ddViewBase* view)
+{
+  QString viewName = this->Internal->Views.key(view);
+  for (auto k : this->Internal->Views.keys()){
+    std::cout << k.toStdString() << '\n';
+  }
+  std::cout << viewName.toStdString() << '\n';
+  int pageIndex = this->Internal->PageIndexCache[view];
+  std::cout << pageIndex << std::endl;
+  this->addView(view, viewName, pageIndex);
+}
+
+void ddViewManager::hideView(ddViewBase* view)
+{
+  QSplitter* splitter = qobject_cast<QSplitter*>(view->parent());
+  int pageIndex = this->Internal->TabWidget->indexOf(splitter);
+  if (pageIndex < 0)
+  {
+    return;
+  }
+
+  view->setParent(0);
+  this->Internal->TabWidget->removeTab(pageIndex);
+  this->Internal->PageIndexCache[view] = pageIndex;
+}
+
 //-----------------------------------------------------------------------------
 void ddViewManager::addDefaultPage()
 {
