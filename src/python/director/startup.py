@@ -89,7 +89,6 @@ from director import segmentationpanel
 #from director import lcmUtils
 from director.utime import getUtime
 from director.shallowCopy import shallowCopy
-from director import tfvisualization as tf_vis
 
 from director import segmentationroutines
 from director import trackers
@@ -248,15 +247,14 @@ if not useLightColorScheme:
     viewBackgroundLightHandler.action.trigger()
 
 # reset time button and connections
-button = QtGui.QPushButton('')
-button.text = 'Reset time'
+button = QtGui.QPushButton('Reset time')
+button.setObjectName("resettime")
 button.connect('clicked()', pointCloudSource.resetTime)
 button.connect('clicked()', gridMapSource.resetTime)
+button.connect('clicked()', gridMapLidarSource.resetTime)
 button.connect('clicked()', headCameraPointCloudSource.resetTime)
 button.connect('clicked()', groundCameraPointCloudSource.resetTime)
-button.connect('clicked()', robotStateJointController.resetTime)
 button.connect('clicked()', cameraview.cameraView.resetTime)
-button.connect('clicked()', tf_vis.TfFrameSync.resetTime)
 app.getMainWindow().statusBar().addPermanentWidget(button)
 
 
@@ -854,21 +852,6 @@ class RobotGridUpdater(object):
         self.gridFrame.copyFrame(t)
 
 gridUpdater = RobotGridUpdater(grid.getChildFrame(), robotStateModel, robotStateJointController)
-
-
-class IgnoreOldStateMessagesSelector(object):
-
-    def __init__(self, jointController):
-        self.jointController = jointController
-        self.action = app.addMenuAction('Tools', 'Ignore Old State Messages')
-        self.action.setCheckable(True)
-        self.action.setChecked(self.jointController.ignoreOldStateMessages)
-        self.action.connect('triggered()', self.toggle)
-
-    def toggle(self):
-        self.jointController.ignoreOldStateMessages = bool(self.action.checked)
-
-IgnoreOldStateMessagesSelector(robotStateJointController)
 
 
 class RandomWalk(object):

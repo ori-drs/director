@@ -437,18 +437,7 @@ class Robot(xmlr.Object):
 		assert root is not None, "No roots detected, invalid URDF."
 		return root
 
-	@classmethod
-	def from_parameter_server(cls, key = 'robot_description'):
-		"""
-		Retrieve the robot model on the parameter server
-		and parse it to create a URDF robot structure.
 
-		Warning: this requires roscore to be running.
-		"""
-		# Could move this into xml_reflection
-		import rospy
-		return cls.from_xml_string(rospy.get_param(key))
-	
 xmlr.reflect(Robot, tag = 'robot', params = [
 # 	name_attribute,
 	xmlr.Attribute('name', str, False), # Is 'name' a required attribute?

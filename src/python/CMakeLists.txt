@@ -86,8 +86,8 @@ set(python_files
   director/otdfmodel.py
   director/outputconsole.py
   director/packagepath.py
-  director/pathdrawer.py
   director/perception.py
+  director/perceptionmeta.py
   director/planningutils.py
   director/planplayback.py
   director/playbackpanel.py
@@ -108,7 +108,6 @@ set(python_files
   director/robotsystem.py
   director/roboturdf.py
   director/robotviewbehaviors.py
-  director/rosutils.py
   director/sceneloader.py
   director/screengrabberpanel.py
   director/segmentation.py
@@ -132,10 +131,8 @@ set(python_files
   director/terrainitem.py
   director/terraintask.py
   director/timercallback.py
-  director/tfdrawer.py
-  director/tfvisualization.py
-  director/transformUtils.py
   director/trackers.py
+  director/transformUtils.py
   director/treeviewer.py
   director/uipanel.py
   director/undoredo.py
