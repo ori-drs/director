@@ -2,7 +2,6 @@ import PythonQt
 from PythonQt import QtCore, QtGui
 import director.objectmodel as om
 import director.visualization as vis
-import director.tfvisualization as tf_vis
 from director import cameracontrol
 from director import propertyset
 from director import frameupdater
@@ -119,7 +118,8 @@ def toggleFrameWidget(displayPoint, view):
 
     obj, _ = vis.findPickedObject(displayPoint, view)
 
-    if not isinstance(obj, vis.FrameItem) and not isinstance(obj, tf_vis.TfFrameItem):
+    # use __name__ so we don't have to import director_ros components
+    if not isinstance(obj, vis.FrameItem) and not type(obj).__name__ == 'TfFrameItem':
         obj = getChildFrame(obj)
 
     if not obj:
