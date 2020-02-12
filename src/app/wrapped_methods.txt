@@ -49,7 +49,7 @@ void ddPythonEventFilter::removeFilteredEventType(int);
 
 
 ddViewBase* ddViewManager::findView(const QString&) const;
-ddViewBase* ddViewManager::createView(const QString&, const QString&, int);
+ddViewBase* ddViewManager::createView(const QString&, const QString&, int, const QString&);
 ddViewBase* ddViewManager::createView(const QString&, const QString&);
 void ddViewManager::showView(ddViewBase*);
 void ddViewManager::hideView(ddViewBase*);

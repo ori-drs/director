@@ -244,7 +244,7 @@ class RobotSelector(QtGui.QWidget):
         print("Showing widgets for {}".format(robotName))
         for robot in self.associatedWidgets.keys():
             for widget in self.associatedWidgets[robot]["widgets"]:
-                print("{} {} of {}".format("hiding" if robot == robotName else "showing", widget, robot))
+                print("{} {} of {}".format("showing" if robot == robotName else "hiding", widget, robot))
                 widget.setVisible(robot == robotName)
 
             for view in self.associatedWidgets[robot]["views"]:

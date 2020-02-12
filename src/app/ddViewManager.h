@@ -18,9 +18,9 @@ public:
 
   QTabWidget* tabWidget() const;
 
-  ddViewBase* findView(const QString& viewName) const;
+  ddViewBase* findView(const QString& viewName, const QString& robotName="") const;
 
-  ddViewBase* createView(const QString& viewName, const QString& viewType, int pageIndex=-1);
+  ddViewBase* createView(const QString& viewName, const QString& viewType, int pageIndex=-1, const QString& robotName="");
 
   void hideView(ddViewBase* view);
 
@@ -30,7 +30,7 @@ public:
 
   ddViewBase* currentView() const;
 
-  QString viewName(ddViewBase* view);
+  std::pair<QString, QString> viewName(ddViewBase* view);
 
   void popOut(ddViewBase* view);
 
@@ -48,7 +48,7 @@ protected:
 
   void addDefaultPage();
 
-  void addView(ddViewBase* view, const QString& viewName, int pageIndex=-1);
+  void addView(ddViewBase* view, const QString& viewName, int pageIndex=-1, const QString& robotName="");
 
   class ddInternal;
   ddInternal* Internal;

@@ -11,6 +11,7 @@
 #include <QEvent>
 
 #include <cstdio>
+#include <stdexcept>
 
 class MyTabWidget : public QTabWidget
 {
@@ -40,7 +41,7 @@ public:
 
   QTabWidget* TabWidget;
 
-  QMap<QString, ddViewBase*> Views;
+  QMap<QString, QMap<QString, ddViewBase*>> Views;
   QMap<ddViewBase*, int> PageIndexCache;
 };
 
@@ -78,15 +79,23 @@ QTabWidget* ddViewManager::tabWidget() const
 }
 
 //-----------------------------------------------------------------------------
-ddViewBase* ddViewManager::findView(const QString& viewName) const
+ddViewBase* ddViewManager::findView(const QString& viewName, const QString& robotName) const
 {
-  return this->Internal->Views.value(viewName);
+  return this->Internal->Views[robotName].value(viewName);
 }
 
 //-----------------------------------------------------------------------------
-QString ddViewManager::viewName(ddViewBase* view)
+std::pair<QString, QString> ddViewManager::viewName(ddViewBase* view)
 {
-  return this->Internal->Views.key(view);
+  for (auto robotName : this->Internal->Views.keys()) {
+    std::cout << "Robot name is " << robotName.toStdString().c_str() << '\n';
+    QString viewName = this->Internal->Views[robotName].key(view);
+    std::cout << "View name is " << viewName.toStdString().c_str() << '\n';
+    if (!viewName.isEmpty() && !viewName.isNull()) {
+      std:: cout << "View name is not empty, so the view is found" << std::endl;
+      return std::pair<QString, QString>(robotName, viewName);
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -137,8 +146,14 @@ void ddViewManager::onCurrentTabChanged(int currentIndex)
 }
 
 //-----------------------------------------------------------------------------
-void ddViewManager::addView(ddViewBase* view, const QString& viewName, int pageIndex)
+void ddViewManager::addView(ddViewBase* view, const QString& viewName, int pageIndex, const QString& robotName)
 {
+  // It is incorrect to try to add a different view with the same key if it already exists in the view manager
+  if (this->Internal->Views.contains(robotName) && this->Internal->Views[robotName].contains(viewName) &&
+      this->Internal->Views[robotName][viewName] != view) {
+    throw std::invalid_argument("Attempted to add a new view to the view manager with a key that already existed");
+  }
+
   if (pageIndex >= 0)
   {
     this->tabWidget()->insertTab(pageIndex, view, viewName);
@@ -148,12 +163,12 @@ void ddViewManager::addView(ddViewBase* view, const QString& viewName, int pageI
     this->tabWidget()->addTab(view, viewName);
   }
 
-  this->Internal->Views[viewName] = view;
+  this->Internal->Views[robotName][viewName] = view;
   static_cast<MyTabWidget*>(this->tabWidget())->updateTabBar();
 }
 
 //-----------------------------------------------------------------------------
-ddViewBase* ddViewManager::createView(const QString& viewName, const QString& viewType, int pageIndex)
+ddViewBase* ddViewManager::createView(const QString& viewName, const QString& viewType, int pageIndex, const QString& robotName)
 {
   ddViewBase* view = 0;
   if (viewType == "VTK View")
@@ -167,7 +182,7 @@ ddViewBase* ddViewManager::createView(const QString& viewName, const QString& vi
 
   if (view)
   {
-    this->addView(view, viewName, pageIndex);
+    this->addView(view, viewName, pageIndex, robotName);
   }
 
   return view;
@@ -175,14 +190,14 @@ ddViewBase* ddViewManager::createView(const QString& viewName, const QString& vi
 
 void ddViewManager::showView(ddViewBase* view)
 {
-  QString viewName = this->Internal->Views.key(view);
+  std::pair<QString, QString> viewName = this->viewName(view);
   for (auto k : this->Internal->Views.keys()){
     std::cout << k.toStdString() << '\n';
   }
-  std::cout << viewName.toStdString() << '\n';
+  std::cout << viewName.second.toStdString() << '\n';
   int pageIndex = this->Internal->PageIndexCache[view];
   std::cout << pageIndex << std::endl;
-  this->addView(view, viewName, pageIndex);
+  this->addView(view, viewName.second, pageIndex, viewName.first);
 }
 
 void ddViewManager::hideView(ddViewBase* view)
@@ -193,7 +208,6 @@ void ddViewManager::hideView(ddViewBase* view)
     return;
   }
 
-  view->setParent(0);
   this->Internal->TabWidget->removeTab(pageIndex);
   this->Internal->PageIndexCache[view] = pageIndex;
 }
@@ -212,9 +226,9 @@ bool ddViewManager::eventFilter(QObject* obj, QEvent* event)
   if (view && event->type() == QEvent::Close)
   {
     view->removeEventFilter(this);
-    QString viewName = this->Internal->Views.key(view);
+    std::pair<QString, QString> viewName = this->viewName(view);
     int pageIndex = this->Internal->PageIndexCache[view];
-    this->addView(view, viewName, pageIndex);
+    this->addView(view, viewName.second, pageIndex, viewName.first);
     this->Internal->TabWidget->setCurrentIndex(pageIndex);
     event->ignore();
     return true;

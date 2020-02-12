@@ -238,8 +238,10 @@ class CameraView(object):
         self.eventFilter.connect('handleEvent(QObject*, QEvent*)', self.filterEvent)
 
     def initView(self, view):
-
-        self.view = view or app.getViewManager().createView('Camera View', 'VTK View')
+        # Must call the createview function with the robot name so that the view can be associated, but cannot pass
+        # keyword arguments to python_qt functions so need to also pass the -1 to add the tab to the end of the list
+        # rather than insert it.
+        self.view = view or app.getViewManager().createView('Camera View', 'VTK View', -1, self.robotName)
         app.getRobotSelector().associateViewWithRobot(self.view, self.robotName)
         self.renderers = [self.view.renderer()]
         renWin = self.view.renderWindow()
@@ -550,7 +552,10 @@ class CameraImageView(object):
         return self.imageManager.getImage(self.imageName, self.robotName)
 
     def initView(self, view):
-        self.view = view or app.getViewManager().createView(self.viewName, 'VTK View')
+        # Must call the createview function with the robot name so that the view can be associated, but cannot pass
+        # keyword arguments to python_qt functions so need to also pass the -1 to add the tab to the end of the list
+        # rather than insert it.
+        self.view = view or app.getViewManager().createView(self.viewName, 'VTK View', -1, self.robotName)
         app.getRobotSelector().associateViewWithRobot(self.view, self.robotName)
         self.view.installImageInteractor()
         #self.interactorStyle = self.view.renderWindow().GetInteractor().GetInteractorStyle()

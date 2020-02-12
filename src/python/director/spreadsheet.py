@@ -83,7 +83,10 @@ def initSpreadsheetColumns(costCollection):
 def init(poseCollection, costCollection, robotName=""):
 
     global _spreadsheetView
-    _spreadsheetView = app.getViewManager().createView('Spreadsheet View', 'Spreadsheet View')
+    # Must call the createview function with the robot name so that the view can be associated, but cannot pass
+    # keyword arguments to python_qt functions so need to also pass the -1 to add the tab to the end of the list
+    # rather than insert it.
+    _spreadsheetView = app.getViewManager().createView('Spreadsheet View', 'Spreadsheet View', -1, robotName)
     app.getRobotSelector().associateViewWithRobot(_spreadsheetView, robotName)
 
     updateMethod = functools.partial(updateSpreadsheetPoses, poseCollection)
