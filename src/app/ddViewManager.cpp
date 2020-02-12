@@ -8,7 +8,6 @@
 #include <QTabBar>
 #include <QVBoxLayout>
 #include <QMap>
-#include <QSplitter>
 #include <QEvent>
 
 #include <cstdio>
@@ -43,7 +42,6 @@ public:
 
   QMap<QString, ddViewBase*> Views;
   QMap<ddViewBase*, int> PageIndexCache;
-  QList<QSplitter*> Splitters;
 };
 
 
@@ -113,8 +111,7 @@ ddViewBase* ddViewManager::currentView() const
 //-----------------------------------------------------------------------------
 void ddViewManager::popOut(ddViewBase* view)
 {
-  QSplitter* splitter = qobject_cast<QSplitter*>(view->parent());
-  int pageIndex = this->Internal->TabWidget->indexOf(splitter);
+  int pageIndex = this->Internal->TabWidget->indexOf(view);
   if (pageIndex < 0)
   {
     return;
@@ -142,19 +139,15 @@ void ddViewManager::onCurrentTabChanged(int currentIndex)
 //-----------------------------------------------------------------------------
 void ddViewManager::addView(ddViewBase* view, const QString& viewName, int pageIndex)
 {
-  QSplitter* splitter = splitter = new QSplitter();
-  this->Internal->Splitters.append(splitter);
-
   if (pageIndex >= 0)
   {
-    this->tabWidget()->insertTab(pageIndex, splitter, viewName);
+    this->tabWidget()->insertTab(pageIndex, view, viewName);
   }
   else
   {
-    this->tabWidget()->addTab(splitter, viewName);
+    this->tabWidget()->addTab(view, viewName);
   }
 
-  splitter->addWidget(view);
   this->Internal->Views[viewName] = view;
   static_cast<MyTabWidget*>(this->tabWidget())->updateTabBar();
 }
@@ -194,8 +187,7 @@ void ddViewManager::showView(ddViewBase* view)
 
 void ddViewManager::hideView(ddViewBase* view)
 {
-  QSplitter* splitter = qobject_cast<QSplitter*>(view->parent());
-  int pageIndex = this->Internal->TabWidget->indexOf(splitter);
+  int pageIndex = this->Internal->TabWidget->indexOf(view);
   if (pageIndex < 0)
   {
     return;

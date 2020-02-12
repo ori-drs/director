@@ -215,7 +215,7 @@ class RobotSelector(QtGui.QWidget):
         self.robotSelectLabel = QtGui.QLabel("Controlling:")
 
         self.robotSelectCombo = QtGui.QComboBox()
-        self.robotSelectCombo.connect("currentIndexChanged(QString)", self.showWidgets)
+        self.robotSelectCombo.connect("currentIndexChanged(QString)", self.showAssociatedComponents)
 
         for robotName in self.robotNames:
             self.addRobot(robotName)
@@ -239,7 +239,7 @@ class RobotSelector(QtGui.QWidget):
         if (robotName in self.robotNames) and (view not in self.associatedWidgets[robotName]["views"]):
             self.associatedWidgets[robotName]["views"].append(view)
 
-    def showWidgets(self, robotName):
+    def showAssociatedComponents(self, robotName):
         print(self.associatedWidgets)
         print("Showing widgets for {}".format(robotName))
         for robot in self.associatedWidgets.keys():

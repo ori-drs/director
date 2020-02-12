@@ -55,6 +55,9 @@ protected:
 
   Q_DISABLE_COPY(ddViewManager);
 
+private:
+  void buildPageIndexCache();
+
 };
 
 #endif
