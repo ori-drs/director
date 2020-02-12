@@ -22,7 +22,7 @@ public:
 
   ddViewBase* createView(const QString& viewName, const QString& viewType, int pageIndex=-1, const QString& robotName="");
 
-  void hideView(ddViewBase* view);
+  void hideView(ddViewBase* view, bool storeLocation=true);
 
   void showView(ddViewBase* view);
 
@@ -33,6 +33,8 @@ public:
   std::pair<QString, QString> viewName(ddViewBase* view);
 
   void popOut(ddViewBase* view);
+
+  void updatePageIndexCache();
 
 signals:
 
@@ -55,8 +57,6 @@ protected:
 
   Q_DISABLE_COPY(ddViewManager);
 
-private:
-  void buildPageIndexCache();
 
 };
 

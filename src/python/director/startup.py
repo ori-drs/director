@@ -215,7 +215,6 @@ class RobotSelector(QtGui.QWidget):
         self.robotSelectLabel = QtGui.QLabel("Controlling:")
 
         self.robotSelectCombo = QtGui.QComboBox()
-        self.robotSelectCombo.connect("currentIndexChanged(QString)", self.showAssociatedComponents)
 
         for robotName in self.robotNames:
             self.addRobot(robotName)
@@ -223,6 +222,8 @@ class RobotSelector(QtGui.QWidget):
         self.horizLayout = QtGui.QHBoxLayout(self)
         self.horizLayout.addWidget(self.robotSelectLabel)
         self.horizLayout.addWidget(self.robotSelectCombo)
+
+        self.robotSelectCombo.connect("currentIndexChanged(QString)", self.showAssociatedComponents)
 
     def addRobot(self, robotName):
         self.robotNames.append(robotName)
@@ -239,22 +240,27 @@ class RobotSelector(QtGui.QWidget):
         if (robotName in self.robotNames) and (view not in self.associatedWidgets[robotName]["views"]):
             self.associatedWidgets[robotName]["views"].append(view)
 
+    def selectRobot(self, robotName):
+        index = self.robotSelectCombo.findText(robotName)
+        if index >= 0:
+            self.robotSelectCombo.setCurrentIndex(index)
+
     def showAssociatedComponents(self, robotName):
-        print(self.associatedWidgets)
-        print("Showing widgets for {}".format(robotName))
+        # Connecting the signal appears to call the function. If we have nothing in the dictionary, do nothing.
+        if not self.associatedWidgets:
+            return
+        # Have to update the page index cache before moving any of the components so that the hidden tabs are placed
+        # in the correct order when they are shown
+        app.getViewManager().updatePageIndexCache()
         for robot in self.associatedWidgets.keys():
             for widget in self.associatedWidgets[robot]["widgets"]:
-                print("{} {} of {}".format("showing" if robot == robotName else "hiding", widget, robot))
                 widget.setVisible(robot == robotName)
 
             for view in self.associatedWidgets[robot]["views"]:
                 if robot == robotName:
-                    print("Showing view {} of {}".format(view, robot))
                     app.getViewManager().showView(view)
                 else:
-                    print("Hiding view {} of {}".format(view, robot))
-                    app.getViewManager().hideView(view)
-                # view.setVisible(robot == robotName)
+                    app.getViewManager().hideView(view, False)
 
 drcargs.args()
 app.startup(globals())
@@ -712,3 +718,5 @@ for robotSystem in robotSystems:
 
     for scriptArgs in drcargs.args().scripts:
         execfile(scriptArgs[0])
+
+    selector.selectRobot(robotSystem.robotName)

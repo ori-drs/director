@@ -84,15 +84,17 @@ ddViewBase* ddViewManager::findView(const QString& viewName, const QString& robo
   return this->Internal->Views[robotName].value(viewName);
 }
 
-//-----------------------------------------------------------------------------
+/**
+ * @brief Retrieve the name and associated robot of the given view
+ *
+ * @param view The view to retrieve names for
+ * @return std::pair<QString, QString> (robotName, viewName) pair
+ */
 std::pair<QString, QString> ddViewManager::viewName(ddViewBase* view)
 {
   for (auto robotName : this->Internal->Views.keys()) {
-    std::cout << "Robot name is " << robotName.toStdString().c_str() << '\n';
     QString viewName = this->Internal->Views[robotName].key(view);
-    std::cout << "View name is " << viewName.toStdString().c_str() << '\n';
     if (!viewName.isEmpty() && !viewName.isNull()) {
-      std:: cout << "View name is not empty, so the view is found" << std::endl;
       return std::pair<QString, QString>(robotName, viewName);
     }
   }
@@ -188,19 +190,32 @@ ddViewBase* ddViewManager::createView(const QString& viewName, const QString& vi
   return view;
 }
 
+/**
+ * @brief Show a view that was previously added to the view manager but has been
+ * hidden with the hideView function
+ *
+ * @param view The view to make visible again
+ */
 void ddViewManager::showView(ddViewBase* view)
 {
-  std::pair<QString, QString> viewName = this->viewName(view);
-  for (auto k : this->Internal->Views.keys()){
-    std::cout << k.toStdString() << '\n';
+  // Don't add a view that hasn't been removed
+  if (this->Internal->TabWidget->indexOf(view) > 0) {
+    return;
   }
-  std::cout << viewName.second.toStdString() << '\n';
-  int pageIndex = this->Internal->PageIndexCache[view];
-  std::cout << pageIndex << std::endl;
-  this->addView(view, viewName.second, pageIndex, viewName.first);
+  std::pair<QString, QString> viewName = this->viewName(view);
+  this->addView(view, viewName.second, this->Internal->PageIndexCache[view], viewName.first);
 }
 
-void ddViewManager::hideView(ddViewBase* view)
+/**
+ * @brief Hide a view in the view manager
+ *
+ * @param view The view to hide
+ * @param storeLocation If true, store the index of tab so it is restored to
+ * that location when the showView function is called. When multiple views are
+ * to be hidden at the same time, use updatePageIndexCache and set this
+ * parameter to false.
+ */
+void ddViewManager::hideView(ddViewBase* view, bool storeLocation)
 {
   int pageIndex = this->Internal->TabWidget->indexOf(view);
   if (pageIndex < 0)
@@ -209,7 +224,29 @@ void ddViewManager::hideView(ddViewBase* view)
   }
 
   this->Internal->TabWidget->removeTab(pageIndex);
-  this->Internal->PageIndexCache[view] = pageIndex;
+  if (storeLocation) {
+    this->Internal->PageIndexCache[view] = pageIndex;
+  }
+}
+
+/**
+ * @brief Update the mapping from view to tab index in the index cache
+ *
+ * This function will repopulate the index cache with the current values of the
+ * index of each view currently within the tab widget. This is useful if you are
+ * trying to remove multiple tabs from the tab bar.
+ */
+void ddViewManager::updatePageIndexCache()
+{
+
+  for (auto robotViews : this->Internal->Views) {
+    for (auto view : robotViews) {
+      int index = this->Internal->TabWidget->indexOf(view);
+      if (index >= 0) {
+        this->Internal->PageIndexCache[view] = index;
+      }
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
