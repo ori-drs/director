@@ -15,6 +15,7 @@ import functools
 _mainWindow = None
 _defaultRenderView = None
 
+
 def getMainWindow():
 
     global _mainWindow
@@ -26,8 +27,15 @@ def getMainWindow():
 
     return _mainWindow
 
+
 def getRobotSelector():
+    """
+    Return the robotselector object for this director instance. Specifying a robot to display will show UI components
+    corresponding only to that robot.
+    :return: RobotSelector object
+    """
     return getMainWindow().toolBar().findChild("QWidget", "RobotSelector")
+
 
 def quit():
     QtGui.QApplication.instance().quit()

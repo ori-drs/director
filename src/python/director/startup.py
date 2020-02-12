@@ -246,7 +246,8 @@ class RobotSelector(QtGui.QWidget):
             self.robotSelectCombo.setCurrentIndex(index)
 
     def showAssociatedComponents(self, robotName):
-        # Connecting the signal appears to call the function. If we have nothing in the dictionary, do nothing.
+        # If we have nothing in the dictionary, do nothing, otherwise may crash due to empty dicts.
+        # TODO better checking of internal state of viewmanager to remove this check
         if not self.associatedWidgets:
             return
         # Have to update the page index cache before moving any of the components so that the hidden tabs are placed
