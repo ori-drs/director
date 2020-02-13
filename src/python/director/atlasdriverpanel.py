@@ -197,14 +197,26 @@ def _getAction():
     return app.getToolBarActions()['ActionAtlasDriverPanel']
 
 
-def init(driver):
+def init(driver, robotName):
 
-    global panel
-    global dock
+    global panels
+    global docks
 
+    if 'panels' not in globals():
+        panels = {}
+    if 'docks' not in globals():
+        docks = {}
+
+    import os
     panel = AtlasDriverPanel(driver)
-    dock = app.addWidgetToDock(panel.widget, action=_getAction())
+    action = app.addDockAction('ActionAtlasDriverPanel' + robotName, 'Atlas Driver',
+                               os.path.join(os.path.dirname(__file__), 'images/gauge.png'))
+    dock = app.addWidgetToDock(panel.widget, action=action)
+    app.getRobotSelector().associateWidgetWithRobot(action, robotName)
+
     dock.hide()
 
+    panels[robotName] = panel
+    docks[robotName] = dock
 
     return panel

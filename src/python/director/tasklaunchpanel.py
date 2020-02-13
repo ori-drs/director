@@ -28,21 +28,27 @@ class TaskLaunchPanel(object):
 
     def showTaskLaunchPanel(self):
 
-        widget = self.widget
-        widget.show()
-        widget.raise_()
-        widget.activateWindow()
+        if not self.widget.visible:
+            self.widget.show()
+            self.widget.raise_()
+            self.widget.activateWindow()
+        else:
+            self.widget.hide()
 
 
-def _getAction():
-    return app.getToolBarActions()['ActionTaskLauncher']
+def init(widgetMap, robotName=""):
+    global panels
 
+    if 'panels' not in globals():
+        panels = {}
 
-def init(widgetMap):
-
-    global panel
-
+    import os
     panel = TaskLaunchPanel(widgetMap)
-    _getAction().connect('triggered()', panel.showTaskLaunchPanel)
+    action = app.addDockAction('ActionTaskLauncher' + robotName, 'Task Launcher',
+                               os.path.join(os.path.dirname(__file__), 'images/task_icon.png'), append=True)
+    action.connect('triggered()', panel.showTaskLaunchPanel)
+    app.getRobotSelector().associateWidgetWithRobot(action, robotName)
+
+    panels[robotName] = panel
 
     return panel

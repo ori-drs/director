@@ -363,9 +363,7 @@ for robotSystem in robotSystems:
         robotSystem.startIkServer()
 
     if useAtlasDriver:
-        atlasdriverpanel.init(robotSystem.atlasDriver)
-    else:
-        app.removeToolbarMacro('ActionAtlasDriverPanel')
+        atlasdriverpanel.init(robotSystem.atlasDriver, robotSystem.robotName)
 
     if usePerception:
         segmentationpanel.init()
@@ -409,17 +407,15 @@ for robotSystem in robotSystems:
     if useHands:
         handcontrolpanel.init(robotSystem.lHandDriver, robotSystem.rHandDriver, robotSystem.robotStateModel,
                               robotSystem.robotStateJointController, view)
-    else:
-        app.removeToolbarMacro('ActionHandControlPanel')
 
     if useFootsteps:
         footstepsPanel = footstepsdriverpanel.init(robotSystem.footstepsDriver, robotSystem.robotStateModel,
-                                                   robotSystem.robotStateJointController)
-    else:
-        app.removeToolbarMacro('ActionFootstepPanel')
+                                                   robotSystem.robotStateJointController,
+                                                   robotName=robotSystem.robotName)
 
     if useNavigationPanel:
-        navigationPanel = navigationpanel.init(robotSystem.robotStateJointController, robotSystem.footstepsDriver)
+        navigationPanel = navigationpanel.init(robotSystem.robotStateJointController, robotSystem.footstepsDriver,
+                                               robotSystem.robotName)
         picker = PointPicker(view, callback=navigationPanel.pointPickerStoredFootsteps, numberOfPoints=2)
         # picker.start()
 
@@ -674,7 +670,7 @@ for robotSystem in robotSystems:
     imageWidget = cameraview.ImageWidget(cameraview.imageManager, monoCameras, view, visible=False)
     imageViewHandler = ToggleImageViewHandler(imageWidget)
 
-    screengrabberpanel.init(view, imageWidget)
+    screengrabberpanel.init(view, imageWidget, robotSystem.robotName)
     framevisualization.init(view)
     affordancePanel = affordancepanel.init(view, robotSystem.affordanceManager, robotSystem.robotStateJointController)
     cameraBooksmarksPanel = camerabookmarks.init(view)

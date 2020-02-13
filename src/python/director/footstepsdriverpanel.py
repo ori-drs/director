@@ -32,11 +32,12 @@ class WidgetDict(object):
 
 class FootstepsPanel(object):
 
-    def __init__(self, driver, robotModel, jointController):
+    def __init__(self, driver, robotModel, jointController, robotName=""):
 
         self.driver = driver
         self.robotModel = robotModel
         self.jointController = jointController
+        self.robotName = robotName
 
         loader = QtUiTools.QUiLoader()
         uifile = QtCore.QFile(':/ui/ddFootsteps.ui')
@@ -210,16 +211,29 @@ class FootstepsPanel(object):
         self.driver.drawBDIFootstepPlan()
         self.driver.drawBDIFootstepPlanAdjusted()
 
-def _getAction():
-    return app.getToolBarActions()['ActionFootstepPanel']
 
 def init(*args, **kwargs):
 
-    global panel
-    global dock
+    global panels
+    global docks
 
-    panel = FootstepsPanel(*args, **kwargs)
-    dock = app.addWidgetToDock(panel.widget, action=_getAction())
+    if 'panels' not in globals():
+        panels = {}
+    if 'docks' not in globals():
+        docks = {}
+
+    import os
+    fpanel = FootstepsPanel(*args, **kwargs)
+    robotName = fpanel.robotName
+    panel = fpanel
+    action = app.addDockAction('ActionFootstepPanel' + robotName, 'Footstep Panel',
+                               os.path.join(os.path.dirname(__file__), 'images/feet.png'),
+                               append=True)
+    dock = app.addWidgetToDock(panel.widget, action=action)
+    app.getRobotSelector().associateWidgetWithRobot(action, robotName)
     dock.hide()
+
+    panels[robotName] = panel
+    docks[robotName] = dock
 
     return panel

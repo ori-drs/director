@@ -77,12 +77,43 @@ def showPythonConsole():
 
 _exclusiveDockWidgets = {}
 
+
 def hideDockWidgets(action):
     for a, wList in _exclusiveDockWidgets.iteritems():
         if a is not action:
             for dock, widget in wList:
                 if not dock.isFloating():
                     dock.hide()
+
+
+def addDockAction(actionName, actionText, iconPath, append=False):
+    """
+    Get a dock action in the right-hand action toolbar. If it does not exist, it will be created
+
+    :param actionName: The name of the action, the objectName field of the QAction
+    :param actionText: The text shown on mouseover of the action and also when viewing the right-click menu
+    :param iconPath: The path to the icon to display for this action
+    :param append: If true, put this action at the bottom of the toolbar rather than at the top
+    :return: The QAction added to the dock, or the existing action if it was already there
+    """
+
+    action = getToolBarActions().get(actionName)
+
+    if action is None:
+        assert os.path.isfile(iconPath)
+
+        action = QtGui.QAction(QtGui.QIcon(iconPath), actionText, None)
+        action.objectName = actionName
+        action.checkable = True
+
+        toolbar = getMainWindow().panelToolBar()
+
+        if append:
+            toolbar.addAction(action)
+        else:
+            toolbar.insertAction(toolbar.actions()[0], action)
+
+    return action
 
 
 def addWidgetToDock(widget, dockArea=QtCore.Qt.RightDockWidgetArea, action=None):

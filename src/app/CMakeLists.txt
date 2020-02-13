@@ -221,3 +221,15 @@ add_custom_command(OUTPUT ${decorator_file}
   --auto-class-includes --module-name dd
   DEPENDS ${wrap_files} WrapPythonQt.py
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+# Need to copy image files for the right-hand action toolbar over so that we can create actions at runtime
+set(image_files
+  images/feet.png
+  images/gauge.png
+  images/3d_scanner.png
+  images/claw.png
+  images/task_icon.png
+  images/video_record.png
+)
+
+file(COPY ${image_files} DESTINATION "${CATKIN_DEVEL_PREFIX}/${DD_INSTALL_PYTHON_DIR}/director/images")

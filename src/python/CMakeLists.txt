@@ -184,7 +184,6 @@ set(python_files
 
 
 set(python_module_dir "${CATKIN_DEVEL_PREFIX}/${DD_INSTALL_PYTHON_DIR}")
-
 # Copy python files
 set(copied_python_files)
 foreach(file ${python_files})

@@ -216,12 +216,6 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="ActionAtlasDriverPanel"/>
-   <addaction name="ActionMultisensePanel"/>
-   <addaction name="ActionFootstepPanel"/>
-   <addaction name="ActionHandControlPanel"/>
-   <addaction name="ActionScreenGrabberPanel"/>
-   <addaction name="ActionTaskLauncher"/>
   </widget>
   <action name="ActionQuit">
    <property name="text">
@@ -394,72 +388,6 @@
     <string>&amp;Colorize Lidar</string>
    </property>
   </action>
-  <action name="ActionMultisensePanel">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="images/resources.qrc">
-     <normaloff>:/images/3d_scanner.png</normaloff>:/images/3d_scanner.png</iconset>
-   </property>
-   <property name="text">
-    <string>Multisense Panel</string>
-   </property>
-   <property name="toolTip">
-    <string>Multisense Panel</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+M</string>
-   </property>
-  </action>
-  <action name="ActionFootstepPanel">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="images/resources.qrc">
-     <normaloff>:/images/feet.png</normaloff>:/images/feet.png</iconset>
-   </property>
-   <property name="text">
-    <string>Footstep Panel</string>
-   </property>
-   <property name="toolTip">
-    <string>Footstep Panel</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+F</string>
-   </property>
-  </action>
-  <action name="ActionAtlasDriverPanel">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="images/resources.qrc">
-     <normaloff>:/images/gauge.png</normaloff>:/images/gauge.png</iconset>
-   </property>
-   <property name="text">
-    <string>Atlas Driver</string>
-   </property>
-   <property name="toolTip">
-    <string>Atlas Driver</string>
-   </property>
-  </action>
-  <action name="ActionHandControlPanel">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="images/resources.qrc">
-     <normaloff>:/images/claw.png</normaloff>:/images/claw.png</iconset>
-   </property>
-   <property name="text">
-    <string>Hand Control Panel</string>
-   </property>
-   <property name="toolTip">
-    <string>Hand Control Panel</string>
-   </property>
-  </action>
   <action name="ActionTaskManagerPanel">
    <property name="checkable">
     <bool>true</bool>
@@ -473,21 +401,6 @@
    </property>
    <property name="toolTip">
     <string>Action Manager</string>
-   </property>
-  </action>
-  <action name="ActionScreenGrabberPanel">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="images/resources.qrc">
-     <normaloff>:/images/video_record.png</normaloff>:/images/video_record.png</iconset>
-   </property>
-   <property name="text">
-    <string>Screen Grabber</string>
-   </property>
-   <property name="toolTip">
-    <string>Screen Grabber</string>
    </property>
   </action>
   <action name="ActionTeleopPanel">
@@ -533,21 +446,6 @@
    </property>
    <property name="toolTip">
     <string>Navigation Panel</string>
-   </property>
-  </action>
-  <action name="ActionTaskLauncher">
-   <property name="icon">
-    <iconset resource="images/resources.qrc">
-     <normaloff>:/images/task_icon.png</normaloff>:/images/task_icon.png</iconset>
-   </property>
-   <property name="text">
-    <string>Task Launcher</string>
-   </property>
-   <property name="toolTip">
-    <string>Task Launcher</string>
-   </property>
-   <property name="shortcut">
-    <string>F10</string>
    </property>
   </action>
   <action name="ActionPFGraspPanel">
