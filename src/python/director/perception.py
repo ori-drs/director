@@ -894,7 +894,9 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
 def init(view, robotStateJointController):
     global _multisenseItem
 
-    sensorsFolder = om.getOrCreateContainer('sensors', om.getOrCreateContainer(robotStateJointController.robotName))
+    # If the robot name is blank, put Robot in instead so that it's not just a blank box.
+    sensorsFolder = om.getOrCreateContainer('sensors', om.getOrCreateContainer(robotStateJointController.robotName or
+                                                                               "Robot"))
 
 
     #queue = PythonQt.dd.ddPointCloudLCM(lcmUtils.getGlobalLCMThread())

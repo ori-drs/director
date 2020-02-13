@@ -69,7 +69,7 @@ class RobotSystemFactory(object):
             urdfFile=robotSystem.directorConfig['urdfConfig']['robotState'],
             color=roboturdf.getRobotGrayColor(),
             colorMode=robotSystem.directorConfig['colorMode'],
-            parent=om.getOrCreateContainer('sensors', om.getOrCreateContainer(robotSystem.robotName)),
+            parent=om.getOrCreateContainer('sensors', om.getOrCreateContainer(robotSystem.robotName or "Robot")),
             visible=True,
             robotName=robotSystem.robotName
         )

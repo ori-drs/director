@@ -374,7 +374,7 @@ for robotSystem in robotSystems:
         if not useMultisense:
             app.removeToolbarMacro('ActionMultisensePanel')
 
-    robotObjectModelRoot = om.getOrCreateContainer(robotSystem.robotName)
+    robotObjectModelRoot = om.getOrCreateContainer(robotSystem.robotName or "Robot")
     if useGrid:
         grid = vis.showGrid(view, color=[0, 0, 0], alpha=0.1, parent=robotObjectModelRoot)
         grid.setProperty('Surface Mode', 'Surface with edges')
