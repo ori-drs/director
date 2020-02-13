@@ -403,6 +403,7 @@ for robotSystem in robotSystems:
     button.connect('clicked()', robotSystem.groundCameraPointCloudSource.resetTime)
     button.connect('clicked()', cameraview.cameraView.resetTime)
     app.getMainWindow().statusBar().addPermanentWidget(button)
+    app.getRobotSelector().associateWidgetWithRobot(button, robotSystem.robotName)
 
     if useHands:
         handcontrolpanel.init(robotSystem.lHandDriver, robotSystem.rHandDriver, robotSystem.robotStateModel,
