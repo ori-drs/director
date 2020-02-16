@@ -195,6 +195,10 @@ button.connect('clicked()', groundCameraPointCloudSource.resetTime)
 button.connect('clicked()', cameraview.cameraView.resetTime)
 app.getMainWindow().statusBar().addPermanentWidget(button)
 
+if useFootsteps:
+    footstepsPanel = footstepsdriverpanel.init(footstepsDriver, robotStateModel, robotStateJointController)
+else:
+    app.removeToolbarMacro('ActionFootstepPanel')
 
 if useNavigationPanel:
     navigationPanel = navigationpanel.init(robotStateJointController, footstepsDriver)

@@ -113,6 +113,7 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="ActionFootstepPanel"/>
    <addaction name="ActionPythonConsole"/>
    <addaction name="ActionMatlabConsole"/>
    <addaction name="separator"/>
@@ -387,6 +388,24 @@
    </property>
    <property name="text">
     <string>&amp;Colorize Lidar</string>
+   </property>
+  </action>
+  <action name="ActionFootstepPanel">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="images/resources.qrc">
+     <normaloff>:/images/feet.png</normaloff>:/images/feet.png</iconset>
+   </property>
+   <property name="text">
+    <string>Footstep Panel</string>
+   </property>
+   <property name="toolTip">
+    <string>Footstep Panel</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
    </property>
   </action>
   <action name="ActionTaskManagerPanel">
