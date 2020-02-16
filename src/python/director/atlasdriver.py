@@ -72,9 +72,6 @@ class AtlasDriver(object):
     def onControllerStatus(self, message):
         self.lastControllerStatusMessage = message
 
-    def onControllerRate(self, message):
-        self.lastControllerRateMessage = message
-
     def onAtlasBatteryData(self, message):
         self.lastAtlasBatteryDataMessage = message
 

@@ -215,10 +215,6 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="ActionAtlasDriverPanel"/>
-   <addaction name="ActionMultisensePanel"/>
-   <addaction name="ActionFootstepPanel"/>
-   <addaction name="ActionHandControlPanel"/>
    <addaction name="ActionScreenGrabberPanel"/>
    <addaction name="ActionTaskLauncher"/>
   </widget>
@@ -391,72 +387,6 @@
    </property>
    <property name="text">
     <string>&amp;Colorize Lidar</string>
-   </property>
-  </action>
-  <action name="ActionMultisensePanel">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="images/resources.qrc">
-     <normaloff>:/images/3d_scanner.png</normaloff>:/images/3d_scanner.png</iconset>
-   </property>
-   <property name="text">
-    <string>Multisense Panel</string>
-   </property>
-   <property name="toolTip">
-    <string>Multisense Panel</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+M</string>
-   </property>
-  </action>
-  <action name="ActionFootstepPanel">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="images/resources.qrc">
-     <normaloff>:/images/feet.png</normaloff>:/images/feet.png</iconset>
-   </property>
-   <property name="text">
-    <string>Footstep Panel</string>
-   </property>
-   <property name="toolTip">
-    <string>Footstep Panel</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+F</string>
-   </property>
-  </action>
-  <action name="ActionAtlasDriverPanel">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="images/resources.qrc">
-     <normaloff>:/images/gauge.png</normaloff>:/images/gauge.png</iconset>
-   </property>
-   <property name="text">
-    <string>Atlas Driver</string>
-   </property>
-   <property name="toolTip">
-    <string>Atlas Driver</string>
-   </property>
-  </action>
-  <action name="ActionHandControlPanel">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="images/resources.qrc">
-     <normaloff>:/images/claw.png</normaloff>:/images/claw.png</iconset>
-   </property>
-   <property name="text">
-    <string>Hand Control Panel</string>
-   </property>
-   <property name="toolTip">
-    <string>Hand Control Panel</string>
    </property>
   </action>
   <action name="ActionTaskManagerPanel">

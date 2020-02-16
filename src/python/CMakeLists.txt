@@ -12,9 +12,6 @@ set(python_files
   director/appsettings.py
   director/assimp2vtk.py
   director/asynctaskqueue.py
-  director/atlasdriver.py
-  director/atlasdriverpanel.py
-  director/bihandeddemo.py
   director/blackoutmonitor.py
   director/botspy.py
   director/callbacks.py
@@ -24,20 +21,13 @@ set(python_files
   director/cameraview.py
   director/componentgraph.py
   director/consoleapp.py
-  director/continuouswalkingdemo.py
-  director/copmonitor.py
   director/coursemodel.py
-  director/debrisdemo.py
   director/debugVis.py
   director/depthimageprovider.py
   director/depthscanner.py
-  director/doordemo.py
   director/drakevisualizer.py
   director/drakevisualizerapp.py
   director/drcargs.py
-  director/drilldemo.py
-  director/drivingplanner.py
-  director/egressplanner.py
   director/frameupdater.py
   director/fieldcontainer.py
   director/filterUtils.py
@@ -48,7 +38,6 @@ set(python_files
   director/geometryencoder.py
   director/handcontrolpanel.py
   director/handdriver.py
-  director/takktilevis.py
   director/ikconstraintencoder.py
   director/ikconstraints.py
   director/ikparameters.py
@@ -62,13 +51,6 @@ set(python_files
   director/jointpropagator.py
   director/korgnano.py
   director/lcmframe.py
-  director/lcmloggerwidget.py
-  director/lcmlogplayer.py
-  director/lcmgl.py
-  director/lcmobjectcollection.py
-  director/lcmoctomap.py
-  director/lcmcollections.py  
-  director/lcmspy.py
   director/lcmUtils.py
   director/mainwindowapp.py
   director/mapsregistrar.py
@@ -82,7 +64,6 @@ set(python_files
   director/objectmodel.py
   director/opendatahandler.py
   director/openscope.py
-  director/optitrackvisualizer.py
   director/otdfmodel.py
   director/outputconsole.py
   director/packagepath.py
@@ -97,8 +78,6 @@ set(python_files
   director/propertyanimation.py
   director/propertyset.py
   director/pydrakeik.py
-  director/quadrupedtask.py
-  director/quadrupedplanner.py
   director/qtutils.py
   director/raycastdriver.py
   director/robotlinkselector.py
@@ -115,13 +94,11 @@ set(python_files
   director/segmentationroutines.py
   director/shallowCopy.py
   director/simpletimer.py
-  director/sitstandplanner.py
   director/skybox.py
   director/splinewidget.py
   director/spreadsheet.py
   director/startup.py
   director/statelistener.py
-  director/surprisetask.py
   director/switchplanner.py
   director/tasklaunchpanel.py
   director/tdx.py
@@ -129,7 +106,6 @@ set(python_files
   director/motionplanningpanel.py
   director/terrain.py
   director/terrainitem.py
-  director/terraintask.py
   director/timercallback.py
   director/trackers.py
   director/transformUtils.py
@@ -138,7 +114,6 @@ set(python_files
   director/undoredo.py
   director/utime.py
   director/uuidutil.py
-  director/valvedemo.py
   director/version.py.in
   director/viconvisualizer.py
   director/viewbehaviors.py
@@ -149,9 +124,6 @@ set(python_files
   director/visualization.py
   director/vtkAll.py
   director/vtkNumpy.py
-  director/walkingtestdemo.py
-  director/wristforcetorquevisualizer.py
-  director/kinectlcm.py
   director/plannerPublisher.py
 
   director/tasks/__init__.py
