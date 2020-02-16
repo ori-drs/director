@@ -21,7 +21,6 @@ set(python_files
   director/cameraview.py
   director/componentgraph.py
   director/consoleapp.py
-  director/coursemodel.py
   director/debugVis.py
   director/depthimageprovider.py
   director/depthscanner.py
