@@ -262,10 +262,6 @@ class RobotSystemFactory(object):
         affordanceManager = affordancemanager.AffordanceObjectModelManager(robotSystem.view)
         affordanceitems.MeshAffordanceItem.getMeshManager()
 
-        if affordancemanager.lcmobjectcollection.USE_LCM:
-            affordanceitems.MeshAffordanceItem.getMeshManager().collection.sendEchoRequest()
-            affordanceManager.collection.sendEchoRequest()
-
         return FieldContainer(
             affordanceManager=affordanceManager,
             )

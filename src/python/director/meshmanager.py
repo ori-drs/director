@@ -1,4 +1,4 @@
-from director import lcmobjectcollection
+from director import objectcollection
 from director import geometryencoder
 from director import ioUtils
 from director.uuidutil import newUUID
@@ -11,7 +11,7 @@ class MeshManager(object):
         self.meshes = {}
         self.cacheDirectory = '/tmp'
         self.cacheDataType = 'stl'
-        self.collection = lcmobjectcollection.LCMObjectCollection(channel='MESH_COLLECTION_COMMAND')
+        self.collection = objectcollection.ObjectCollection(channel='MESH_COLLECTION_COMMAND')
         self.collection.connectDescriptionUpdated(self._onDescriptionUpdated)
 
     def add(self, polyData, publish=True):

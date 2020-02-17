@@ -60,6 +60,7 @@ set(python_files
   director/midi.py
   director/multisensepanel.py
   director/navigationpanel.py
+  director/objectcollection.py
   director/objectmodel.py
   director/opendatahandler.py
   director/openscope.py
