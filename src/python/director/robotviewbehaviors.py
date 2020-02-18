@@ -49,7 +49,12 @@ class RobotViewBehaviors(object):
         viewbehaviors.registerContextMenuActions(self.getRobotActions)
 
     def resetCameraToRobot(self, view):
-        t = self.robotModel.getLinkFrame(drcargs.getDirectorConfig()['pelvisLink'])
+        if 'pelvisLink' in drcargs.getDirectorConfig():
+            link = drcargs.getDirectorConfig()['pelvisLink']
+        else:
+            link = drcargs.getDirectorConfig()[self.robotName]['pelvisLink']
+
+        t = self.robotModel.getLinkFrame(link)
         if t is None:
             t = vtk.vtkTransform()
 
@@ -61,7 +66,12 @@ class RobotViewBehaviors(object):
         flyer.zoomTo(focalPoint, position)
 
     def resetCameraToRobotAbove(self, view):
-        t = self.robotModel.getLinkFrame(drcargs.getDirectorConfig()['pelvisLink'])
+        if 'pelvisLink' in drcargs.getDirectorConfig():
+            link = drcargs.getDirectorConfig()['pelvisLink']
+        else:
+            link = drcargs.getDirectorConfig()[self.robotName]['pelvisLink']
+
+        t = self.robotModel.getLinkFrame(link)
         if t is None:
             t = vtk.vtkTransform()
 
@@ -98,7 +108,12 @@ class RobotViewBehaviors(object):
         # put walking goal at robot's feet
         #footFrame = footstepsDriver.getFeetMidPoint(robotModel)
         # put walking goal at robot's base
-        mainLink = drcargs.getDirectorConfig()['pelvisLink']
+        if 'pelvisLink' in drcargs.getDirectorConfig():
+            link = drcargs.getDirectorConfig()['pelvisLink']
+        else:
+            link = drcargs.getDirectorConfig()[self.robotName]['pelvisLink']
+
+        mainLink = link
         footFrame = self.robotModel.getLinkFrame(mainLink)
 
 
