@@ -245,6 +245,9 @@ class RobotSelector(QtGui.QWidget):
         if index >= 0:
             self.robotSelectCombo.setCurrentIndex(index)
 
+    def selectedRobotName(self):
+        return self.robotSelectCombo.currentText
+
     def showAssociatedComponents(self, robotName):
         # If we have nothing in the dictionary, do nothing, otherwise may crash due to empty dicts.
         # TODO better checking of internal state of viewmanager to remove this check
