@@ -205,12 +205,25 @@ class RobotGridUpdater(object):
 
 
 class RobotSelector(QtGui.QWidget):
+    """
+    An object which stores various UI components associated with a robot and provides a combo box with the names
+     of robots to facilitate switching between them and modifying UI appearance so that only components associated
+     with the selected robot are displayed at any one time.
+    """
+
+    # Object types that can be associated with the object. Each one has a different method of hiding or changing
+    # behaviour so that all actions affect only the selected robot.
+    _objectTypes = ["widgets", "views", "models", "viewbehaviors"]
 
     def __init__(self, robotNames=[]):
+        """
+        Initialise the selector object
+        :param robotNames: The names of robots to add to the combobox to start with
+        """
         super(RobotSelector, self).__init__()
         self.objectName = "RobotSelector"
         self.robotNames = robotNames
-        self.associatedWidgets = {}
+        self.associatedWidgets = {}  # associated objects are stored here. Keys are robot names
 
         self.robotSelectLabel = QtGui.QLabel("Controlling:")
 
@@ -229,16 +242,59 @@ class RobotSelector(QtGui.QWidget):
         self.robotNames.append(robotName)
         self.robotSelectCombo.addItem(robotName)
         self.associatedWidgets[robotName] = {}
-        self.associatedWidgets[robotName]["widgets"] = []
-        self.associatedWidgets[robotName]["views"] = []  # or tabs
+        for objtype in self._objectTypes:
+            self.associatedWidgets[robotName][objtype] = []
+
+    def _associateObjectWithRobot(self, object, robotName, type):
+        """
+        Associate an object of a given type with a robot
+        :param object: An object to associate with the robot
+        :param robotName: The name of the robot with which to associate the object
+        :param type: The type of the object - one of the keys in self.associatedWidgets
+        :return:
+        """
+        if (robotName in self.robotNames) and (object not in self.associatedWidgets[robotName][type]):
+            self.associatedWidgets[robotName][type].append(object)
 
     def associateWidgetWithRobot(self, widget, robotName):
-        if (robotName in self.robotNames) and (widget not in self.associatedWidgets[robotName]["widgets"]):
-            self.associatedWidgets[robotName]["widgets"].append(widget)
+        """
+        Associate a qt widget with the given robot. If the robot name is one that has not been added, or if the widget
+        has already been added to that robot, the widget will not be added
+        :param widget: The widget to associate
+        :param robotName: The robot name with which to associate the widget
+        :return:
+        """
+        self._associateObjectWithRobot(widget, robotName, "widgets")
 
     def associateViewWithRobot(self, view, robotName):
-        if (robotName in self.robotNames) and (view not in self.associatedWidgets[robotName]["views"]):
-            self.associatedWidgets[robotName]["views"].append(view)
+        """
+        Associate a view with a given robot. A view is something created by cameraview.py when adding a new camera
+        perspective. If the robot name is one that has not been added, or if the view has already been added to
+        that robot, the view will not be added
+        :param view: The view to associate
+        :param robotName: The robot name with which to associate the view
+        :return:
+        """
+        self._associateObjectWithRobot(view, robotName, "views")
+
+    def associateModelWithRobot(self, model, robotName):
+        """
+        Associate a model with a given robot. Models are PolyDataItem objects which can be displayed in the DRC view of
+        director to display something.
+        :param model: The model to associate
+        :param robotName: The robot with which to associate the model
+        :return:
+        """
+        self._associateObjectWithRobot(model, robotName, "models")
+
+    def associateViewBehaviorWithRobot(self, viewBehavior, robotName):
+        """
+        Associate a RobotViewBehaviors object which controls UI input for a specific robot
+        :param viewBehavior: A RobotViewBehaviors object to associate
+        :param robotName: The robot with which to associate the RobotViewBehaviors object
+        :return:
+        """
+        self._associateObjectWithRobot(viewBehavior, robotName, "viewbehaviors")
 
     def selectRobot(self, robotName):
         index = self.robotSelectCombo.findText(robotName)
@@ -260,6 +316,8 @@ class RobotSelector(QtGui.QWidget):
         # For simplicity, just hide all dock widgets when switching.
         # TODO remember open docks associated with each robot so that UI state is saved
         app.hideDockWidgets()
+        # TODO use an object with a hide/show method to store widgets and other components so that the hiding method
+        #  is associated with the object rather than being implemented here
         for robot in self.associatedWidgets.keys():
             for widget in self.associatedWidgets[robot]["widgets"]:
                 widget.setVisible(robot == robotName)
@@ -269,6 +327,15 @@ class RobotSelector(QtGui.QWidget):
                     app.getViewManager().showView(view)
                 else:
                     app.getViewManager().hideView(view, False)
+
+            for model in self.associatedWidgets[robot]["models"]:
+                model.setProperty('Visible', robot == robotName)
+
+            for viewBehavior in self.associatedWidgets[robot]["viewbehaviors"]:
+                print("setting eabled for {} viewbahevior".format(robot))
+                # Setting the enabled flag to false will cause the event filter not to filter any events, allowing them
+                # to pass to the event filter which is enabled, i.e. the one for the currently selected robot
+                viewBehavior.robotViewBehaviors.setEnabled(robot == robotName)
 
 drcargs.args()
 app.startup(globals())
@@ -305,6 +372,7 @@ else:
 
 for robotSystem in robotSystems:
     selector.addRobot(robotSystem.robotName)
+    selector.associateViewBehaviorWithRobot(robotSystem.viewBehaviors, robotSystem.robotName)
     directorConfig = directorConfigFull[robotSystem.robotName] if robotSystem.robotName else directorConfigFull
 
     useIk = True

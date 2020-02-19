@@ -12,6 +12,7 @@ class ViewEventFilter(object):
         self._rightMouseStart = None
         self._handlers = {}
         self.installEventFilter()
+        self.enabled = True
 
     def installEventFilter(self):
         self.eventFilter = PythonQt.dd.ddPythonEventFilter()
@@ -52,7 +53,12 @@ class ViewEventFilter(object):
     def consumeEvent(self):
         self.eventFilter.setEventHandlerResult(True)
 
+    def setEnabled(self, enabled):
+        self.enabled = enabled
+
     def filterEvent(self, obj, event):
+        if not self.enabled:
+            return
 
         if event.type() == QtCore.QEvent.MouseButtonDblClick and event.button() == QtCore.Qt.LeftButton:
             self.onLeftDoubleClick(event)

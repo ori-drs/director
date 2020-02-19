@@ -124,7 +124,9 @@ class FootstepsPanel(object):
     def onNewWalkingGoal(self, walkingGoal=None):
 
         walkingGoal = walkingGoal or self.newWalkingGoalFrame(self.robotModel)
-        frameObj = vis.updateFrame(walkingGoal, 'walking goal', parent='planning', scale=0.25)
+        goalName = self.robotName + ' ' + 'walking goal' if self.robotName else 'walking goal'
+        frameObj = vis.updateFrame(walkingGoal, goalName, parent='planning', scale=0.25)
+        app.getRobotSelector().associateModelWithRobot(frameObj, self.robotName)
         frameObj.setProperty('Edit', True)
 
 
