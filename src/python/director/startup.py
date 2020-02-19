@@ -256,6 +256,10 @@ class RobotSelector(QtGui.QWidget):
         # Have to update the page index cache before moving any of the components so that the hidden tabs are placed
         # in the correct order when they are shown
         app.getViewManager().updatePageIndexCache()
+        # If there is an open dock widget, we must hide it independently of the action that it is attached to.
+        # For simplicity, just hide all dock widgets when switching.
+        # TODO remember open docks associated with each robot so that UI state is saved
+        app.hideDockWidgets()
         for robot in self.associatedWidgets.keys():
             for widget in self.associatedWidgets[robot]["widgets"]:
                 widget.setVisible(robot == robotName)

@@ -78,7 +78,7 @@ def showPythonConsole():
 _exclusiveDockWidgets = {}
 
 
-def hideDockWidgets(action):
+def hideDockWidgets(action=None):
     for a, wList in _exclusiveDockWidgets.iteritems():
         if a is not action:
             for dock, widget in wList:
