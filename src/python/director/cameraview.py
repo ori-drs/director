@@ -196,16 +196,16 @@ class CameraView(object):
         self.sphereObjects = {}
         self.robotName = robotName
 
-        if self.robotName:
-            for robot in drcargs.getDirectorConfig():
-                if drcargs.getDirectorConfig()[self.robotName].get('monoCameras'):
-                    self.sphereImages = drcargs.getDirectorConfig()[self.robotName].get('monoCameras')
-            if not self.sphereImages:
-                raise Exception("CameraView requires monoCameras to be defined.")
-        else:
-            self.sphereImages = drcargs.getDirectorConfig()['monoCameras']
+        try:
+            if self.robotName:
+                self.images = [camera['name'] for camera in drcargs.getDirectorConfig()[self.robotName]['sensors']['camera']['color']]
+            else:
+                self.images = [camera['name'] for camera in drcargs.getDirectorConfig()['sensors']['camera']['color']]
+        except KeyError as e:
+            raise Exception("CameraView requires color cameras to be defined at sensors/camera/color."
+                            " Check your director config.")
 
-        for name in self.sphereImages:
+        for name in self.images:
             imageManager.addImage(name, self.robotName)
             self.updateUtimes[name] = 0
 
@@ -294,7 +294,7 @@ class CameraView(object):
         sphereObj.actor.GetProperty().LightingOff()
 
         self.view.renderer().RemoveActor(sphereObj.actor)
-        rendererId = 2 - self.sphereImages.index(imageName)
+        rendererId = 2 - self.images.index(imageName)
         self.renderers[rendererId].AddActor(sphereObj.actor)
 
         self.sphereObjects[imageName] = sphereObj
@@ -302,7 +302,7 @@ class CameraView(object):
 
     def updateSphereGeometry(self):
 
-        for imageName in self.sphereImages:
+        for imageName in self.images:
             sphereObj = self.getSphereGeometry(imageName)
             if not sphereObj:
                 continue
@@ -668,31 +668,9 @@ class CameraImageView(object):
                 self.imageInitialized = True
 
 
-
-
 views = {}
 
-
-def addCameraView(channel, viewName=None, cameraName=None, imageType=-1, addToView=True, robotName=""):
-    cameraName = cameraName or channel
-
-    if (addToView):
-        print("will add {} to view".format(cameraName))
-        imageManager.addImage(cameraName, robotName)
-        view = CameraImageView(imageManager, cameraName, viewName, robotName=robotName)
-        global views
-        views[robotName] = {}
-        views[robotName][channel] = view
-        return view
-    else:
-        print("will NOT add {} to view".format(cameraName))
-        return None
-
-
-
-
-
-def init(view=None,addToView=True, robotName=""):
+def init(view=None, addToView=True, robotName=""):
     global imageManager
     imageManager = ImageManager()
 
@@ -706,12 +684,13 @@ def init(view=None,addToView=True, robotName=""):
     _modelName = directorConfig['modelName']
     cameraNames = imageManager.images[robotName]
 
-    monoCameras = directorConfig['monoCameras']
-    monoCamerasShortName = directorConfig['monoCamerasShortName']
-
-    for i in range( len(monoCameras)):
-        monoCamera = monoCameras[i]
-        monoCameraShortName = monoCamerasShortName[i]
-        if monoCamera in cameraNames:
-            addCameraView(monoCamera, monoCameraShortName, addToView=addToView, robotName=robotName)
-
+    cameras = [camera['name'] for camera in directorConfig['sensors']['camera']['color']]
+    for camera in cameras:
+        if camera in cameraNames:
+            print("will add {} to view".format(camera))
+            imageManager.addImage(camera, robotName)
+            view = CameraImageView(imageManager, camera, camera, robotName=robotName)
+            global views
+            if robotName not in views:
+                views[robotName] = {}
+            views[robotName][camera] = view

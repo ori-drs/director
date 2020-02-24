@@ -91,31 +91,11 @@ class RobotSystemFactory(object):
     def initPerceptionDrivers(self, robotSystem):
 
         from director import perception
-        from director import robotstate
 
+        perceptionSources = perception.init(robotSystem.view,  robotSystem.robotStateJointController)
 
-        pointCloudSource, gridMapSource, gridMapLidarSource, headCameraPointCloudSource, groundCameraPointCloudSource = perception.init(robotSystem.view,  robotSystem.robotStateJointController)
-
-
-        spindleJoint = 'hokuyo_joint'
-
-        def getSpindleAngleFunction():
-            msg = robotSystem.robotStateJointController.lastRobotStateMessage
-            if msg and spindleJoint in msg.joint_name:
-                index = msg.joint_name.index(spindleJoint)
-                return (float(msg.utime)/(1e6), msg.joint_position[index])
-            else:
-                return (0, 0)
-
-        spindleMonitor = None
-        #spindleMonitor = perception.SpindleMonitor(getSpindleAngleFunction)
-        #robotSystem.robotStateModel.connectModelChanged(spindleMonitor.onRobotStateChanged)
-
-        return FieldContainer(pointCloudSource=pointCloudSource,
-                              gridMapSource=gridMapSource,
-                              gridMapLidarSource=gridMapLidarSource,
-                              headCameraPointCloudSource=headCameraPointCloudSource,
-                              groundCameraPointCloudSource=groundCameraPointCloudSource)
+        # Expand dict to keyword args, robotSystem object will have objects accessible via keys set in config
+        return FieldContainer(**perceptionSources)
 
     def initHandDrivers(self, robotSystem):
 
@@ -366,5 +346,7 @@ def create(view=None, globalsDict=None, options=None, planningOnly=False, robotN
 
     if globalsDict is not None:
         globalsDict.update(dict(robotSystem))
+
+    print(dir(robotSystem))
 
     return robotSystem

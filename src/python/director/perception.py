@@ -682,8 +682,8 @@ class PointCloudSource(vis.PolyDataItem):
 
     _requiredProviderClass = perceptionmeta.PointCloudSourceMeta
 
-    def __init__(self, robotStateJointController, callbackFunc=None, provider=None):
-        vis.PolyDataItem.__init__(self, 'point cloud', vtk.vtkPolyData(), view=None)
+    def __init__(self, name, robotStateJointController, callbackFunc=None, provider=None):
+        vis.PolyDataItem.__init__(self, name, vtk.vtkPolyData(), view=None)
         self.firstData = True
         self.robotStateJointController = robotStateJointController
         self.timer = TimerCallback()
@@ -763,11 +763,10 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
 
     _requiredProviderClass = perceptionmeta.DepthImageSourceMeta
 
-    def __init__(self, name, imagesChannel, cameraName, imageManager, robotStateJointController, provider=None):
+    def __init__(self, name, cameraName, imageManager, robotStateJointController, provider=None):
         vis.PolyDataItem.__init__(self, name, vtk.vtkPolyData(), view=None)
 
         self.robotStateJointController = robotStateJointController
-        self.addProperty('Channel', imagesChannel)
         self.addProperty('Camera name', cameraName)
 
         self.addProperty('Decimation', 1, attributes=om.PropertyAttributes(enumNames=['1', '2', '4', '8', '16']))
@@ -898,70 +897,38 @@ def init(view, robotStateJointController):
     sensorsFolder = om.getOrCreateContainer('sensors', om.getOrCreateContainer(robotStateJointController.robotName or
                                                                                "Robot"))
 
-
-    #queue = PythonQt.dd.ddPointCloudLCM(lcmUtils.getGlobalLCMThread())
-    #queue.init(lcmUtils.getGlobalLCMThread(), drcargs.args().config_file)
-    #lidarNames = queue.getLidarNames()
-    #for lidar in lidarNames:
-    #    if queue.displayLidar(lidar):
-    #        
-    #        l = LidarSource(view, queue.getLidarChannelName(lidar), queue.getLidarCoordinateFrame(lidar), queue.getLidarFriendlyName(lidar), queue.getLidarIntensity(lidar))
-    #        l.start()
-    #        lidarDriver = l
-    #        _lidarItem = LidarItem(l)
-    #        om.addToObjectModel(_lidarItem, sensorsFolder)
-
-
-    #useMapServer = hasattr(drc, 'vtkMapServerSource')
-    #if useMapServer:
-    #    mapServerSource = MapServerSource(view, callbackFunc=view.render)
-    #    mapsServerContainer = om.ObjectModelItem('Map Server', icon=om.Icons.Robot)
-    #    mapsServerContainer.source = mapServerSource
-    #    om.addToObjectModel(mapsServerContainer, parentObj=sensorsFolder)
-    #    mapServerSource.start()
-    #else:
-    #    mapServerSource = None
-
-    #om.addToObjectModel(rosInit, sensorsFolder)
-
-    #elevation map
-
-    gridMapSource = RosGridMap(robotStateJointController, 'elevation map', callbackFunc=view.render)
-    gridMapSource.addToView(view)
-    om.addToObjectModel(gridMapSource, sensorsFolder)
-    
-    #lidar elevation map        
-
-    gridMapLidarSource = RosGridMap(robotStateJointController, 'lidar elevation map', callbackFunc=view.render)
-    gridMapLidarSource.setProperty('Visible', False)
-    gridMapLidarSource.addToView(view)
-    om.addToObjectModel(gridMapLidarSource, sensorsFolder)
-
-    pointCloudSource = PointCloudSource(robotStateJointController, callbackFunc=view.render)
-    pointCloudSource.addToView(view)
-    om.addToObjectModel(pointCloudSource, sensorsFolder)
-
-    if not robotStateJointController.robotName:
-        depthCameras = drcargs.getDirectorConfig()['depthCameras']
-        depthCamerasShortName = drcargs.getDirectorConfig()['depthCamerasShortName']
+    if robotStateJointController.robotName:
+        config = drcargs.getDirectorConfig()[robotStateJointController.robotName]['perceptionSources']
     else:
-        depthCameras = drcargs.getDirectorConfig()[robotStateJointController.robotName]['depthCameras']
-        depthCamerasShortName = drcargs.getDirectorConfig()[robotStateJointController.robotName]['depthCamerasShortName']
+        config = drcargs.getDirectorConfig()['perceptionSources']
 
-    headCameraPointCloudSource = DepthImagePointCloudSource(depthCamerasShortName[0], depthCameras[0], str(depthCameras[0] + '_LEFT'), None,
-                                 robotStateJointController)
-    headCameraPointCloudSource.addToView(view)
-    om.addToObjectModel(headCameraPointCloudSource, sensorsFolder)
+    validSourceTypes = ['gridMap', 'depthImagePointCloud', 'pointCloud']
 
-    groundCameraPointCloudSource = DepthImagePointCloudSource(depthCamerasShortName[1], depthCameras[1], str(depthCameras[1] + '_LEFT'), None,
-                                                              robotStateJointController)
-    groundCameraPointCloudSource.addToView(view)
-    om.addToObjectModel(groundCameraPointCloudSource, sensorsFolder)
+    perceptionSources = {}
+    for sourceType in config:
+        if sourceType not in validSourceTypes:
+            raise ValueError("Source type {} is not a recognised perception source. Valid types are {}. Check your"
+                             " director configuration.".format(sourceType, validSourceTypes))
+        for sourceConfig in config[sourceType]:
+            if sourceType == 'gridMap':
+                source = RosGridMap(robotStateJointController, sourceConfig['name'], callbackFunc=view.render)
+                source.addToView(view)
+                om.addToObjectModel(source, sensorsFolder)
+                if 'properties' in sourceConfig:
+                    for property, value in sourceConfig['properties'].iteritems():
+                        print(property, value)
+                        source.setProperty(property, value)
 
-    #if (i==0):
-    #    mainDisparityPointCloud = disparityPointCloud
+            if sourceType == 'depthImagePointCloud':
+                source = DepthImagePointCloudSource(sourceConfig['name'], sourceConfig['sensor'], None,
+                                                    robotStateJointController)
+                source.addToView(view)
+                om.addToObjectModel(source, sensorsFolder)
+            if sourceType == 'pointCloud':
+                source = PointCloudSource(sourceConfig['name'], robotStateJointController, callbackFunc=view.render)
+                source.addToView(view)
+                om.addToObjectModel(source, sensorsFolder)
 
-    #def createPointerTracker():
-    #    return trackers.PointerTracker(robotStateModel, mainDisparityPointCloud)
+            perceptionSources[sourceConfig['robotSystemKey']] = source
 
-    return pointCloudSource, gridMapSource, gridMapLidarSource, headCameraPointCloudSource, groundCameraPointCloudSource
+    return perceptionSources

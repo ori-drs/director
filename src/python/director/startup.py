@@ -742,9 +742,9 @@ for robotSystem in robotSystems:
         for filename in drcargs.args().data_files:
             actionhandlers.onOpenFile(filename)
 
-    monoCameras = directorConfig['monoCameras']
-    imageOverlayManager = ImageOverlayManager(monoCameras, robotSystem.robotName)
-    imageWidget = cameraview.ImageWidget(cameraview.imageManager, monoCameras, view, visible=False)
+    cameras = [camera['name'] for camera in directorConfig['sensors']['camera']['color']]
+    imageOverlayManager = ImageOverlayManager(cameras, robotSystem.robotName)
+    imageWidget = cameraview.ImageWidget(cameraview.imageManager, cameras, view, visible=False)
     imageViewHandler = ToggleImageViewHandler(imageWidget)
 
     screengrabberpanel.init(view, imageWidget, robotSystem.robotName)
