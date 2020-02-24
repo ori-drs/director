@@ -54,8 +54,21 @@ class RobotFrameConverter(cameracontrol.TargetFrameConverter):
 
     def updateTargetFrame(self):
         q = self.robotModel.model.getJointPositions()
-        pos = q[:3]
-        rpy = np.degrees(q[3:6])
+
+        # previous version: broken because getJointPositions is no longer ordered with pos,rpy
+        #pos = q[:3]
+        #rpy = np.degrees(q[3:6])
+
+        n= self.robotModel.model.getJointNames()
+        pos = [0,0,0]
+        rpy = [0,0,0]
+        pos[0] = q[n.index("base_x")]
+        pos[1] = q[n.index("base_y")]
+        pos[2] = q[n.index("base_z")]
+        rpy[0] = q[n.index("base_roll")]
+        rpy[1] = q[n.index("base_pitch")]
+        rpy[2] = q[n.index("base_yaw")]
+
         transform = transformUtils.frameFromPositionAndRPY(pos, rpy)
         self.targetFrame.copyFrame(transform)
 
