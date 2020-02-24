@@ -332,7 +332,6 @@ class RobotSelector(QtGui.QWidget):
                 model.setProperty('Visible', robot == robotName)
 
             for viewBehavior in self.associatedWidgets[robot]["viewbehaviors"]:
-                print("setting eabled for {} viewbahevior".format(robot))
                 # Setting the enabled flag to false will cause the event filter not to filter any events, allowing them
                 # to pass to the event filter which is enabled, i.e. the one for the currently selected robot
                 viewBehavior.robotViewBehaviors.setEnabled(robot == robotName)
@@ -370,6 +369,8 @@ else:
     robotSystems = [robotsystem.create(view)]
     selectorAction.setVisible(False)
 
+setupScene = True  # The scene setup is done only once, unset this flag once it is done
+
 for robotSystem in robotSystems:
     selector.addRobot(robotSystem.robotName)
     selector.associateViewBehaviorWithRobot(robotSystem.viewBehaviors, robotSystem.robotName)
@@ -377,7 +378,6 @@ for robotSystem in robotSystems:
 
     useIk = True
     usePerception = True
-    useGrid = True
     useSpreadsheet = True
     useFootsteps = True
     useHands = False
@@ -449,24 +449,25 @@ for robotSystem in robotSystems:
         if not useMultisense:
             app.removeToolbarMacro('ActionMultisensePanel')
 
-    robotObjectModelRoot = om.getOrCreateContainer(robotSystem.robotName or "Robot")
-    if useGrid:
-        grid = vis.showGrid(view, color=[0, 0, 0], alpha=0.1, parent=robotObjectModelRoot)
+    if setupScene:
+        sceneRoot = om.getOrCreateContainer('scene')
+        grid = vis.showGrid(view, color=[0, 0, 0], alpha=0.1, parent=sceneRoot)
         grid.setProperty('Surface Mode', 'Surface with edges')
 
-    app.setBackgroundColor([0.3, 0.3, 0.35], [0.95, 0.95, 1])
+        app.setBackgroundColor([0.3, 0.3, 0.35], [0.95, 0.95, 1])
 
-    viewOptions = vis.ViewOptionsItem(view)
-    om.addToObjectModel(viewOptions, parentObj=robotObjectModelRoot)
+        viewOptions = vis.ViewOptionsItem(view)
+        om.addToObjectModel(viewOptions, parentObj=sceneRoot)
 
-    viewBackgroundLightHandler = viewcolors.ViewBackgroundLightHandler(viewOptions, grid,
-                                                                       app.getToolsMenuActions()[
-                                                                           'ActionToggleBackgroundLight'])
+        viewBackgroundLightHandler = viewcolors.ViewBackgroundLightHandler(viewOptions, grid,
+                                                                           app.getToolsMenuActions()[
+                                                                               'ActionToggleBackgroundLight'])
 
-    viewFramesHandler = viewframes.ViewFramesSizeHandler(app.getToolsMenuActions()['ActionToggleFramesSize'])
+        viewFramesHandler = viewframes.ViewFramesSizeHandler(app.getToolsMenuActions()['ActionToggleFramesSize'])
 
-    if not useLightColorScheme:
-        viewBackgroundLightHandler.action.trigger()
+        if not useLightColorScheme:
+            viewBackgroundLightHandler.action.trigger()
+        setupScene = False
 
     # reset time button and connections
     button = QtGui.QPushButton('Reset time')
