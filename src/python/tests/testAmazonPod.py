@@ -11,6 +11,7 @@ from director import transformUtils
 from director import filterUtils
 from director import roboturdf
 from director import vtkNumpy as vnp
+from director import drcargs
 
 import numpy as np
 
@@ -80,7 +81,7 @@ app = ConsoleApp()
 view = app.createView()
 segmentation._defaultSegmentationView = view
 
-robotStateModel, robotStateJointController = roboturdf.loadRobotModel('robot state model', view, parent='sensors', color=roboturdf.getRobotGrayColor(), visible=True)
+robotStateModel, robotStateJointController = roboturdf.loadRobotModel('robot state model', view, parent='sensors', urdfFile = drcargs.getDirectorConfig()['urdfConfig']['default'], color=roboturdf.getRobotGrayColor(), visible=True)
 segmentationroutines.SegmentationContext.initWithRobot(robotStateModel)
 
 # load poly data

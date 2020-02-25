@@ -2,7 +2,7 @@
 // required to support the openhumanoid's fork of drake.
 #include "ddDrakeModel.h"
 #include "ddSharedPtr.h"
-
+#include "convertCollada.h"
 
 
 #include <vtkPolyData.h>
@@ -272,6 +272,10 @@ std::vector<vtkSmartPointer<vtkPolyData> > loadPolyData(const QString& filename)
       }
     }
   }
+  else if (ext == "dae")
+  {
+    polyDataList = ConvertCollada::readCollada(filename.toLatin1().constData());
+  }
 
   return polyDataList;
 }
@@ -383,7 +387,6 @@ std::vector<ddMeshVisual::Ptr> loadMeshVisuals(const QString& filename)
   std::vector<ddMeshVisual::Ptr> visuals;
 
   std::vector<vtkSmartPointer<vtkPolyData> > polyDataList = loadPolyData(filename);
-
   for (size_t i = 0; i < polyDataList.size(); ++i)
   {
     ddMeshVisual::Ptr visual = visualFromPolyData(polyDataList[i]);
@@ -596,10 +599,12 @@ public:
 
 
     std::vector<QString> supportedExtensions;
+    supportedExtensions.push_back("dae");
     supportedExtensions.push_back("vtm");
     supportedExtensions.push_back("vtp");
     supportedExtensions.push_back("obj");
     supportedExtensions.push_back("stl");
+
 
     for (size_t i = 0; i < supportedExtensions.size(); ++i)
     {
