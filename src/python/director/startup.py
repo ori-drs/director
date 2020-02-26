@@ -790,7 +790,7 @@ for robotSystem in robotSystems:
     if useFeetlessRobot:
         robotSystem.ikPlanner.robotNoFeet = True
 
-    for scriptArgs in drcargs.args().scripts:
-        execfile(scriptArgs[0])
-
     selector.selectRobot(robotSystem.robotName)
+
+for scriptArgs in drcargs.args().scripts:
+    execfile(scriptArgs[0])

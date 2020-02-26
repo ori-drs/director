@@ -56,7 +56,7 @@ class RobotSystemFactory(object):
 
         assert directorConfig['colorMode'] in ['URDF Colors', 'Solid Color', 'Textures']
 
-        return FieldContainer(directorConfig=directorConfig)
+        return FieldContainer(directorConfig=directorConfig, robotType=directorConfig['modelName'])
 
     def initRobotState(self, robotSystem):
 
