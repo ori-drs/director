@@ -347,6 +347,4 @@ def create(view=None, globalsDict=None, options=None, planningOnly=False, robotN
     if globalsDict is not None:
         globalsDict.update(dict(robotSystem))
 
-    print(dir(robotSystem))
-
     return robotSystem

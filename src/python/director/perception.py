@@ -909,15 +909,15 @@ def init(view, robotStateJointController):
         if sourceType not in validSourceTypes:
             raise ValueError("Source type {} is not a recognised perception source. Valid types are {}. Check your"
                              " director configuration.".format(sourceType, validSourceTypes))
+        # TODO might be nice to avoid the if statement in the loop by having a function to create each source
         for sourceConfig in config[sourceType]:
             if sourceType == 'gridMap':
                 source = RosGridMap(robotStateJointController, sourceConfig['name'], callbackFunc=view.render)
                 source.addToView(view)
                 om.addToObjectModel(source, sensorsFolder)
                 if 'properties' in sourceConfig:
-                    for property, value in sourceConfig['properties'].iteritems():
-                        print(property, value)
-                        source.setProperty(property, value)
+                    for prop, value in sourceConfig['properties'].iteritems():
+                        source.setProperty(prop, value)
 
             if sourceType == 'depthImagePointCloud':
                 source = DepthImagePointCloudSource(sourceConfig['name'], sourceConfig['sensor'], None,
