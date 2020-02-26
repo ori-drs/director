@@ -11,16 +11,15 @@ import numpy as np
 
 class JointController(object):
 
-    def __init__(self, models, poseCollection=None, jointNames=None, robotName=""):
-        self.robotState = robotstate.getRobotState(robotName)
+    def __init__(self, models, poseCollection=None, jointNames=None, robotName="", pushToModel=True):
+        self.jointNames = jointNames or robotstate.getDrakePoseJointNames()
         self.robotName = robotName
-        self.jointNames = jointNames or self.robotState.getDrakePoseJointNames()
         self.numberOfJoints = len(self.jointNames)
         self.models = list(models)
         self.poses = {}
         self.poseCollection = poseCollection
         self.currentPoseName = None
-        self.setPose('q_zero', np.zeros(self.numberOfJoints))
+        self.setPose('q_zero', np.zeros(self.numberOfJoints), pushToModel)
 
     def setJointPosition(self, jointId, position):
         '''

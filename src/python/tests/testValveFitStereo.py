@@ -6,6 +6,7 @@ from director import segmentation
 from director import segmentationroutines
 from director import applogic
 from director import visualization as vis
+from director import drcargs
 
 from director import roboturdf
 
@@ -17,7 +18,7 @@ view = app.createView()
 segmentation._defaultSegmentationView = view
 segmentation.initAffordanceManager(view)
 
-robotStateModel, robotStateJointController = roboturdf.loadRobotModel('robot state model', view, parent='sensors', color=roboturdf.getRobotGrayColor(), visible=True)
+robotStateModel, robotStateJointController = roboturdf.loadRobotModel('robot state model', view, parent='sensors', urdfFile = drcargs.getDirectorConfig()['urdfConfig']['default'], color=roboturdf.getRobotGrayColor(), visible=True)
 segmentationroutines.SegmentationContext.initWithRobot(robotStateModel)
 
 # load poly data

@@ -66,7 +66,7 @@ class RobotSystemFactory(object):
         robotStateModel, robotStateJointController = roboturdf.loadRobotModel(
             'robot state model',
             robotSystem.view,
-            urdfFile=robotSystem.directorConfig['urdfConfig']['robotState'],
+            #urdfFile=robotSystem.directorConfig['urdfConfig']['robotState'],
             color=roboturdf.getRobotGrayColor(),
             colorMode=robotSystem.directorConfig['colorMode'],
             parent=om.getOrCreateContainer('sensors', om.getOrCreateContainer(robotSystem.robotName or "Robot")),
@@ -74,7 +74,7 @@ class RobotSystemFactory(object):
             robotName=robotSystem.robotName
         )
 
-        robotStateJointController.setPose('EST_ROBOT_STATE', robotStateJointController.getPose('q_nom'))
+        #robotStateJointController.setPose('EST_ROBOT_STATE', robotStateJointController.getPose('q_nom'))
         #roboturdf.startModelPublisherListener([(robotStateModel, robotStateJointController)])
 
         return FieldContainer(robotStateModel=robotStateModel,

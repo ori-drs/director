@@ -37,26 +37,35 @@ class RobotModelItem(om.ObjectModelItem):
 
     MODEL_CHANGED_SIGNAL = 'MODEL_CHANGED_SIGNAL'
 
-    def __init__(self, model):
+    def __init__(self, model=None, visible=True, color="#ff0000", colorMode=0, alpha=1.0):
 
-        modelName = os.path.basename(model.filename())
+        if model:
+            alpha = model.alpha()
+            visible = model.visible()
+            color = model.color()
+            filename = model.filename()
+            self.initialised = True
+        else:
+            filename = ""
+            self.initialised = False
+
+        modelName = os.path.basename(filename)
         om.ObjectModelItem.__init__(self, modelName, om.Icons.Robot)
 
         self.views = []
         self.model = None
         self.callbacks.addSignal(self.MODEL_CHANGED_SIGNAL)
 
-        self.addProperty('Filename', model.filename())
-        self.addProperty('Visible', model.visible())
-        self.addProperty('Alpha', model.alpha(),
+        self.addProperty('Filename', filename)
+        self.addProperty('Visible', visible)
+        self.addProperty('Alpha', alpha,
                          attributes=om.PropertyAttributes(decimals=2, minimum=0, maximum=1.0, singleStep=0.1, hidden=False))
-        self.addProperty('Color Mode', 0,
+        self.addProperty('Color Mode', colorMode,
                          attributes=om.PropertyAttributes(enumNames=['Solid Color', 'Textures', 'URDF Colors']))
-        self.addProperty('Color', model.color())
+        self.addProperty('Color', color)
 
-
-
-        self.setModel(model)
+        if model:
+            self.setModel(model)
 
     def _onPropertyChanged(self, propertySet, propertyName):
         om.ObjectModelItem._onPropertyChanged(self, propertySet, propertyName)
@@ -138,8 +147,16 @@ class RobotModelItem(om.ObjectModelItem):
         self.removeFromAllViews()
 
         self.model = model
-        self.model.setAlpha(self.getProperty('Alpha'))
-        self.model.setVisible(self.getProperty('Visible'))
+        if self.initialised:
+            self.model.setAlpha(self.getProperty('Alpha'))
+            self.model.setVisible(self.getProperty('Visible'))
+        else:
+            self.model.setAlpha(model.alpha())
+            self.model.setVisible(model.visible())
+            self.setProperty('Name', os.path.basename(model.filename()))
+            self.setProperty('Color', model.color())
+            self.initialised = True
+
         self.model.setTexturesEnabled((self.getProperty('Color Mode') == 1))
         self._updateModelColor()
 
@@ -174,7 +191,8 @@ class RobotModelItem(om.ObjectModelItem):
         if view in self.views:
             return
         self.views.append(view)
-        self.model.addToRenderer(view.renderer())
+        if self.initialised:
+            self.model.addToRenderer(view.renderer())
         view.render()
 
     def onRemoveFromObjectModel(self):
@@ -189,7 +207,8 @@ class RobotModelItem(om.ObjectModelItem):
     def removeFromView(self, view):
         assert view in self.views
         self.views.remove(view)
-        self.model.removeFromRenderer(view.renderer())
+        if self.initialised:
+            self.model.removeFromRenderer(view.renderer())
         view.render()
 
 
@@ -203,24 +222,22 @@ def loadRobotModel(name=None, view=None, parent='scene', urdfFile=None, color=No
     if isinstance(parent, str):
         parent = om.getOrCreateContainer(parent)
 
-    model = loadRobotModelFromFile(urdfFile)
-    if not model:
-        raise Exception('Error loading robot model from file: %s' % urdfFile)
+    if urdfFile:
+        model = loadRobotModelFromFile(urdfFile)
+        haveModel = True
+    else:
+        model = None
+        useConfigFile = True  # we can't extract joint names from the model
+        haveModel = False
 
-    obj = RobotModelItem(model)
+    colorModes = {'Solid Color': 0, 'Textures': 1, 'URDF Colors': 2}
+
+    obj = RobotModelItem(model=model, visible=visible, color=color or getRobotGrayColor(),
+                         colorMode=colorModes[colorMode])
     om.addToObjectModel(obj, parent)
 
     if name:
         obj.setProperty('Name', name)
-
-    obj.setProperty('Visible', visible)
-    obj.setProperty('Color', color or getRobotGrayColor())
-    if colorMode == 'Textures':
-        obj.setProperty('Color Mode', 1)
-    elif colorMode == 'Solid Color':
-        obj.setProperty('Color Mode', 0)
-    elif colorMode == 'URDF Colors':
-        obj.setProperty('Color Mode', 2)
 
     if view is not None:
         obj.addToView(view)
@@ -230,14 +247,14 @@ def loadRobotModel(name=None, view=None, parent='scene', urdfFile=None, color=No
     else:
         jointNames = model.getJointNames()
 
-    jointController = jointcontrol.JointController([obj], jointNames=jointNames, robotName=robotName)
+    jointController = jointcontrol.JointController([obj], jointNames=jointNames, robotName=robotName, pushToModel=haveModel)
 
     if useConfigFile:
         fixedPointFile = drcargs.getDirectorConfig().get('fixedPointFile') or drcargs.getDirectorConfig()[robotName].get('fixedPointFile')
         if fixedPointFile:
-            jointController.setPose('q_nom', jointController.loadPoseFromFile(fixedPointFile))
+            jointController.setPose('q_nom', jointController.loadPoseFromFile(fixedPointFile), pushToModel=haveModel)
         else:
-            jointController.setPose('q_nom', jointController.getPose('q_zero'))
+            jointController.setPose('q_nom', jointController.getPose('q_zero'), pushToModel=haveModel)
 
     return obj, jointController
 
