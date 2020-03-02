@@ -296,6 +296,17 @@ class RobotSelector(QtGui.QWidget):
         """
         self._associateObjectWithRobot(viewBehavior, robotName, "viewbehaviors")
 
+    def finishSetup(self):
+        """
+        Completes the setup of the director UI by running through all the available robots and setting the panel
+        visibility to ensure that at the start only a single set of panels is shown.
+        :return:
+        """
+        for name in self.robotNames:
+            self.selectRobot(name)
+
+        self.selectRobot(self.robotNames[0])
+
     def selectRobot(self, robotName):
         index = self.robotSelectCombo.findText(robotName)
         if index >= 0:
@@ -790,7 +801,7 @@ for robotSystem in robotSystems:
     if useFeetlessRobot:
         robotSystem.ikPlanner.robotNoFeet = True
 
-    selector.selectRobot(robotSystem.robotName)
-
 for scriptArgs in drcargs.args().scripts:
     execfile(scriptArgs[0])
+
+selector.finishSetup()
