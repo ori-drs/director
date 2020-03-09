@@ -40,7 +40,6 @@ from director import filterUtils
 from director import footstepsdriver
 from director import footstepsdriverpanel
 from director import framevisualization
-from director import multisensepanel
 from director import navigationpanel
 from director import tasklaunchpanel
 from director.jointpropagator import JointPropagator
