@@ -271,48 +271,6 @@ class RobotSystemFactory(object):
         from director import segmentation
         segmentation.affordanceManager = robotSystem.affordanceManager
 
-    def initPlannerPublisher(self, robotSystem):
-
-        from director import plannerPublisher
-        #from director import pydrakeik
-        from director import matlabik
-
-        dummyPlannerPub = plannerPublisher.DummyPlannerPublisher(robotSystem.ikPlanner, robotSystem.affordanceManager)
-        #pyDrakePlannerPub = pydrakeik.PyDrakePlannerPublisher(robotSystem.ikPlanner, robotSystem.affordanceManager)
-        exoticaPlannerPub = plannerPublisher.ExoticaPlannerPublisher(robotSystem.ikPlanner, robotSystem.affordanceManager)
-        matlabPlannerPub = plannerPublisher.MatlabDrakePlannerPublisher(robotSystem.ikPlanner, robotSystem.affordanceManager)
-
-        robotSystem.ikPlanner.addPublisher('dummy', dummyPlannerPub)
-        #robotSystem.ikPlanner.addPublisher('pydrake', pyDrakePlannerPub)
-        robotSystem.ikPlanner.addPublisher('matlabdrake', matlabPlannerPub)
-        robotSystem.ikPlanner.addPublisher('exotica', exoticaPlannerPub)
-
-        directorConfig = robotSystem.directorConfig
-        if 'planningMode' in directorConfig:
-            robotSystem.ikPlanner.planningMode = directorConfig['planningMode']
-        else:
-            robotSystem.ikPlanner.planningMode = 'matlabdrake'
-
-
-        linkNameArgs = ['','','']
-        if 'leftFootLink' in directorConfig:
-            linkNameArgs = [directorConfig['leftFootLink'], directorConfig['rightFootLink'], directorConfig['pelvisLink']]
-
-        matlabIkServer = matlabik.AsyncIKCommunicator(directorConfig['urdfConfig']['ik'], directorConfig['fixedPointFile'], *linkNameArgs)
-
-        def startIkServer():
-            matlabIkServer.startServerAsync()
-            matlabIkServer.comm.writeCommandsToLogFile = True
-
-        matlabIkServer.handModels = robotSystem.ikPlanner.handModels
-        matlabPlannerPub.ikServer = matlabIkServer
-
-        robotSystem.ikPlanner.ikServer = matlabIkServer
-
-        return FieldContainer(
-            ikServer=matlabIkServer,
-            startIkServer=startIkServer
-            )
 
     def initRobotLinkSelector(self, robotSystem):
 
