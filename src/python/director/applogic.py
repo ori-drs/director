@@ -8,7 +8,6 @@ import PythonQt
 from PythonQt import QtCore
 from PythonQt import QtGui
 from director import getDRCBaseDir as getDRCBase
-from director import botspy
 from director import openscope
 import functools
 
@@ -269,8 +268,6 @@ def addShortcut(widget, keySequence, func):
 
 
 def setupActions():
-    botApyAction = getToolsMenuActions()['ActionBotSpy']
-    botApyAction.connect(botApyAction, 'triggered()', botspy.startBotSpy)
     scopeAction = getToolsMenuActions()['ActionSignalScope']
     scopeAction.connect(scopeAction, 'triggered()', openscope.startSignalScope)
 
