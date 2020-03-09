@@ -111,14 +111,6 @@ class RobotSystemFactory(object):
                               headCameraPointCloudSource=headCameraPointCloudSource,
                               groundCameraPointCloudSource=groundCameraPointCloudSource)
 
-    def initHandDrivers(self, robotSystem):
-
-        from director import handdriver
-
-        rHandDriver = handdriver.RobotiqHandDriver(side='right')
-        lHandDriver = handdriver.RobotiqHandDriver(side='left')
-        return FieldContainer(rHandDriver=rHandDriver, lHandDriver=lHandDriver)
-
     def initFootsteps(self, robotSystem):
 
         if 'useFootsteps' in drcargs.getDirectorConfig()['disableComponents']:
