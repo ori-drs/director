@@ -135,24 +135,6 @@ class RobotSystemFactory(object):
         raycastDriver = raycastdriver.RaycastDriver()
         return FieldContainer(raycastDriver=raycastDriver)
 
-    def initIRISDriver(self, robotSystem):
-
-        from director import irisdriver
-        if 'useFootsteps' in drcargs.getDirectorConfig()['disableComponents']:
-            irisDriver = None
-        else:
-            irisDriver = irisdriver.IRISDriver(robotSystem.robotStateJointController, robotSystem.footstepsDriver.params)
-
-        return FieldContainer(irisDriver=irisDriver)
-
-    def initAtlasDriver(self, robotSystem):
-
-        #from director import atlasdriver
-
-        #atlasDriver = atlasdriver.init(None)
- 	atlasDriver = None
-        return FieldContainer(atlasDriver=atlasDriver)
-
     def initPlanning(self, robotSystem):
 
         from director import objectmodel as om
