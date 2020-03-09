@@ -7,7 +7,6 @@ import director.applogic as app
 from director import jointcontrol
 from director import lcmUtils
 from director import robotstate
-from director import drakevisualizer
 from director import lcmgl
 from director import objectmodel as om
 from director import visualization as vis
@@ -27,8 +26,6 @@ class ViewerApp(object):
 
         app.toggleCameraTerrainMode(self.view)
         self.resetCamera()
-
-        self.drakeVis = drakevisualizer.DrakeVisualizer(self.view)
 
         vis.showGrid(self.view, color=[0,0,0], parent=None)
 

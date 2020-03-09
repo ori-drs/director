@@ -442,17 +442,6 @@ class MainWindowPanelFactory(object):
         redoAction=redoAction
         )
 
-    def initDrakeVisualizer(self, fields):
-
-        from director import drakevisualizer
-        drakeVisualizer = drakevisualizer.DrakeVisualizer(fields.view)
-
-        applogic.MenuActionToggleHelper('Tools', drakeVisualizer.name, drakeVisualizer.isEnabled, drakeVisualizer.setEnabled)
-
-        return FieldContainer(
-          drakeVisualizer=drakeVisualizer
-          )
-
     def initTreeViewer(self, fields):
 
         from director import treeviewer
