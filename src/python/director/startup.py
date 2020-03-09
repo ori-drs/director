@@ -40,7 +40,6 @@ from director import filterUtils
 from director import footstepsdriver
 from director import footstepsdriverpanel
 from director import framevisualization
-from director import navigationpanel
 from director import tasklaunchpanel
 from director.jointpropagator import JointPropagator
 from director import planningutils
@@ -198,11 +197,6 @@ if useFootsteps:
     footstepsPanel = footstepsdriverpanel.init(footstepsDriver, robotStateModel, robotStateJointController)
 else:
     app.removeToolbarMacro('ActionFootstepPanel')
-
-if useNavigationPanel:
-    navigationPanel = navigationpanel.init(robotStateJointController, footstepsDriver)
-    picker = PointPicker(view, callback=navigationPanel.pointPickerStoredFootsteps, numberOfPoints=2)
-    #picker.start()
 
 if usePlanning:
     def showPose(pose):

@@ -9,7 +9,6 @@ from director import visualization as vis
 from director import continuouswalkingdemo
 from director import objectmodel as om
 from director import ikplanner
-from director import navigationpanel
 from director import cameraview
 from director import playbackpanel
 from director import drcargs
