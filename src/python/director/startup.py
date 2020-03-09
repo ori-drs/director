@@ -16,7 +16,6 @@ import imp
 import director.applogic as app
 from director import drcargs
 from director import vtkAll as vtk
-from director import matlab
 from director import jointcontrol
 from director import callbacks
 from director import camerabookmarks
