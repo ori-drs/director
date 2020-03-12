@@ -8,7 +8,6 @@ import PythonQt
 from PythonQt import QtCore
 from PythonQt import QtGui
 from director import getDRCBaseDir as getDRCBase
-from director import openscope
 import functools
 
 _mainWindow = None
@@ -265,11 +264,6 @@ def addShortcut(widget, keySequence, func):
     shortcut.connect('activated()', func)
     shortcut.connect('activatedAmbiguously()', func)
     return shortcut
-
-
-def setupActions():
-    scopeAction = getToolsMenuActions()['ActionSignalScope']
-    scopeAction.connect(scopeAction, 'triggered()', openscope.startSignalScope)
 
 
 def showErrorMessage(message, title='Error'):
