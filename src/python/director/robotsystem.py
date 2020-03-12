@@ -13,18 +13,13 @@ class RobotSystemFactory(object):
             'SegmentationRobotState' : ['Segmentation', 'RobotState'],
             'SegmentationAffordances' : ['Segmentation', 'Affordances'],
             'PerceptionDrivers' : ['RobotState'],
-            'HandDrivers' : [],
             'Footsteps' : ['RobotState'],
-            'RaycastDriver' : ['Footsteps'],
-            'IRISDriver' : ['RobotState', 'Footsteps'],
-            'AtlasDriver' : [],
             'Planning' : ['RobotState'],#x
             'Playback' : ['Planning'],#x
             'Teleop' : ['Planning', 'Playback', 'Affordances'],#x
             'ConvexHullModel' : ['Playback'],#x
             'FootstepsPlayback' : ['Footsteps', 'Playback'],#x
             'Affordances' : [],
-            'PlannerPublisher' : ['Planning', 'Affordances'],#x
             #'ViewBehaviors' : ['Footsteps', 'PerceptionDrivers', 'Planning', 'Affordances'],
             'ViewBehaviors' : ['Footsteps', 'PerceptionDrivers', 'Affordances'], 
             'RobotLinkSelector' : ['ViewBehaviors']} #x
@@ -33,12 +28,8 @@ class RobotSystemFactory(object):
             'ConvexHullModel',
             'Teleop',
             'Planning',
-            'IRISDriver',
-            'PlannerPublisher',
             'Playback',
             'FootstepsPlayback',
-            'RaycastDriver',
-	        'HandDrivers',	
             'RobotLinkSelector']
 
         return components, disabledComponents

@@ -317,5 +317,4 @@ def startup(globals):
     _mainWindow.connect('toggleStereoRender()', toggleStereoRender)
     _mainWindow.connect('toggleCameraTerrainMode()', toggleCameraTerrainMode)
 
-    setupActions()
     setupViewManager()
