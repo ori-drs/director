@@ -58,7 +58,6 @@ from director.utime import getUtime
 from director.shallowCopy import shallowCopy
 
 from director import segmentationroutines
-from director import trackers
 
 
 from director.tasks import robottasks as rt
