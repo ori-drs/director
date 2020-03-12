@@ -130,7 +130,6 @@ class RobotSystemFactory(object):
     def initPlanning(self, robotSystem):
 
         from director import objectmodel as om
-        from director import planningutils
         from director import roboturdf
         from director import ikplanner
 
@@ -151,15 +150,12 @@ class RobotSystemFactory(object):
 
         ikPlanner = ikplanner.IKPlanner(ikRobotModel, ikJointController, handModels)
 
-        planningUtils = planningutils.PlanningUtils(robotSystem.robotStateModel, robotSystem.robotStateJointController)
-
         return FieldContainer(
             ikRobotModel=ikRobotModel,
             ikJointController=ikJointController,
             handFactory=handFactory,
             handModels=handModels,
             ikPlanner=ikPlanner,
-            planningUtils=planningUtils
             )
 
     def initConvexHullModel(self, robotSystem):

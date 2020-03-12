@@ -5,7 +5,6 @@ from director import visualization as vis
 from director import objectmodel as om
 from director import teleoppanel
 from director import playbackpanel
-from director import planningutils
 
 from PythonQt import QtCore, QtGui
 import numpy as np

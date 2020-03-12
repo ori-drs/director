@@ -41,7 +41,6 @@ from director import footstepsdriverpanel
 from director import framevisualization
 from director import tasklaunchpanel
 from director.jointpropagator import JointPropagator
-from director import planningutils
 from director import viewcolors
 from director import viewframes
 
