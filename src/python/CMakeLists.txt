@@ -92,7 +92,6 @@ set(python_files
   director/utime.py
   director/uuidutil.py
   director/version.py.in
-  director/viconvisualizer.py
   director/viewbehaviors.py
   director/viewcolors.py
   director/viewframes.py
