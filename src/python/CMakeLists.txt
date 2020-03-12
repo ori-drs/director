@@ -12,8 +12,6 @@ set(python_files
   director/appsettings.py
   director/assimp2vtk.py
   director/asynctaskqueue.py
-  director/blackoutmonitor.py
-  director/botspy.py
   director/callbacks.py
   director/camerabookmarks.py
   director/cameracontrol.py
@@ -22,10 +20,6 @@ set(python_files
   director/componentgraph.py
   director/consoleapp.py
   director/debugVis.py
-  director/depthimageprovider.py
-  director/depthscanner.py
-  director/drakevisualizer.py
-  director/drakevisualizerapp.py
   director/drcargs.py
   director/frameupdater.py
   director/fieldcontainer.py
@@ -33,10 +27,7 @@ set(python_files
   director/footstepsdriver.py
   director/footstepsdriverpanel.py
   director/framevisualization.py
-  director/gamepad.py
   director/geometryencoder.py
-  director/handcontrolpanel.py
-  director/handdriver.py
   director/ikconstraintencoder.py
   director/ikconstraints.py
   director/ikparameters.py
@@ -44,41 +35,29 @@ set(python_files
   director/imageview.py
   director/imageviewapp.py
   director/ioUtils.py
-  director/irisUtils.py
-  director/irisdriver.py
   director/jointcontrol.py
   director/jointpropagator.py
   director/korgnano.py
-  director/lcmframe.py
   director/lcmUtils.py
   director/mainwindowapp.py
-  director/mapsregistrar.py
-  director/matlab.py
-  director/matlabik.py
   director/measurementpanel.py
   director/meshmanager.py
   director/midi.py
-  director/multisensepanel.py
-  director/navigationpanel.py
   director/objectcollection.py
   director/objectmodel.py
   director/opendatahandler.py
-  director/openscope.py
   director/otdfmodel.py
   director/outputconsole.py
   director/packagepath.py
   director/perception.py
   director/perceptionmeta.py
-  director/planningutils.py
   director/planplayback.py
   director/playbackpanel.py
   director/pointpicker.py
   director/pointselector.py
   director/propertyanimation.py
   director/propertyset.py
-  director/pydrakeik.py
   director/qtutils.py
-  director/raycastdriver.py
   director/robotlinkselector.py
   director/robotstate.py
   director/robotplanlistener.py
@@ -95,7 +74,6 @@ set(python_files
   director/simpletimer.py
   director/skybox.py
   director/splinewidget.py
-  director/spreadsheet.py
   director/startup.py
   director/statelistener.py
   director/switchplanner.py
@@ -123,7 +101,6 @@ set(python_files
   director/visualization.py
   director/vtkAll.py
   director/vtkNumpy.py
-  director/plannerPublisher.py
 
   director/tasks/__init__.py
   director/tasks/robottasks.py
