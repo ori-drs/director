@@ -23,7 +23,6 @@ from director import cameracontrol
 from director import cameracontrolpanel
 from director import ikplanner
 from director import objectmodel as om
-from director import spreadsheet
 from director import transformUtils
 from director import tdx
 from director import skybox
@@ -135,10 +134,6 @@ if 'enableComponents' in drcargs.getDirectorConfig():
     for component in drcargs.getDirectorConfig()['enableComponents']:
         print "Enabling", component
         locals()[component] = True
-
-
-if useSpreadsheet:
-    spreadsheet.init(poseCollection, costCollection)
 
 
 if useIk:
