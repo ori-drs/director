@@ -121,12 +121,6 @@ class RobotSystemFactory(object):
 
         return FieldContainer(footstepsDriver=footstepsDriver)
 
-    def initRaycastDriver(self, robotSystem):
-
-        from director import raycastdriver
-        raycastDriver = raycastdriver.RaycastDriver()
-        return FieldContainer(raycastDriver=raycastDriver)
-
     def initPlanning(self, robotSystem):
 
         from director import objectmodel as om
