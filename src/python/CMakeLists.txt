@@ -80,7 +80,6 @@ set(python_files
   director/tasklaunchpanel.py
   director/tdx.py
   director/teleoppanel.py
-  director/motionplanningpanel.py
   director/terrain.py
   director/terrainitem.py
   director/timercallback.py
