@@ -77,8 +77,6 @@ set(python_files
   director/startup.py
   director/tasklaunchpanel.py
   director/teleoppanel.py
-  director/terrain.py
-  director/terrainitem.py
   director/timercallback.py
   director/transformUtils.py
   director/treeviewer.py
