@@ -24,7 +24,6 @@ from director import cameracontrolpanel
 from director import ikplanner
 from director import objectmodel as om
 from director import transformUtils
-from director import tdx
 from director import skybox
 from director import perception
 from director import segmentation

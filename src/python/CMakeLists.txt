@@ -76,7 +76,6 @@ set(python_files
   director/splinewidget.py
   director/startup.py
   director/tasklaunchpanel.py
-  director/tdx.py
   director/teleoppanel.py
   director/terrain.py
   director/terrainitem.py
