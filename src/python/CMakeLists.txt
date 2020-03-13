@@ -75,7 +75,6 @@ set(python_files
   director/skybox.py
   director/splinewidget.py
   director/startup.py
-  director/switchplanner.py
   director/tasklaunchpanel.py
   director/tdx.py
   director/teleoppanel.py
