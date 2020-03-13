@@ -3,7 +3,7 @@ from PythonQt import QtCore, QtGui, QtUiTools
 from director import applogic as app
 from director.timercallback import TimerCallback
 from director.simpletimer import FPSCounter
-from director import ioUtils as io
+from director import ioutils as io
 import director.vtkAll as vtk
 import os
 import glob

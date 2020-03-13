@@ -1,7 +1,7 @@
 import os
 
 from director.consoleapp import ConsoleApp
-from director import ioUtils
+from director import ioutils
 from director import segmentation
 from director import segmentationroutines
 from director import applogic
@@ -38,7 +38,7 @@ segmentationroutines.SegmentationContext.initWithUser(groundHeight, viewFrame)
 
 # load poly data
 dataDir = app.getTestingDataDirectory()
-polyData = ioUtils.readPolyData(os.path.join(dataDir, 'misc/tabletop/table-sparse-stereo.vtp'))
+polyData = ioutils.readPolyData(os.path.join(dataDir, 'misc/tabletop/table-sparse-stereo.vtp'))
 vis.showPolyData(polyData, 'pointcloud snapshot original', colorByName='rgb_colors')
 #polyData = segmentationroutines.sparsifyStereoCloud( polyData )
 vis.showPolyData(polyData, 'pointcloud snapshot')

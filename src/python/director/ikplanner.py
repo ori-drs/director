@@ -15,7 +15,7 @@ from director import objectmodel as om
 from director import visualization as vis
 from director import applogic as app
 from director.debugVis import DebugData
-from director import ioUtils
+from director import ioutils
 from director.simpletimer import SimpleTimer
 from director.utime import getUtime
 from director import robotstate

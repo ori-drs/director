@@ -23,7 +23,7 @@ from director.utime import getUtime
 from director import drcargs
 
 import numpy as np
-import ioUtils
+import ioutils
 import os
 import re
 import random

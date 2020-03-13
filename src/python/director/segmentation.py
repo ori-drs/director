@@ -29,7 +29,7 @@ import numpy as np
 import vtkNumpy
 from debugVis import DebugData
 from shallowCopy import shallowCopy
-import ioUtils
+import ioutils
 from director.uuidutil import newUUID
 
 DRILL_TRIANGLE_BOTTOM_LEFT = 'bottom left'
@@ -505,7 +505,7 @@ def getDebugRevolutionData():
 
     filename = os.path.expanduser('~/Desktop/scans/debris-scan.vtp')
 
-    return addCoordArraysToPolyData(ioUtils.readPolyData(filename))
+    return addCoordArraysToPolyData(ioutils.readPolyData(filename))
 
 
 def getCurrentScanBundle(useVoxelGrid=False):
@@ -1777,7 +1777,7 @@ def segmentWye(point1, point2):
     wallPoints = thresholdPoints(polyData, 'dist_to_plane', [-0.01, 0.01])
     updatePolyData(wallPoints, 'wall points', parent=getDebugFolder(), visible=False)
 
-    wyeMesh = ioUtils.readPolyData(os.path.join(app.getDRCBase(), 'software/models/otdf/wye.obj'))
+    wyeMesh = ioutils.readPolyData(os.path.join(app.getDRCBase(), 'software/models/otdf/wye.obj'))
 
     wyeMeshPoint = np.array([0.0, 0.0, 0.005])
     wyeMeshLeftHandle = np.array([0.032292, 0.02949, 0.068485])
@@ -2215,7 +2215,7 @@ def getDrillAffordanceParams(origin, xaxis, yaxis, zaxis, drillType="dewalt_butt
 def getDrillMesh(applyBitOffset=False):
 
     button = np.array([0.007, -0.035, -0.06])
-    drillMesh = ioUtils.readPolyData(os.path.join(app.getDRCBase(), 'software/models/otdf/dewalt_button.obj'))
+    drillMesh = ioutils.readPolyData(os.path.join(app.getDRCBase(), 'software/models/otdf/dewalt_button.obj'))
 
     if applyBitOffset:
         t = vtk.vtkTransform()
@@ -2233,7 +2233,7 @@ def getDrillMesh(applyBitOffset=False):
 
 
 def getDrillBarrelMesh():
-    return ioUtils.readPolyData(os.path.join(app.getDRCBase(), 'software/models/otdf/dewalt.ply'), computeNormals=True)
+    return ioutils.readPolyData(os.path.join(app.getDRCBase(), 'software/models/otdf/dewalt.ply'), computeNormals=True)
 
 
 def segmentDrill(point1, point2, point3):

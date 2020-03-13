@@ -4,7 +4,7 @@ from PythonQt import QtCore, QtGui
 
 import director.applogic as app
 import director.objectmodel as om
-import director.ioUtils as io
+import director.ioutils as io
 import director.visualization as vis
 from director import roboturdf
 from director import otdfmodel

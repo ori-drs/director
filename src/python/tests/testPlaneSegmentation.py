@@ -1,7 +1,7 @@
 import os
 import math
 from director.consoleapp import ConsoleApp
-from director import ioUtils
+from director import ioutils
 from director import segmentation
 from director import segmentationroutines
 from director import applogic
@@ -34,7 +34,7 @@ filename = os.path.join(dataDir, 'terrain/tilted_steps_lidar.pcd')
 #filename = os.path.join(dataDir, 'BigBIRD/cheez_it_white_cheddar/meshes/poisson.ply')
 
 name = 'terrain'
-polyData = ioUtils.readPolyData(filename)
+polyData = ioutils.readPolyData(filename)
 vis.showPolyData(polyData, name, visible=False)
 
 
@@ -145,7 +145,7 @@ def saveConvexHulls(chulls, outputDir):
 
         np.savetxt(outputFilename, output)
 
-    ioUtils.writePolyData(getMergedConvexHullsMesh(chulls),  os.path.join(outputDir, 'merged_planes.ply'))
+    ioutils.writePolyData(getMergedConvexHullsMesh(chulls), os.path.join(outputDir, 'merged_planes.ply'))
 
 
 def computePlanarConvexHull(polyData, expectedNormal=None):

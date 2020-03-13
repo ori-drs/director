@@ -4,7 +4,7 @@ from director import visualization as vis
 from director.utime import getUtime
 from director import transformUtils
 from director.debugVis import DebugData
-from director import ioUtils
+from director import ioutils
 from director import robotstate
 from director import applogic as app
 from director import vtkAll as vtk
@@ -172,7 +172,7 @@ def loadFootMeshes():
         d = DebugData()
 
         for footMeshFile in _footMeshFiles[i]:
-          d.addPolyData(ioUtils.readPolyData( footMeshFile , computeNormals=True))
+          d.addPolyData(ioutils.readPolyData(footMeshFile, computeNormals=True))
 
         t = vtk.vtkTransform()
         t.Scale(0.98, 0.98, 0.98)

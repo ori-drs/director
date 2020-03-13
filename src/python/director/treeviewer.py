@@ -12,7 +12,7 @@ from director import applogic as app
 from director import lcmUtils
 from director import transformUtils
 from director.debugVis import DebugData
-from director import ioUtils
+from director import ioutils
 from director import filterUtils
 from director.shallowCopy import shallowCopy
 from director import vtkAll as vtk
@@ -279,7 +279,7 @@ class Geometry(object):
             print 'cannot find texture file:', textureFileName
             return
 
-        image = ioUtils.readImage(imageFile)
+        image = ioutils.readImage(imageFile)
         if not image:
             print 'failed to load image file:', imageFile
             return
@@ -324,9 +324,9 @@ class Geometry(object):
             return []
 
         if filename.endswith('vtm'):
-            polyDataList = ioUtils.readMultiBlock(filename)
+            polyDataList = ioutils.readMultiBlock(filename)
         else:
-            polyDataList = [ioUtils.readPolyData(filename)]
+            polyDataList = [ioutils.readPolyData(filename)]
 
         if USE_TEXTURE_MESHES:
             for polyData in polyDataList:

@@ -2,7 +2,7 @@ import os
 import sys
 import director.vtkAll as vtk
 import director.vtkNumpy as vnp
-from director import ioUtils
+from director import ioutils
 from director import filterUtils
 from director import transformUtils
 from director import objectmodel as om
@@ -44,7 +44,7 @@ class AssimpScene(object):
             imageFile = textureFile
 
         if os.path.isfile(imageFile):
-            image = ioUtils.readImage(imageFile)
+            image = ioutils.readImage(imageFile)
 
             if image:
                 texture = vtk.vtkTexture()

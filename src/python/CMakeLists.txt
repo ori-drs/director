@@ -34,7 +34,7 @@ set(python_files
   director/ikplanner.py
   director/imageview.py
   director/imageviewapp.py
-  director/ioUtils.py
+  director/ioutils.py
   director/jointcontrol.py
   director/jointpropagator.py
   director/korgnano.py

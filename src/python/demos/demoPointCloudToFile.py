@@ -6,7 +6,7 @@ Listens to the requested topic and writes the first one to file
 import time
 from director import segmentation
 from director import vtkAll as vtk
-from director import ioUtils
+from director import ioutils
 
 reader= vtk.vtkRosPointCloudSubscriber()
 reader.Start("/velodyne/point_cloud_filtered")
@@ -23,7 +23,7 @@ while (continueLoop):
     print message
 
     if (polyData.GetNumberOfPoints() > 0):
-        ioUtils.writePolyData(polyData, 'out.vtk')
+        ioutils.writePolyData(polyData, 'out.vtk')
         continueLoop = False
 
     time.sleep(0.1)

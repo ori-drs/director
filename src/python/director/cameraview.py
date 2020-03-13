@@ -16,7 +16,7 @@ import PythonQt
 from PythonQt import QtCore, QtGui
 import numpy as np
 from director.simpletimer import SimpleTimer
-from director import ioUtils
+from director import ioutils
 import sys
 import rospy
 

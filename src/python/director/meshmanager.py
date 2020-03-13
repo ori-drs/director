@@ -1,6 +1,6 @@
 from director import objectcollection
 from director import geometryencoder
-from director import ioUtils
+from director import ioutils
 from director.uuidutil import newUUID
 import os
 
@@ -28,7 +28,7 @@ class MeshManager(object):
         if meshId in self.meshes:
             filename = os.path.join(self.cacheDirectory, '%s.%s' % (meshId, self.cacheDataType))
             if not os.path.isfile(filename):
-                ioUtils.writePolyData(self.get(meshId), filename)
+                ioutils.writePolyData(self.get(meshId), filename)
             return filename
         return None
 

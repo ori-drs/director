@@ -2,7 +2,7 @@ import os
 import math
 from director import robotsystem
 from director.consoleapp import ConsoleApp
-from director import ioUtils
+from director import ioutils
 from director import segmentation
 from director import applogic
 from director import visualization as vis
@@ -30,10 +30,10 @@ robotsystem.create(view, globals())
 def processSingleBlock(robotStateModel, whichFile=0):
 
     if (whichFile == 0):
-        polyData = ioUtils.readPolyData(os.path.join(dataDir, 'terrain/terrain_simple_ihmc.vtp'))
+        polyData = ioutils.readPolyData(os.path.join(dataDir, 'terrain/terrain_simple_ihmc.vtp'))
         vis.updatePolyData( polyData, 'terrain_simple_ihmc.vtp', parent='continuous')
     else:
-        polyData = ioUtils.readPolyData(os.path.join(dataDir, 'terrain/terrain_flagstones_ihmc.vtp'))
+        polyData = ioutils.readPolyData(os.path.join(dataDir, 'terrain/terrain_flagstones_ihmc.vtp'))
         cwdemo.chosenTerrain = 'stairs'
         cwdemo.supportContact = lcmdrc.footstep_params_t.SUPPORT_GROUPS_MIDFOOT_TOE
         vis.updatePolyData( polyData, 'terrain_stairs_ihmc.vtp', parent='continuous')
@@ -69,10 +69,10 @@ def processSnippet():
     om.getOrCreateContainer('cont debug', obj)
 
     if (continuouswalkingDemo.processContinuousStereo):
-        polyData = ioUtils.readPolyData(os.path.join(dataDir, 'terrain/block_snippet_stereo.vtp'))
+        polyData = ioutils.readPolyData(os.path.join(dataDir, 'terrain/block_snippet_stereo.vtp'))
         polyData = segmentation.applyVoxelGrid(polyData, leafSize=0.01)
     else:
-        polyData = ioUtils.readPolyData(os.path.join(dataDir, 'terrain/block_snippet.vtp'))
+        polyData = ioutils.readPolyData(os.path.join(dataDir, 'terrain/block_snippet.vtp'))
 
 
     vis.updatePolyData( polyData, 'walking snapshot trimmed', parent='continuous')

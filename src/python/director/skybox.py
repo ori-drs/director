@@ -3,7 +3,7 @@ from director import filterUtils
 import director.vtkAll as vtk
 import director.vtkNumpy as vnp
 from director.shallowCopy import shallowCopy
-from director import ioUtils
+from director import ioutils
 import numpy as np
 
 
@@ -73,7 +73,7 @@ def createSkyboxPlanes():
 
 
 def createTexture(imageFilename):
-    image = ioUtils.readImage(imageFilename)
+    image = ioutils.readImage(imageFilename)
     tex = vtk.vtkTexture()
     tex.SetInput(image)
     tex.EdgeClampOn()

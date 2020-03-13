@@ -293,7 +293,7 @@ class MainWindowAppFactory(object):
         from director import applogic
         from director import transformUtils
         from director import filterUtils
-        from director import ioUtils
+        from director import ioutils
         from director import vtkAll as vtk
         from director import vtkNumpy as vnp
         from director.debugVis import DebugData

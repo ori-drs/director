@@ -10,7 +10,7 @@ from director import affordanceupdater
 from director import affordanceitems
 from numpy import array
 from director.uuidutil import newUUID
-import ioUtils
+import ioutils
 from director.thirdparty import pysdf
 
 class SceneLoader(object):
