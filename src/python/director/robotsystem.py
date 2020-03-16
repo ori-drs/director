@@ -337,7 +337,7 @@ class RobotSystemFactory(object):
         return FieldContainer(viewBehaviors=viewBehaviors)
 
 
-def create(view=None, globalsDict=None, options=None, planningOnly=False):
+def create(view=None, globalsDict=None, options=None, planningOnly=False, **kwargs):
     '''
     Convenience function for initializing a robotSystem
     with the default options and populating a globals()
@@ -356,7 +356,7 @@ def create(view=None, globalsDict=None, options=None, planningOnly=False):
         options = factory.getDisabledOptions()
         factory.setDependentOptions(options, usePlannerPublisher=True, useTeleop=True)
 
-    robotSystem = factory.construct(options, view=view)
+    robotSystem = factory.construct(options, view=view, **kwargs)
 
     if globalsDict is not None:
         globalsDict.update(dict(robotSystem))
