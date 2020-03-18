@@ -14,7 +14,6 @@ class RobotSystemFactory(object):
             'SegmentationAffordances' : ['Segmentation', 'Affordances'],
             'PerceptionDrivers' : ['RobotState'],
             'Footsteps' : ['RobotState'],
-            'Playback' : [],#x
             'ConvexHullModel' : ['Playback'],#x
             'FootstepsPlayback' : ['Footsteps', 'Playback'],#x
             'Affordances' : [],
@@ -24,7 +23,6 @@ class RobotSystemFactory(object):
 
         disabledComponents = [
             'ConvexHullModel',
-            'Playback',
             'FootstepsPlayback',
             'RobotLinkSelector']
 
@@ -121,36 +119,6 @@ class RobotSystemFactory(object):
             chullRobotModel=chullRobotModel,
             chullJointController=chullJointController
             )
-
-    def initPlayback(self, robotSystem):
-
-        from director import roboturdf
-        from director import planplayback
-        from director import playbackpanel
-        from director import robotplanlistener
-
-        directorConfig = robotSystem.directorConfig
-
-        manipPlanner = robotplanlistener.ManipulationPlanDriver(robotSystem.ikPlanner)
-
-        playbackRobotModel, playbackJointController = roboturdf.loadRobotModel('playback model', robotSystem.view, urdfFile=directorConfig['urdfConfig']['playback'], parent='planning', color=roboturdf.getRobotOrangeColor(), visible=False, colorMode=directorConfig['colorMode'])
-
-        planPlayback = planplayback.PlanPlayback()
-
-        playbackPanel = playbackpanel.PlaybackPanel(planPlayback, playbackRobotModel, playbackJointController,
-                                          robotSystem.robotStateModel, robotSystem.robotStateJointController, manipPlanner)
-
-        manipPlanner.connectPlanReceived(playbackPanel.setPlan)
-
-
-        return FieldContainer(
-            playbackRobotModel=playbackRobotModel,
-            playbackJointController=playbackJointController,
-            planPlayback=planPlayback,
-            manipPlanner=manipPlanner,
-            playbackPanel=playbackPanel
-            )
-
 
     def initFootstepsPlayback(self, robotSystem):
         if 'useFootsteps' not in drcargs.getDirectorConfig()['disableComponents']:
