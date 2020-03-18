@@ -40,7 +40,6 @@ set(python_files
   director/opendatahandler.py
   director/otdfmodel.py
   director/outputconsole.py
-  director/packagepath.py
   director/perception.py
   director/perceptionmeta.py
   director/planplayback.py
@@ -52,7 +51,6 @@ set(python_files
   director/qtutils.py
   director/robotlinkselector.py
   director/robotstate.py
-  director/robotplanlistener.py
   director/robotposegui.py
   director/robotsystem.py
   director/roboturdf.py
