@@ -11,7 +11,6 @@ import director.vtkAll as vtk
 from director import jointcontrol
 from director import getDRCBaseDir
 from director import filterUtils
-from director import packagepath
 from director import transformUtils
 
 
@@ -351,9 +350,20 @@ def getBuiltinPackagePaths():
 
 def getEnvironmentPackagePaths():
 
-    packageMap = packagepath.PackageMap()
-    packageMap.populateFromEnvironment(['ROS_PACKAGE_PATH'])
-    return packageMap.map.values()
+    packages = {}
+
+    for path in os.environ.get('ROS_PACKAGE_PATH', '').split(':'):
+        for root, dirnames, filenames in os.walk(path):
+            if os.path.isfile(os.path.join(root, 'package.xml')) or os.path.isfile(os.path.join(root, 'manifest.xml')):
+                packageName = os.path.basename(root)
+                if packageName and packageName not in packages:
+                    packages[packageName] = root
+                else:
+                    print 'warning, skipping package path:', root
+                    print 'existing package path:', packageName, packages[packageName]
+                    continue
+
+    return packages.values()
 
 
 def getPackagePaths():
