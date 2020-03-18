@@ -31,12 +31,10 @@ class RobotSystemFactory(object):
 
         disabledComponents = [
             'ConvexHullModel',
-            'Teleop',
-            'Planning',
             'IRISDriver',
             'PlannerPublisher',
-            'Playback',
             'FootstepsPlayback',
+            'Teleop',
             'RaycastDriver',
 	        'HandDrivers',	
             'RobotLinkSelector']
@@ -156,7 +154,7 @@ class RobotSystemFactory(object):
     def initPlanning(self, robotSystem):
 
         from director import objectmodel as om
-        from director import planningutils
+        #from director import planningutils
         from director import roboturdf
         from director import ikplanner
 
@@ -177,7 +175,7 @@ class RobotSystemFactory(object):
 
         ikPlanner = ikplanner.IKPlanner(ikRobotModel, ikJointController, handModels)
 
-        planningUtils = planningutils.PlanningUtils(robotSystem.robotStateModel, robotSystem.robotStateJointController)
+        planningUtils = None# planningutils.PlanningUtils(robotSystem.robotStateModel, robotSystem.robotStateJointController)
 
         return FieldContainer(
             ikRobotModel=ikRobotModel,
@@ -207,20 +205,20 @@ class RobotSystemFactory(object):
         from director import roboturdf
         from director import planplayback
         from director import playbackpanel
-        from director import robotplanlistener
+        #from director import robotplanlistener
 
         directorConfig = robotSystem.directorConfig
 
-        manipPlanner = robotplanlistener.ManipulationPlanDriver(robotSystem.ikPlanner)
+        manipPlanner = None# robotplanlistener.ManipulationPlanDriver(robotSystem.ikPlanner)
 
         playbackRobotModel, playbackJointController = roboturdf.loadRobotModel('playback model', robotSystem.view, urdfFile=directorConfig['urdfConfig']['playback'], parent='planning', color=roboturdf.getRobotOrangeColor(), visible=False, colorMode=directorConfig['colorMode'])
 
         planPlayback = planplayback.PlanPlayback()
 
-        playbackPanel = playbackpanel.PlaybackPanel(planPlayback, playbackRobotModel, playbackJointController,
-                                          robotSystem.robotStateModel, robotSystem.robotStateJointController, manipPlanner)
+        playbackPanel = None #playbackpanel.PlaybackPanel(planPlayback, playbackRobotModel, playbackJointController,
+        #                                  robotSystem.robotStateModel, robotSystem.robotStateJointController, manipPlanner)
 
-        manipPlanner.connectPlanReceived(playbackPanel.setPlan)
+        #manipPlanner.connectPlanReceived(playbackPanel.setPlan)
 
 
         return FieldContainer(
@@ -242,7 +240,7 @@ class RobotSystemFactory(object):
 
 
         teleopPanel = teleoppanel.TeleopPanel(robotSystem.robotStateModel, robotSystem.robotStateJointController, teleopRobotModel, teleopJointController,
-                          robotSystem.ikPlanner, robotSystem.manipPlanner, robotSystem.affordanceManager, robotSystem.playbackPanel.setPlan, robotSystem.playbackPanel.hidePlan, robotSystem.planningUtils)
+                          robotSystem.ikPlanner, robotSystem.manipPlanner, robotSystem.affordanceManager, None, None, robotSystem.planningUtils)
 
         return FieldContainer(
             teleopRobotModel=teleopRobotModel,
