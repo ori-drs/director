@@ -10,7 +10,6 @@ set(python_files
   director/affordanceviewbehaviors.py
   director/applogic.py
   director/appsettings.py
-  director/assimp2vtk.py
   director/asynctaskqueue.py
   director/callbacks.py
   director/camerabookmarks.py
