@@ -7,7 +7,6 @@ from director import pointpicker
 from director import planplayback
 from director.timercallback import TimerCallback
 from director.simpletimer import SimpleTimer
-from director import ikplanner
 from director import callbacks
 from director import robotsystem
 from director import transformUtils
@@ -1119,85 +1118,3 @@ class SpawnDrillRotaryAffordance(AsyncTask):
         affordance.actor.SetUserTransform(frame.transform)
         affordance.setAffordanceParams(params)
         affordance.updateParamsFromActorTransform()
-
-
-class PlanGazeTrajectory(AsyncTask):
-
-    @staticmethod
-    def getDefaultProperties(properties):
-        properties.addProperty('Target frame name', '')
-        properties.addProperty('Annotation input name', '')
-        properties.addProperty('Side', 1, attributes=om.PropertyAttributes(enumNames=['Left', 'Right']))
-
-        properties.addProperty('Cone threshold degrees', 5.0, attributes=om.PropertyAttributes(decimals=1, minimum=0, maximum=360))
-        properties.addProperty('Palm offset', 0.0, attributes=om.PropertyAttributes(decimals=3, minimum=-1e4, maximum=1e4))
-
-
-    def getAnnotationInputPoints(self):
-        obj = om.findObjectByName(self.properties.getProperty('Annotation input name'))
-        if obj is None:
-            self.fail('user annotation not found')
-        return obj.annotationPoints
-
-
-    def appendPositionConstraintForTargetFrame(self, goalFrame, t):
-        positionConstraint, _ = self.ikPlanner.createPositionOrientationGraspConstraints(self.graspingHand, goalFrame, self.graspToHandLinkFrame)
-        positionConstraint.tspan = [t, t]
-        self.constraintSet.constraints.append(positionConstraint)
-
-    def initGazeConstraintSet(self, goalFrame):
-
-        # create constraint set
-
-        startPose = robotSystem.robotStateJointController.q.copy()
-        startPoseName = 'gaze_plan_start'
-        endPoseName = 'gaze_plan_end'
-        self.ikPlanner.addPose(startPose, startPoseName)
-        self.ikPlanner.addPose(startPose, endPoseName)
-        self.constraintSet = ikplanner.ConstraintSet(self.ikPlanner, [], startPoseName, endPoseName)
-        self.constraintSet.endPose = startPose
-
-        # add body constraints
-        bodyConstraints = self.ikPlanner.createMovingBodyConstraints(startPoseName, lockBase=True, lockBack=False, lockLeftArm=self.graspingHand=='right', lockRightArm=self.graspingHand=='left')
-        self.constraintSet.constraints.extend(bodyConstraints)
-
-        # add gaze constraint
-        self.graspToHandLinkFrame = self.ikPlanner.newPalmOffsetGraspToHandFrame(self.graspingHand, self.properties.getProperty('Palm offset'))
-        gazeConstraint = self.ikPlanner.createGazeGraspConstraint(self.graspingHand, goalFrame, self.graspToHandLinkFrame, coneThresholdDegrees=self.properties.getProperty('Cone threshold degrees'))
-        self.constraintSet.constraints.insert(0, gazeConstraint)
-
-
-    def getGazeTargetFrame(self):
-        frame = om.findObjectByName(self.properties.getProperty('Target frame name'))
-        if not frame:
-            self.fail('could not find ground frame')
-        return frame
-
-    def run(self):
-
-        self.ikPlanner = robotSystem.ikPlanner
-        side = self.properties.getPropertyEnumValue('Side').lower()
-        self.graspingHand = side
-
-        targetPoints = self.getAnnotationInputPoints()
-        gazeTargetFrame = self.getGazeTargetFrame()
-
-        self.initGazeConstraintSet(gazeTargetFrame)
-
-        numberOfSamples = len(targetPoints)
-
-        for i in xrange(numberOfSamples):
-            targetPos = targetPoints[i]
-            targetFrame = transformUtils.copyFrame(gazeTargetFrame.transform)
-            targetFrame.Translate(targetPos - np.array(targetFrame.GetPosition()))
-            self.appendPositionConstraintForTargetFrame(targetFrame, i+1)
-
-        gazeConstraint = self.constraintSet.constraints[0]
-        assert isinstance(gazeConstraint, ikplanner.ikconstraints.WorldGazeDirConstraint)
-        gazeConstraint.tspan = [1.0, numberOfSamples]
-
-
-        plan = self.constraintSet.runIkTraj()
-
-        _addPlanItem(plan, '%s gaze plan' % gazeTargetFrame.getProperty('Name'), ManipulationPlanItem)
-

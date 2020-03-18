@@ -14,8 +14,7 @@ class RobotSystemFactory(object):
             'SegmentationAffordances' : ['Segmentation', 'Affordances'],
             'PerceptionDrivers' : ['RobotState'],
             'Footsteps' : ['RobotState'],
-            'Planning' : ['RobotState'],#x
-            'Playback' : ['Planning'],#x
+            'Playback' : [],#x
             'ConvexHullModel' : ['Playback'],#x
             'FootstepsPlayback' : ['Footsteps', 'Playback'],#x
             'Affordances' : [],
@@ -25,7 +24,6 @@ class RobotSystemFactory(object):
 
         disabledComponents = [
             'ConvexHullModel',
-            'Planning',
             'Playback',
             'FootstepsPlayback',
             'RobotLinkSelector']
@@ -109,37 +107,6 @@ class RobotSystemFactory(object):
             footstepsDriver = footstepsdriver.FootstepsDriver(robotSystem.robotStateJointController)
 
         return FieldContainer(footstepsDriver=footstepsDriver)
-
-    def initPlanning(self, robotSystem):
-
-        from director import objectmodel as om
-        from director import roboturdf
-        from director import ikplanner
-
-
-        directorConfig = robotSystem.directorConfig
-
-        ikRobotModel, ikJointController = roboturdf.loadRobotModel('ik model', urdfFile=directorConfig['urdfConfig']['ik'], parent=None)
-        om.removeFromObjectModel(ikRobotModel)
-        ikJointController.addPose('q_end', ikJointController.getPose('q_nom'))
-        ikJointController.addPose('q_start', ikJointController.getPose('q_nom'))
-
-        handFactory = roboturdf.HandFactory(robotSystem.robotStateModel)
-        handModels = []
-
-        for side in ['left', 'right']:
-            if side in handFactory.defaultHandTypes:
-                handModels.append(handFactory.getLoader(side))
-
-        ikPlanner = ikplanner.IKPlanner(ikRobotModel, ikJointController, handModels)
-
-        return FieldContainer(
-            ikRobotModel=ikRobotModel,
-            ikJointController=ikJointController,
-            handFactory=handFactory,
-            handModels=handModels,
-            ikPlanner=ikPlanner,
-            )
 
     def initConvexHullModel(self, robotSystem):
 

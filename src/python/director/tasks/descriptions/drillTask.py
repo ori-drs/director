@@ -25,11 +25,6 @@ drillTaskRight = [
           [rt.WaitForWalkExecution, {}]
         ]],
 
-        ['plan drill trajectory', [
-          [rt.TransformFrame, {'Frame input name':'wall frame', 'Frame output name':'wall gaze frame', 'Translation':[0.0, 0.0, 0.0], 'Rotation':[0, 0, 90]}],
-          [rt.PlanGazeTrajectory, {'Target frame name':'wall gaze frame', 'Annotation input name':'wall annotation'}],
-        ]],
-
     ]],
 
     ['drill pickup', [

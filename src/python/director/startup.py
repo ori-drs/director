@@ -21,7 +21,6 @@ from director import callbacks
 from director import camerabookmarks
 from director import cameracontrol
 from director import cameracontrolpanel
-from director import ikplanner
 from director import objectmodel as om
 from director import transformUtils
 from director import skybox
@@ -58,7 +57,6 @@ from director.shallowCopy import shallowCopy
 from director import segmentationroutines
 
 
-from director.tasks import robottasks as rt
 from director.tasks import taskmanagerwidget
 from director.tasks.descriptions import loadTaskDescriptions
 
@@ -94,11 +92,9 @@ robotSystem = robotsystem.create(view)
 globals().update(dict(robotSystem))
 
 
-useIk = True
 useRobotState = True
 usePerception = True
 useGrid = True
-useSpreadsheet = True
 useFootsteps = True
 useHands = False
 usePlanning = True
@@ -131,21 +127,6 @@ if 'enableComponents' in drcargs.getDirectorConfig():
     for component in drcargs.getDirectorConfig()['enableComponents']:
         print "Enabling", component
         locals()[component] = True
-
-
-if useIk:
-    def onIkStartup(ikServer, startSuccess):
-        if startSuccess:
-            app.getMainWindow().statusBar().showMessage('Planning server started.', 2000)
-        else:
-            app.showErrorMessage('Error detected while starting the matlab planning server. '
-                                 'Please check the output console for more information.', title='Error starting matlab')
-
-    ikServer.outputConsole = app.getOutputConsole()
-    ikServer.infoFunc = app.displaySnoptInfo
-    ikServer.connectStartupCompleted(onIkStartup)
-    startIkServer()
-
 
 
 if usePerception:
@@ -288,7 +269,6 @@ if usePlanning:
     splinewidget.init(view, handFactory, robotStateModel)
 
 
-    rt.robotSystem = robotSystem
     taskManagerPanel = taskmanagerwidget.init()
 
     for taskDescription in loadTaskDescriptions():

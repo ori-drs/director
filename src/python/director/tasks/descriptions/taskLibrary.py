@@ -41,7 +41,6 @@ taskLibrary = [
       [rt.RequestWalkingPlan, {}],
       [rt.PlanPostureGoal, {}],
       [rt.PlanReachToFrame, {}],
-      [rt.PlanGazeTrajectory, {}],
       [rt.PlanStandPosture, {}],
       [rt.PlanNominalPosture, {}],
   ]],

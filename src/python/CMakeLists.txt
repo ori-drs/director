@@ -28,10 +28,6 @@ set(python_files
   director/footstepsdriverpanel.py
   director/framevisualization.py
   director/geometryencoder.py
-  director/ikconstraintencoder.py
-  director/ikconstraints.py
-  director/ikparameters.py
-  director/ikplanner.py
   director/imageview.py
   director/imageviewapp.py
   director/ioutils.py
