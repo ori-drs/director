@@ -14,7 +14,7 @@ from director.timercallback import TimerCallback
 from director.utime import getUtime
 from director.simpletimer import MovingAverageComputer
 import vtkDRCFiltersPython as drc
-from director.debugVis import DebugData
+from director.debugpolydata import DebugData
 import director.visualization as vis
 from director import perceptionmeta
 import functools

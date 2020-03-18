@@ -18,7 +18,7 @@ set(python_files
   director/cameraview.py
   director/componentgraph.py
   director/consoleapp.py
-  director/debugVis.py
+  director/debugpolydata.py
   director/drcargs.py
   director/frameupdater.py
   director/fieldcontainer.py

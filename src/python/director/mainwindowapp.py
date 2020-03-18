@@ -296,7 +296,7 @@ class MainWindowAppFactory(object):
         from director import ioutils
         from director import vtkAll as vtk
         from director import vtkNumpy as vnp
-        from director.debugVis import DebugData
+        from director.debugpolydata import DebugData
         from director.timercallback import TimerCallback
         from director.fieldcontainer import FieldContainer
         import numpy as np

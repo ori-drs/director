@@ -27,7 +27,7 @@ from thirdparty import min_bounding_rect
 
 import numpy as np
 import vtkNumpy
-from debugVis import DebugData
+from debugpolydata import DebugData
 from shallowCopy import shallowCopy
 import ioutils
 from director.uuidutil import newUUID

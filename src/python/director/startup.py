@@ -64,7 +64,7 @@ import functools
 import math
 
 import numpy as np
-from director.debugVis import DebugData
+from director.debugpolydata import DebugData
 from director import ioutils as io
 
 # remove feb 2019, when moving to roslaunch

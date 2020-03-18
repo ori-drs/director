@@ -4,7 +4,7 @@ import math
 import numpy as np
 from director.timercallback import TimerCallback
 from director.simpletimer import SimpleTimer
-from director.debugVis import DebugData
+from director.debugpolydata import DebugData
 from director import planplayback
 import director.visualization as vis
 import director.vtkAll as vtk

@@ -2,7 +2,7 @@ import PythonQt
 from PythonQt import QtCore, QtGui, QtUiTools
 from director import applogic as app
 from director import visualization as vis
-from director.debugVis import DebugData
+from director.debugpolydata import DebugData
 from director.timercallback import TimerCallback
 from director.simpletimer import FPSCounter
 from director import cameraview

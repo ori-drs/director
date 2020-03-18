@@ -8,7 +8,7 @@ from director import objectmodel as om
 from director import visualization as vis
 from director import pointpicker
 from director import viewbehaviors
-from director.debugVis import DebugData
+from director.debugpolydata import DebugData
 
 from PythonQt import QtCore, QtGui
 

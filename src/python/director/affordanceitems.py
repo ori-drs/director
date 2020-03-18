@@ -7,7 +7,7 @@ from director import ioutils
 from director import meshmanager
 from director import transformUtils
 from director.uuidutil import newUUID
-from director.debugVis import DebugData
+from director.debugpolydata import DebugData
 from director import vtkAll as vtk
 import numpy as np
 

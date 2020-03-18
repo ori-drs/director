@@ -13,7 +13,7 @@ from director import cameracontrol
 from director import filterUtils
 from director.fieldcontainer import FieldContainer
 from director.shallowCopy import shallowCopy
-from director.debugVis import DebugData
+from director.debugpolydata import DebugData
 from director import vtkAll as vtk
 
 import numpy as np

@@ -3,7 +3,7 @@ from director import objectmodel as om
 from director import visualization as vis
 from director.utime import getUtime
 from director import transformUtils
-from director.debugVis import DebugData
+from director.debugpolydata import DebugData
 from director import ioutils
 from director import robotstate
 from director import applogic as app

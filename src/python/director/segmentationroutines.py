@@ -16,7 +16,7 @@ from director import vtkAll as vtk
 import vtkNumpy
 import numpy as np
 from shallowCopy import shallowCopy
-from debugVis import DebugData
+from debugpolydata import DebugData
 
 
 

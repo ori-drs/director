@@ -3,7 +3,7 @@ from director.timercallback import TimerCallback
 from director import objectmodel as om
 from director import visualization as vis
 from director import applogic as app
-from director.debugVis import DebugData
+from director.debugpolydata import DebugData
 from director import ioutils
 from director.simpletimer import SimpleTimer
 from director.utime import getUtime

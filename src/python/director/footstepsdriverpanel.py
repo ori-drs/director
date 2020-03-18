@@ -4,7 +4,7 @@ from director import applogic as app
 from director import objectmodel as om
 from director import propertyset
 from director import visualization as vis
-from director.debugVis import DebugData
+from director.debugpolydata import DebugData
 from director.pointpicker import PlacerWidget
 from director import segmentation
 from director import filterUtils

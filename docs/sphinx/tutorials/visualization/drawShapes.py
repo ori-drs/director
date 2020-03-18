@@ -1,5 +1,5 @@
 from director.consoleapp import ConsoleApp
-from director.debugVis import DebugData
+from director.debugpolydata import DebugData
 import director.visualization as vis
 
 # initialize application components
