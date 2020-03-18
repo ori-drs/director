@@ -32,12 +32,10 @@ set(python_files
   director/imageviewapp.py
   director/ioutils.py
   director/jointcontrol.py
-  director/korgnano.py
   director/lcmUtils.py
   director/mainwindowapp.py
   director/measurementpanel.py
   director/meshmanager.py
-  director/midi.py
   director/objectcollection.py
   director/objectmodel.py
   director/opendatahandler.py
