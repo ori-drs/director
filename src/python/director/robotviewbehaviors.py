@@ -7,7 +7,6 @@ from director import callbacks
 from director import cameracontrol
 from director import splinewidget
 from director import transformUtils
-from director import teleoppanel
 from director import footstepsdriverpanel
 from director import applogic as app
 from director import vtkAll as vtk
@@ -256,13 +255,6 @@ def toggleFootstepWidget(displayPoint, view, useHorizontalWidget=False):
 
     frameObj.connectFrameModified(onFootWidgetChanged)
     return True
-
-
-def reachToFrame(frameObj, side, collisionObj):
-    goalFrame = teleoppanel.panel.endEffectorTeleop.newReachTeleop(frameObj.transform, side, collisionObj)
-    goalFrame.frameSync = vis.FrameSync()
-    goalFrame.frameSync.addFrame(goalFrame, ignoreIncoming=True)
-    goalFrame.frameSync.addFrame(frameObj)
 
 
 def getAsFrame(obj):

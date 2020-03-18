@@ -46,7 +46,6 @@ from director import planplayback
 from director import playbackpanel
 from director import screengrabberpanel
 from director import splinewidget
-from director import teleoppanel
 from director import vtkNumpy as vnp
 from director import visualization as vis
 from director import actionhandlers
@@ -272,13 +271,6 @@ if usePlanning:
     if useLimitJointsSentToPlanner:
         planningUtils.clampToJointLimits = True
 
-    jointLimitChecker = teleoppanel.JointLimitChecker(robotStateModel, robotStateJointController)
-    jointLimitChecker.setupMenuAction()
-    jointLimitChecker.start()
-
-    postureShortcuts = teleoppanel.PosturePlanShortcuts(robotStateJointController, ikPlanner, planningUtils)
-
-
     def fitPosts():
         segmentation.fitVerticalPosts(segmentation.getCurrentRevolutionData())
         affordancePanel.onGetRaycastTerrain()
@@ -286,7 +278,6 @@ if usePlanning:
     ikPlanner.addPostureGoalListener(robotStateJointController)
 
     playbackpanel.addPanelToMainWindow(playbackPanel)
-    teleoppanel.addPanelToMainWindow(teleopPanel)
 
     if useBlackoutText:
         blackoutMonitor = blackoutmonitor.BlackoutMonitor(robotStateJointController, view, cameraview, mapServerSource)

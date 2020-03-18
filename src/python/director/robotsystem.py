@@ -16,7 +16,6 @@ class RobotSystemFactory(object):
             'Footsteps' : ['RobotState'],
             'Planning' : ['RobotState'],#x
             'Playback' : ['Planning'],#x
-            'Teleop' : ['Planning', 'Playback', 'Affordances'],#x
             'ConvexHullModel' : ['Playback'],#x
             'FootstepsPlayback' : ['Footsteps', 'Playback'],#x
             'Affordances' : [],
@@ -26,7 +25,6 @@ class RobotSystemFactory(object):
 
         disabledComponents = [
             'ConvexHullModel',
-            'Teleop',
             'Planning',
             'Playback',
             'FootstepsPlayback',
@@ -186,24 +184,6 @@ class RobotSystemFactory(object):
             playbackPanel=playbackPanel
             )
 
-    def initTeleop(self, robotSystem):
-
-        from director import roboturdf
-        from director import teleoppanel
-
-        directorConfig = robotSystem.directorConfig
-
-        teleopRobotModel, teleopJointController = roboturdf.loadRobotModel('teleop model', robotSystem.view, urdfFile=directorConfig['urdfConfig']['teleop'], parent='planning', color=roboturdf.getRobotBlueColor(), visible=False, colorMode=directorConfig['colorMode'])
-
-
-        teleopPanel = teleoppanel.TeleopPanel(robotSystem.robotStateModel, robotSystem.robotStateJointController, teleopRobotModel, teleopJointController,
-                          robotSystem.ikPlanner, robotSystem.manipPlanner, robotSystem.affordanceManager, robotSystem.playbackPanel.setPlan, robotSystem.playbackPanel.hidePlan, robotSystem.planningUtils)
-
-        return FieldContainer(
-            teleopRobotModel=teleopRobotModel,
-            teleopJointController=teleopJointController,
-            teleopPanel=teleopPanel,
-            )
 
     def initFootstepsPlayback(self, robotSystem):
         if 'useFootsteps' not in drcargs.getDirectorConfig()['disableComponents']:

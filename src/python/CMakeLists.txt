@@ -76,7 +76,6 @@ set(python_files
   director/splinewidget.py
   director/startup.py
   director/tasklaunchpanel.py
-  director/teleoppanel.py
   director/timercallback.py
   director/transformUtils.py
   director/treeviewer.py
