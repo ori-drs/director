@@ -71,7 +71,6 @@ set(python_files
   director/tasklaunchpanel.py
   director/timercallback.py
   director/transformUtils.py
-  director/treeviewer.py
   director/uipanel.py
   director/utime.py
   director/uuidutil.py

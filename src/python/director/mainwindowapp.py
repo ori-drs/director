@@ -343,14 +343,12 @@ class MainWindowPanelFactory(object):
             'OutputConsole' : ['MainWindow'],
             'UndoRedo' : ['MainWindow'],
             'DrakeVisualizer' : ['MainWindow'],
-            'TreeViewer' : ['MainWindow'],
             'LCMGLRenderer' : ['MainWindow']}
 
         # these components depend on lcm and lcmgl
         # so they are disabled by default
         disabledComponents = [
             'DrakeVisualizer',
-            'TreeViewer',
             'LCMGLRenderer']
 
         return components, disabledComponents
@@ -441,17 +439,6 @@ class MainWindowPanelFactory(object):
         undoAction=undoAction,
         redoAction=redoAction
         )
-
-    def initTreeViewer(self, fields):
-
-        from director import treeviewer
-        treeViewer = treeviewer.TreeViewer(fields.view)
-
-        applogic.MenuActionToggleHelper('Tools', treeViewer.name, treeViewer.isEnabled, treeViewer.setEnabled)
-
-        return FieldContainer(
-          treeViewer=treeViewer
-          )
 
     def initLCMGLRenderer(self, fields):
 

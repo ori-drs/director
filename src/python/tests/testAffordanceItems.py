@@ -4,7 +4,6 @@ from director import affordanceitems
 from director import affordanceurdf
 from director import objectmodel as om
 from director import visualization as vis
-from director import lcmUtils
 from director import ioutils
 from director.debugVis import DebugData
 from director.timercallback import TimerCallback

@@ -6,7 +6,6 @@ from director import playbackpanel
 from director import robotplanlistener
 from director import robotviewbehaviors
 from director import cameraview
-from director import lcmUtils
 from PythonQt import QtCore, QtGui
 import drc as lcmdrc
 import bot_core as lcmbotcore
@@ -53,9 +52,6 @@ w.show()
 
 # add lcm logplayer keyboard shortcuts
 logCommander = robotviewbehaviors.KeyPressLogCommander(view)
-
-# reset camera position when first robot state message is received
-lcmUtils.captureMessageCallback('EST_ROBOT_STATE', lcmbotcore.robot_state_t, lambda x: view.resetCamera())
 
 # start the application
 app.start()
