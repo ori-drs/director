@@ -14,8 +14,8 @@ class RobotSystemFactory(object):
             'SegmentationAffordances' : ['Segmentation', 'Affordances'],
             'PerceptionDrivers' : ['RobotState'],
             'Footsteps' : ['RobotState'],
-            'ConvexHullModel' : ['Playback'],#x
-            'FootstepsPlayback' : ['Footsteps', 'Playback'],#x
+            'ConvexHullModel' : [],#x
+            'FootstepsPlayback' : ['Footsteps'],#x
             'Affordances' : [],
             #'ViewBehaviors' : ['Footsteps', 'PerceptionDrivers', 'Planning', 'Affordances'],
             'ViewBehaviors' : ['Footsteps', 'PerceptionDrivers', 'Affordances'], 
