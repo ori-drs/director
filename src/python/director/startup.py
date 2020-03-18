@@ -37,7 +37,6 @@ from director import footstepsdriver
 from director import footstepsdriverpanel
 from director import framevisualization
 from director import tasklaunchpanel
-from director.jointpropagator import JointPropagator
 from director import viewcolors
 from director import viewframes
 
@@ -234,20 +233,6 @@ if usePlanning:
             handJoints += handModel.handModel.model.getJointNames()
         # filter base joints out
         handJoints = [ joint for joint in handJoints if joint.find('base')==-1 ]
-
-    teleopJointPropagator = JointPropagator(robotStateModel, teleopRobotModel, handJoints)
-    playbackJointPropagator = JointPropagator(robotStateModel, playbackRobotModel, handJoints)
-    def doPropagation(model=None):
-        if teleopRobotModel.getProperty('Visible'):
-            teleopJointPropagator.doPropagation()
-        if playbackRobotModel.getProperty('Visible'):
-            playbackJointPropagator.doPropagation()
-    robotStateModel.connectModelChanged(doPropagation)
-
-    #app.addToolbarMacro('scene height', sendSceneHeightRequest)
-    #app.addToolbarMacro('scene depth', sendSceneDepthRequest)
-    #app.addToolbarMacro('stereo height', sendFusedHeightRequest)
-    #app.addToolbarMacro('stereo depth', sendFusedDepthRequest)
 
     if useLimitJointsSentToPlanner:
         planningUtils.clampToJointLimits = True

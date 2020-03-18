@@ -32,7 +32,6 @@ set(python_files
   director/imageviewapp.py
   director/ioutils.py
   director/jointcontrol.py
-  director/jointpropagator.py
   director/korgnano.py
   director/lcmUtils.py
   director/mainwindowapp.py
