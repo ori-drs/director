@@ -70,11 +70,11 @@ class RobotModelItem(om.ObjectModelItem):
         self._modelName = "valkyrie"  # either atlas_v3/v4/v5 or valkyrie
         self._pelvisLink = ''  # pelvis
         self._leftFootLink = ''  # l_foot
-        self.rightFootLink = ''  # r_foot
+        self._rightFootLink = ''  # r_foot
 
-        self.leftHandLink = ''
-        self.rightHandLink = ''
-        self.quadruped = False
+        self._leftHandLink = ''
+        self._rightHandLink = ''
+        self._quadruped = False
         with open(drcargs.args().directorConfigFile) as directorConfigFile:
             directorConfig = json.load(directorConfigFile)
 
@@ -291,14 +291,14 @@ class RobotModelItem(om.ObjectModelItem):
         The foot reference point is the average of the foot contact points in the foot frame.
         '''
         if (self._quadruped):
-            t_lf = np.array(model.getLinkFrame(self._leftHandLink).GetPosition())
-            t_rf = np.array(model.getLinkFrame(self._rightHandLink).GetPosition())
-            t_lh = np.array(model.getLinkFrame(self._leftFootLink).GetPosition())
-            t_rh = np.array(model.getLinkFrame(self._rightFootLink).GetPosition())
+            t_lf = np.array(self.getLinkFrame(self._leftHandLink).GetPosition())
+            t_rf = np.array(self.getLinkFrame(self._rightHandLink).GetPosition())
+            t_lh = np.array(self.getLinkFrame(self._leftFootLink).GetPosition())
+            t_rh = np.array(self.getLinkFrame(self._rightFootLink).GetPosition())
             mid = (t_lf + t_rf + t_lh + t_rh) / 4
             # this is not optimal, correct approach should use contact points to
             # determine desired orientation, not the current orientation
-            rpy = [0.0, 0.0, model.getLinkFrame(self._pelvisLink).GetOrientation()[2]]
+            rpy = [0.0, 0.0, self.getLinkFrame(self._pelvisLink).GetOrientation()[2]]
             return transformUtils.frameFromPositionAndRPY(mid, rpy)
 
         contact_pts_left, contact_pts_right = self.getContactPts()
@@ -306,11 +306,11 @@ class RobotModelItem(om.ObjectModelItem):
         contact_pts_mid_left = np.mean(contact_pts_left, axis=0)  # mid point on foot relative to foot frame
         contact_pts_mid_right = np.mean(contact_pts_right, axis=0)  # mid point on foot relative to foot frame
 
-        t_lf_mid = model.getLinkFrame(self._leftFootLink)
+        t_lf_mid = self.getLinkFrame(self._leftFootLink)
         t_lf_mid.PreMultiply()
         t_lf_mid.Translate(contact_pts_mid_left)
 
-        t_rf_mid = model.getLinkFrame(self._rightFootLink)
+        t_rf_mid = self.getLinkFrame(self._rightFootLink)
         t_rf_mid.PreMultiply()
         t_rf_mid.Translate(contact_pts_mid_right)
 
