@@ -66,6 +66,44 @@ class RobotModelItem(om.ObjectModelItem):
         if model:
             self.setModel(model)
 
+        self.footMeshFiles = []
+        self._modelName = "valkyrie"  # either atlas_v3/v4/v5 or valkyrie
+        self._pelvisLink = ''  # pelvis
+        self._leftFootLink = ''  # l_foot
+        self.rightFootLink = ''  # r_foot
+
+        self.leftHandLink = ''
+        self.rightHandLink = ''
+        self.quadruped = False
+        with open(drcargs.args().directorConfigFile) as directorConfigFile:
+            directorConfig = json.load(directorConfigFile)
+
+            self.modelName = directorConfig['modelName']
+
+            directorConfigDirectory = os.path.dirname(os.path.abspath(directorConfigFile.name))
+
+            if 'leftFootMeshFiles' in directorConfig:
+                self.footMeshFiles.append(directorConfig['leftFootMeshFiles'])
+                self.footMeshFiles.append(directorConfig['rightFootMeshFiles'])
+                for j in range(0, 2):
+                    for i in range(len(self.footMeshFiles[j])):
+                        self.footMeshFiles[j][i] = os.path.join(directorConfigDirectory, self.footMeshFiles[j][i])
+
+            if 'pelvisLink' in directorConfig:
+                self.pelvisLink = directorConfig['pelvisLink']
+
+            if 'leftFootLink' in directorConfig:
+                self.leftFootLink = directorConfig['leftFootLink']
+                self.rightFootLink = directorConfig['rightFootLink']
+
+            if 'quadruped' in drcargs.getDirectorConfig():
+                self.quadruped = True
+                # Using 'hands' to signify quadruped front feet, for now:
+                # Note: there has not been the use of leftHandLink for previous bipeds
+                if 'leftHandLink' in drcargs.getDirectorConfig():
+                    self.leftHandLink = drcargs.getDirectorConfig()['leftHandLink']
+                    self.rightHandLink = drcargs.getDirectorConfig()['rightHandLink']
+
     def _onPropertyChanged(self, propertySet, propertyName):
         om.ObjectModelItem._onPropertyChanged(self, propertySet, propertyName)
 
@@ -209,6 +247,83 @@ class RobotModelItem(om.ObjectModelItem):
         if self.initialised:
             self.model.removeFromRenderer(view.renderer())
         view.render()
+
+    def getContactPts(self, support_contact_groups=0):  # lcmdrc.footstep_params_t.SUPPORT_GROUPS_HEEL_TOE):
+        '''
+        hard coded Location of the Drake contact points relative to foot frame. this should be read from URDF
+        '''
+        contact_pts_left = np.zeros((4, 3))
+        contact_pts_right = np.zeros((4, 3))
+
+
+        if (self._modelName == "anymal"):  # anymal fake
+            # if support_contact_groups == lcmdrc.footstep_params_t.SUPPORT_GROUPS_HEEL_TOE:
+            contact_pts_left[0, :] = [-0.038, 0.055, -0.09]
+            contact_pts_left[1, :] = [-0.038, -0.055, -0.09]
+            contact_pts_left[2, :] = [0.172, 0.055, -0.09]
+            contact_pts_left[3, :] = [0.172, -0.055, -0.09]
+            # elif support_contact_groups == lcmdrc.footstep_params_t.SUPPORT_GROUPS_MIDFOOT_TOE:
+            #    contact_pts_left[0,:] = [0.032,  0.055, -0.09]
+            #    contact_pts_left[1,:] = [0.032, -0.055, -0.09]
+            #    contact_pts_left[2,:] = [0.172,   0.055, -0.09]
+            #    contact_pts_left[3,:] = [0.172,  -0.055, -0.09]
+            # elif support_contact_groups == lcmdrc.footstep_params_t.SUPPORT_GROUPS_HEEL_MIDFOOT:
+            #    contact_pts_left[0,:] = [-0.038,  0.055, -0.09]
+            #    contact_pts_left[1,:] = [-0.038, -0.055, -0.09]
+            #    contact_pts_left[2,:] = [0.102,   0.055, -0.09]
+            #    contact_pts_left[3,:] = [0.102,  -0.055, -0.09]
+            # else:
+            #    raise ValueError("Unrecognized support contact group: {:d}".format(support_contact_groups))
+
+            contact_pts_right = contact_pts_left.copy()
+
+        else:
+            print self._modelName
+            raise ValueError("modelName not recognised")
+
+        return contact_pts_left, contact_pts_right
+
+    def getFeetMidPoint(self, useWorldZ=True):
+        '''
+        Returns a frame in world coordinate system that is the average of the left
+        and right foot reference point positions in world frame, the average of the
+        left and right foot yaw in world frame, and Z axis aligned with world Z.
+        The foot reference point is the average of the foot contact points in the foot frame.
+        '''
+        if (self._quadruped):
+            t_lf = np.array(model.getLinkFrame(self._leftHandLink).GetPosition())
+            t_rf = np.array(model.getLinkFrame(self._rightHandLink).GetPosition())
+            t_lh = np.array(model.getLinkFrame(self._leftFootLink).GetPosition())
+            t_rh = np.array(model.getLinkFrame(self._rightFootLink).GetPosition())
+            mid = (t_lf + t_rf + t_lh + t_rh) / 4
+            # this is not optimal, correct approach should use contact points to
+            # determine desired orientation, not the current orientation
+            rpy = [0.0, 0.0, model.getLinkFrame(self._pelvisLink).GetOrientation()[2]]
+            return transformUtils.frameFromPositionAndRPY(mid, rpy)
+
+        contact_pts_left, contact_pts_right = self.getContactPts()
+
+        contact_pts_mid_left = np.mean(contact_pts_left, axis=0)  # mid point on foot relative to foot frame
+        contact_pts_mid_right = np.mean(contact_pts_right, axis=0)  # mid point on foot relative to foot frame
+
+        t_lf_mid = model.getLinkFrame(self._leftFootLink)
+        t_lf_mid.PreMultiply()
+        t_lf_mid.Translate(contact_pts_mid_left)
+
+        t_rf_mid = model.getLinkFrame(self._rightFootLink)
+        t_rf_mid.PreMultiply()
+        t_rf_mid.Translate(contact_pts_mid_right)
+
+        if self._modelName == "anymal":  # anymal (not used)
+            t_feet_mid = transformUtils.frameInterpolate(t_lf_mid, t_rf_mid, 0.5)
+        else:
+            raise ValueError("Model Name not recognised")
+
+        if useWorldZ:
+            rpy = [0.0, 0.0, np.degrees(transformUtils.rollPitchYawFromTransform(t_feet_mid)[2])]
+            return transformUtils.frameFromPositionAndRPY(t_feet_mid.GetPosition(), rpy)
+        else:
+            return t_feet_mid
 
 
 def loadRobotModel(name=None, view=None, parent='scene', urdfFile=None, color=None, visible=True, colorMode='URDF Colors', useConfigFile=True):

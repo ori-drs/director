@@ -33,8 +33,6 @@ from director import roboturdf
 from director import robotsystem
 from director import affordancepanel
 from director import filterUtils
-from director import footstepsdriver
-from director import footstepsdriverpanel
 from director import framevisualization
 from director import tasklaunchpanel
 from director import viewcolors
@@ -94,7 +92,6 @@ globals().update(dict(robotSystem))
 useRobotState = True
 usePerception = True
 useGrid = True
-useFootsteps = True
 useHands = False
 usePlanning = True
 useCollections = False
@@ -163,10 +160,7 @@ button.connect('clicked()', groundCameraPointCloudSource.resetTime)
 button.connect('clicked()', cameraview.cameraView.resetTime)
 app.getMainWindow().statusBar().addPermanentWidget(button)
 
-if useFootsteps:
-    footstepsPanel = footstepsdriverpanel.init(footstepsDriver, robotStateModel, robotStateJointController)
-else:
-    app.removeToolbarMacro('ActionFootstepPanel')
+app.removeToolbarMacro('ActionFootstepPanel')
 
 if usePlanning:
     def showPose(pose):
@@ -184,9 +178,6 @@ if usePlanning:
     def playManipPlan():
         playPlan(manipPlanner.lastManipPlan)
 
-    def playWalkingPlan():
-        playPlan(footstepsDriver.lastWalkingPlan)
-
     def plotManipPlan():
         planPlayback.plotPlan(manipPlanner.lastManipPlan)
 
@@ -198,19 +189,19 @@ if usePlanning:
 
     def planHomeStand():
         ''' Move the robot back to a safe posture, 1m above its feet, w/o moving the hands '''
-        ikPlanner.computeHomeStandPlan(robotStateJointController.q, footstepsDriver.getFeetMidPoint(robotStateModel), 1.0167)
+        ikPlanner.computeHomeStandPlan(robotStateJointController.q, robotStateModel.getFeetMidPoint(), 1.0167)
 
     def planHomeNominal():
         ''' Move the robot back to a safe posture, 1m above its feet, w/o moving the hands '''
-        ikPlanner.computeHomeNominalPlan(robotStateJointController.q, footstepsDriver.getFeetMidPoint(robotStateModel), 1.0167)
+        ikPlanner.computeHomeNominalPlan(robotStateJointController.q, robotStateModel.getFeetMidPoint(), 1.0167)
 
     def planHomeNominalHyq():
         ''' Move the robot back to a safe posture, 0.627m above its feet '''
-        ikPlanner.computeHomeNominalPlanQuadruped(robotStateJointController.q, footstepsDriver.getFeetMidPoint(robotStateModel), 0.627)
+        ikPlanner.computeHomeNominalPlanQuadruped(robotStateJointController.q, robotStateModel.getFeetMidPoint(), 0.627)
 
     def planHomeNominalAnymal():
         ''' Move the robot back to a safe posture, above the mid point of its 4 feet '''
-        ikPlanner.computeHomeNominalPlanQuadruped(robotStateJointController.q, footstepsDriver.getFeetMidPoint(robotStateModel), 0.5)
+        ikPlanner.computeHomeNominalPlanQuadruped(robotStateJointController.q, robotStateModel.getFeetMidPoint(), 0.5)
 
     def approveRefit():
         for obj in om.getObjects():
@@ -440,7 +431,7 @@ def sendMatlabSigint():
 
 
 def drawCenterOfMass(model):
-    stanceFrame = footstepsDriver.getFeetMidPoint(model)
+    stanceFrame = model.getFeetMidPoint()
     com = list(model.model.getCenterOfMass())
     com[2] = stanceFrame.GetPosition()[2]
     d = DebugData()

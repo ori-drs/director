@@ -415,17 +415,6 @@ class WaitForManipulationPlanExecution(WaitForPlanExecution):
         lastPlan = robotSystem.manipPlanner.committedPlans.pop()
         robotSystem.manipPlanner.commitManipPlan(lastPlan)
 
-class WaitForWalkExecution(WaitForPlanExecution):
-
-    def getType(self):
-        return lcmdrc.plan_status_t.WALKING
-
-    def getTypeLabel(self):
-        return 'walking'
-
-    def recommitPlan(self):
-        lastPlan = robotSystem.footstepsDriver.committedPlans.pop()
-        robotSystem.footstepsDriver.commitFootstepPlan(lastPlan)
 
 class UserSelectAffordanceCandidate(AsyncTask):
 
@@ -522,7 +511,7 @@ class ComputeRobotFootFrame(AsyncTask):
             pose = robotSystem.ikPlanner.jointController.getPose(poseName)
 
         robotModel = robotSystem.ikPlanner.getRobotModelAtPose(pose)
-        footFrame = robotSystem.footstepsDriver.getFeetMidPoint(robotModel)
+        footFrame = robotModel.getFeetMidPoint()
         vis.updateFrame(footFrame, self.properties.getProperty('Frame output name'), scale=0.2)
 
 
@@ -761,24 +750,6 @@ class WaitForGraspingState(AsyncTask):
             self.fail("Grasping state timeout")
 
 
-class CommitFootstepPlan(AsyncTask):
-
-    @staticmethod
-    def getDefaultProperties(properties):
-        properties.addProperty('Plan name', '')
-
-    def run(self):
-
-        #planName = self.properties.getProperty('Plan name')
-        #plan = om.findObjectByName(planName)
-        #if not isinstance(plan, FootstepPlanItem):
-        #    self.fail('could not find footstep plan')
-        #plan = plan.plan
-        plan = robotSystem.footstepsDriver.lastFootstepPlan
-
-        robotSystem.footstepsDriver.commitFootstepPlan(plan)
-
-
 class CommitManipulationPlan(AsyncTask):
 
     @staticmethod
@@ -796,30 +767,6 @@ class CommitManipulationPlan(AsyncTask):
         robotSystem.manipPlanner.commitManipPlan(plan)
 
 
-class RequestWalkingPlan(AsyncTask):
-
-    @staticmethod
-    def getDefaultProperties(properties):
-        properties.addProperty('Start pose name', 'EST_ROBOT_STATE')
-        properties.addProperty('Footstep plan name', '')
-
-
-    def run(self):
-        poseName = self.properties.getProperty('Start pose name')
-        if poseName == 'EST_ROBOT_STATE':
-            pose = robotSystem.robotStateJointController.q.copy()
-        else:
-            pose = robotSystem.ikPlanner.jointController.getPose(poseName)
-
-        planName = self.properties.getProperty('Footstep plan name')
-        plan = om.findObjectByName(planName)
-        if not isinstance(plan, FootstepPlanItem):
-            self.fail('could not find footstep plan: %s' % planName)
-        plan = plan.plan
-
-        robotSystem.footstepsDriver.sendWalkingPlanRequest(plan, pose, waitForResponse=True)
-
-
 def _addPlanItem(plan, name, itemClass):
         assert plan is not None
         item = itemClass(name)
@@ -827,31 +774,6 @@ def _addPlanItem(plan, name, itemClass):
         om.removeFromObjectModel(om.findObjectByName(name))
         om.addToObjectModel(item, om.getOrCreateContainer('segmentation'))
         return item
-
-
-class RequestFootstepPlan(AsyncTask):
-
-    @staticmethod
-    def getDefaultProperties(properties):
-        properties.addProperty('Stance frame name', 'stance frame')
-        properties.addProperty('Start pose name', 'EST_ROBOT_STATE')
-
-    def run(self):
-        poseName = self.properties.getProperty('Start pose name')
-        if poseName == 'EST_ROBOT_STATE':
-            pose = robotSystem.robotStateJointController.q.copy()
-        else:
-            pose = robotSystem.ikPlanner.jointController.getPose(poseName)
-
-        goalFrame = om.findObjectByName(self.properties.getProperty('Stance frame name')).transform
-
-        request = robotSystem.footstepsDriver.constructFootstepPlanRequest(pose, goalFrame)
-        footstepPlan = robotSystem.footstepsDriver.sendFootstepPlanRequest(request, waitForResponse=True)
-
-        if not footstepPlan:
-            self.fail('failed to get a footstep plan response')
-
-        _addPlanItem(footstepPlan, self.properties.getProperty('Stance frame name') + ' footstep plan', FootstepPlanItem)
 
 
 class PlanPostureGoal(AsyncTask):
@@ -1013,7 +935,6 @@ class SpawnValveAffordance(AsyncTask):
         #baseLinkFrame.PostMultiply()
         #baseLinkFrame.Translate(0,0,-baseLinkFrame.GetPosition()[2])
         return baseLinkFrame
-        #return robotSystem.footstepsDriver.getFeetMidPoint(robotModel)
 
     def computeValveFrame(self):
         position = self.properties.getProperty('Position')
@@ -1057,7 +978,6 @@ class SpawnDrillBarrelAffordance(AsyncTask):
         #baseLinkFrame.PostMultiply()
         #baseLinkFrame.Translate(0,0,-baseLinkFrame.GetPosition()[2])
         return baseLinkFrame
-        #return robotSystem.footstepsDriver.getFeetMidPoint(robotModel)
 
     def computeAffordanceFrame(self):
         position = self.properties.getProperty('Position')
@@ -1097,7 +1017,6 @@ class SpawnDrillRotaryAffordance(AsyncTask):
         #baseLinkFrame.PostMultiply()
         #baseLinkFrame.Translate(0,0,-baseLinkFrame.GetPosition()[2])
         return baseLinkFrame
-        #return robotSystem.footstepsDriver.getFeetMidPoint(robotModel)
 
     def computeAffordanceFrame(self):
         position = self.properties.getProperty('Position')

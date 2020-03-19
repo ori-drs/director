@@ -13,17 +13,14 @@ class RobotSystemFactory(object):
             'SegmentationRobotState' : ['Segmentation', 'RobotState'],
             'SegmentationAffordances' : ['Segmentation', 'Affordances'],
             'PerceptionDrivers' : ['RobotState'],
-            'Footsteps' : ['RobotState'],
             'ConvexHullModel' : [],#x
-            'FootstepsPlayback' : ['Footsteps'],#x
             'Affordances' : [],
             #'ViewBehaviors' : ['Footsteps', 'PerceptionDrivers', 'Planning', 'Affordances'],
-            'ViewBehaviors' : ['Footsteps', 'PerceptionDrivers', 'Affordances'], 
+            'ViewBehaviors' : ['PerceptionDrivers', 'Affordances'],
             'RobotLinkSelector' : ['ViewBehaviors']} #x
 
         disabledComponents = [
             'ConvexHullModel',
-            'FootstepsPlayback',
             'RobotLinkSelector']
 
         return components, disabledComponents
@@ -96,16 +93,6 @@ class RobotSystemFactory(object):
                               headCameraPointCloudSource=headCameraPointCloudSource,
                               groundCameraPointCloudSource=groundCameraPointCloudSource)
 
-    def initFootsteps(self, robotSystem):
-
-        if 'useFootsteps' in drcargs.getDirectorConfig()['disableComponents']:
-            footstepsDriver = None
-        else:
-            from director import footstepsdriver
-            footstepsDriver = footstepsdriver.FootstepsDriver(robotSystem.robotStateJointController)
-
-        return FieldContainer(footstepsDriver=footstepsDriver)
-
     def initConvexHullModel(self, robotSystem):
 
         from director import roboturdf
@@ -119,10 +106,6 @@ class RobotSystemFactory(object):
             chullRobotModel=chullRobotModel,
             chullJointController=chullJointController
             )
-
-    def initFootstepsPlayback(self, robotSystem):
-        if 'useFootsteps' not in drcargs.getDirectorConfig()['disableComponents']:
-            robotSystem.footstepsDriver.walkingPlanCallback = robotSystem.playbackPanel.setPlan
 
     def initAffordances(self, robotSystem):
 

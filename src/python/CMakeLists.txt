@@ -23,8 +23,6 @@ set(python_files
   director/frameupdater.py
   director/fieldcontainer.py
   director/filterUtils.py
-  director/footstepsdriver.py
-  director/footstepsdriverpanel.py
   director/framevisualization.py
   director/geometryencoder.py
   director/imageview.py
@@ -85,9 +83,6 @@ set(python_files
   director/tasks/robottasks.py
   director/tasks/taskmanagerwidget.py
   director/tasks/taskuserpanel.py
-  director/tasks/descriptions/__init__.py
-  director/tasks/descriptions/drillTask.py
-  director/tasks/descriptions/taskLibrary.py
 
   director/thirdparty/__init__.py
   director/thirdparty/qhull_2d.py

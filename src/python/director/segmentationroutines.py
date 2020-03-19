@@ -94,8 +94,7 @@ class RobotModelGroundHeightProvider(object):
         self.model = model
 
     def getGroundHeight(self):
-        from director.footstepsdriver import FootstepsDriver
-        return FootstepsDriver.getFeetMidPoint(self.model).GetPosition()[2]
+        return self.model.getFeetMidPoint().GetPosition()[2]
 
 
 class RobotModelViewProvider(object):
