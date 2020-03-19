@@ -792,23 +792,6 @@ def getFootFramesFromReferenceFrame(referenceFrame, stanceWidth, stanceRotation,
     return stanceFrame, lfootFrame, rfootFrame
 
 
-def poseFromFrame(frame):
-
-    import bot_core as lcmbotcore
-
-    pos, quat = transformUtils.poseFromTransform(frame)
-    trans = lcmbotcore.vector_3d_t()
-    trans.x, trans.y, trans.z = pos
-
-    quatMsg = lcmbotcore.quaternion_t()
-    quatMsg.w, quatMsg.x, quatMsg.y, quatMsg.z = quat
-
-    pose = lcmbotcore.position_3d_t()
-    pose.translation = trans
-    pose.rotation = quatMsg
-    return pose
-
-
 def cropToPlane(polyData, origin, normal, threshold):
     polyData = shallowCopy(polyData)
     normal = normal/np.linalg.norm(normal)
