@@ -130,7 +130,7 @@ updatePolyData = segmentation.updatePolyData
 ###############################################################################
 
 
-robotSystem = robotsystem.create(view)
+robotSystem = robotsystem.create(view, modelName=drcargs.getDirectorConfig()['modelName'])
 globals().update(dict(robotSystem))
 
 
