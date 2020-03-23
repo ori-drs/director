@@ -373,11 +373,11 @@ selectorAction = app.getMainWindow().toolBar().addWidget(selector)
 if "modelName" not in directorConfigFull:
     robotSystems = []
     for robot in directorConfigFull:
-        robotSystems.append(robotsystem.create(view, robotName=robot, modelName=directorConfigFull[robot]['modelName']))
+        robotSystems.append(robotsystem.create(view, robotName=robot))
 
     app.getMainWindow().toolBar().addSeparator()
 else:
-    robotSystems = [robotsystem.create(view, modelName=directorConfigFull['modelName'])]
+    robotSystems = [robotsystem.create(view, robotName="")]
     selectorAction.setVisible(False)
 
 setupScene = True  # The scene setup is done only once, unset this flag once it is done
@@ -483,11 +483,12 @@ for robotSystem in robotSystems:
     # reset time button and connections
     button = QtGui.QPushButton('Reset time')
     button.setObjectName("resettime")
-    button.connect('clicked()', robotSystem.pointCloudSource.resetTime)
-    button.connect('clicked()', robotSystem.gridMapSource.resetTime)
-    button.connect('clicked()', robotSystem.gridMapLidarSource.resetTime)
-    button.connect('clicked()', robotSystem.headCameraPointCloudSource.resetTime)
-    button.connect('clicked()', robotSystem.groundCameraPointCloudSource.resetTime)
+
+    # Connect reset time button to all sources. Assumes that the source name ends with "source"
+    for name, attr in robotSystem:
+        if str.lower(name).endswith("source"):
+            button.connect('clicked()', attr.resetTime)
+
     button.connect('clicked()', cameraview.cameraView.resetTime)
     app.getMainWindow().statusBar().addPermanentWidget(button)
     app.getRobotSelector().associateWidgetWithRobot(button, robotSystem.robotName)
