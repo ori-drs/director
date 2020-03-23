@@ -373,11 +373,11 @@ selectorAction = app.getMainWindow().toolBar().addWidget(selector)
 if "modelName" not in directorConfigFull:
     robotSystems = []
     for robot in directorConfigFull:
-        robotSystems.append(robotsystem.create(view, robotName=robot, modelName=drcargs.getDirectorConfig()['modelName']))
+        robotSystems.append(robotsystem.create(view, robotName=robot, modelName=directorConfigFull[robot]['modelName']))
 
     app.getMainWindow().toolBar().addSeparator()
 else:
-    robotSystems = [robotsystem.create(view, modelName=drcargs.getDirectorConfig()['modelName'])]
+    robotSystems = [robotsystem.create(view, modelName=directorConfigFull['modelName'])]
     selectorAction.setVisible(False)
 
 setupScene = True  # The scene setup is done only once, unset this flag once it is done
