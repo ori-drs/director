@@ -213,11 +213,6 @@ class RobotModelItem(om.ObjectModelItem):
 
 
 def loadRobotModel(name=None, view=None, parent='scene', urdfFile=None, color=None, visible=True, colorMode='URDF Colors', useConfigFile=True, robotName=""):
-    if not urdfFile:
-        if not robotName:
-            urdfFile = drcargs.getDirectorConfig()['urdfConfig']['default']
-        else:
-            urdfFile = drcargs.getDirectorConfig()[robotName]['urdfConfig']['default']
 
     if isinstance(parent, str):
         parent = om.getOrCreateContainer(parent)

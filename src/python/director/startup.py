@@ -760,7 +760,7 @@ for robotSystem in robotSystems:
     imageViewHandler = ToggleImageViewHandler(imageWidget)
 
     screengrabberpanel.init(view, imageWidget, robotSystem.robotName)
-    framevisualization.init(view)
+    #framevisualization.init(view)
     affordancePanel = affordancepanel.init(view, robotSystem.affordanceManager, robotSystem.robotStateJointController)
     cameraBooksmarksPanel = camerabookmarks.init(view)
 
