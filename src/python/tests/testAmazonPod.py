@@ -2,7 +2,7 @@ import os
 import math
 import vtk
 from director.consoleapp import ConsoleApp
-from director import ioUtils
+from director import ioutils
 from director import segmentation
 from director import segmentationroutines
 from director import applogic
@@ -86,7 +86,7 @@ segmentationroutines.SegmentationContext.initWithRobot(robotStateModel)
 
 # load poly data
 dataDir = app.getTestingDataDirectory()
-polyData = ioUtils.readPolyData(os.path.join(dataDir, 'misc/amazon-pod/01-small-changes.vtp'))
+polyData = ioutils.readPolyData(os.path.join(dataDir, 'misc/amazon-pod/01-small-changes.vtp'))
 vis.showPolyData(polyData, 'pointcloud snapshot', visible=False)
 
 # remove ground and clip to just the pod:

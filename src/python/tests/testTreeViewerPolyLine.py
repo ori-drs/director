@@ -9,9 +9,7 @@ from director.viewerclient import Visualizer, PolyLine, GeometryData
 
 
 if __name__ == '__main__':
-    # We'll open the visualizer by spawning it as a subprocess. See
-    # testDrakeVisualizer.py for an example of how to spawn it within Python
-    # instead.
+    # We'll open the visualizer by spawning it as a subprocess.
     vis_binary = os.path.join(os.path.dirname(sys.executable),
                               "drake-visualizer")
 

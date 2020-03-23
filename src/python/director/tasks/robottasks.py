@@ -7,13 +7,12 @@ from director import pointpicker
 from director import planplayback
 from director.timercallback import TimerCallback
 from director.simpletimer import SimpleTimer
-from director import ikplanner
 from director import callbacks
 from director import robotsystem
 from director import transformUtils
 from director import affordanceitems
 from director import vtkNumpy as vnp
-from director.debugVis import DebugData
+from director.debugpolydata import DebugData
 from director import vtkAll as vtk
 #from director import lcmUtils
 import numpy as np
@@ -416,17 +415,6 @@ class WaitForManipulationPlanExecution(WaitForPlanExecution):
         lastPlan = robotSystem.manipPlanner.committedPlans.pop()
         robotSystem.manipPlanner.commitManipPlan(lastPlan)
 
-class WaitForWalkExecution(WaitForPlanExecution):
-
-    def getType(self):
-        return lcmdrc.plan_status_t.WALKING
-
-    def getTypeLabel(self):
-        return 'walking'
-
-    def recommitPlan(self):
-        lastPlan = robotSystem.footstepsDriver.committedPlans.pop()
-        robotSystem.footstepsDriver.commitFootstepPlan(lastPlan)
 
 class UserSelectAffordanceCandidate(AsyncTask):
 
@@ -523,7 +511,7 @@ class ComputeRobotFootFrame(AsyncTask):
             pose = robotSystem.ikPlanner.jointController.getPose(poseName)
 
         robotModel = robotSystem.ikPlanner.getRobotModelAtPose(pose)
-        footFrame = robotSystem.footstepsDriver.getFeetMidPoint(robotModel)
+        footFrame = robotModel.getFeetMidPoint()
         vis.updateFrame(footFrame, self.properties.getProperty('Frame output name'), scale=0.2)
 
 
@@ -762,24 +750,6 @@ class WaitForGraspingState(AsyncTask):
             self.fail("Grasping state timeout")
 
 
-class CommitFootstepPlan(AsyncTask):
-
-    @staticmethod
-    def getDefaultProperties(properties):
-        properties.addProperty('Plan name', '')
-
-    def run(self):
-
-        #planName = self.properties.getProperty('Plan name')
-        #plan = om.findObjectByName(planName)
-        #if not isinstance(plan, FootstepPlanItem):
-        #    self.fail('could not find footstep plan')
-        #plan = plan.plan
-        plan = robotSystem.footstepsDriver.lastFootstepPlan
-
-        robotSystem.footstepsDriver.commitFootstepPlan(plan)
-
-
 class CommitManipulationPlan(AsyncTask):
 
     @staticmethod
@@ -797,30 +767,6 @@ class CommitManipulationPlan(AsyncTask):
         robotSystem.manipPlanner.commitManipPlan(plan)
 
 
-class RequestWalkingPlan(AsyncTask):
-
-    @staticmethod
-    def getDefaultProperties(properties):
-        properties.addProperty('Start pose name', 'EST_ROBOT_STATE')
-        properties.addProperty('Footstep plan name', '')
-
-
-    def run(self):
-        poseName = self.properties.getProperty('Start pose name')
-        if poseName == 'EST_ROBOT_STATE':
-            pose = robotSystem.robotStateJointController.q.copy()
-        else:
-            pose = robotSystem.ikPlanner.jointController.getPose(poseName)
-
-        planName = self.properties.getProperty('Footstep plan name')
-        plan = om.findObjectByName(planName)
-        if not isinstance(plan, FootstepPlanItem):
-            self.fail('could not find footstep plan: %s' % planName)
-        plan = plan.plan
-
-        robotSystem.footstepsDriver.sendWalkingPlanRequest(plan, pose, waitForResponse=True)
-
-
 def _addPlanItem(plan, name, itemClass):
         assert plan is not None
         item = itemClass(name)
@@ -828,31 +774,6 @@ def _addPlanItem(plan, name, itemClass):
         om.removeFromObjectModel(om.findObjectByName(name))
         om.addToObjectModel(item, om.getOrCreateContainer('segmentation'))
         return item
-
-
-class RequestFootstepPlan(AsyncTask):
-
-    @staticmethod
-    def getDefaultProperties(properties):
-        properties.addProperty('Stance frame name', 'stance frame')
-        properties.addProperty('Start pose name', 'EST_ROBOT_STATE')
-
-    def run(self):
-        poseName = self.properties.getProperty('Start pose name')
-        if poseName == 'EST_ROBOT_STATE':
-            pose = robotSystem.robotStateJointController.q.copy()
-        else:
-            pose = robotSystem.ikPlanner.jointController.getPose(poseName)
-
-        goalFrame = om.findObjectByName(self.properties.getProperty('Stance frame name')).transform
-
-        request = robotSystem.footstepsDriver.constructFootstepPlanRequest(pose, goalFrame)
-        footstepPlan = robotSystem.footstepsDriver.sendFootstepPlanRequest(request, waitForResponse=True)
-
-        if not footstepPlan:
-            self.fail('failed to get a footstep plan response')
-
-        _addPlanItem(footstepPlan, self.properties.getProperty('Stance frame name') + ' footstep plan', FootstepPlanItem)
 
 
 class PlanPostureGoal(AsyncTask):
@@ -1014,7 +935,6 @@ class SpawnValveAffordance(AsyncTask):
         #baseLinkFrame.PostMultiply()
         #baseLinkFrame.Translate(0,0,-baseLinkFrame.GetPosition()[2])
         return baseLinkFrame
-        #return robotSystem.footstepsDriver.getFeetMidPoint(robotModel)
 
     def computeValveFrame(self):
         position = self.properties.getProperty('Position')
@@ -1058,7 +978,6 @@ class SpawnDrillBarrelAffordance(AsyncTask):
         #baseLinkFrame.PostMultiply()
         #baseLinkFrame.Translate(0,0,-baseLinkFrame.GetPosition()[2])
         return baseLinkFrame
-        #return robotSystem.footstepsDriver.getFeetMidPoint(robotModel)
 
     def computeAffordanceFrame(self):
         position = self.properties.getProperty('Position')
@@ -1098,7 +1017,6 @@ class SpawnDrillRotaryAffordance(AsyncTask):
         #baseLinkFrame.PostMultiply()
         #baseLinkFrame.Translate(0,0,-baseLinkFrame.GetPosition()[2])
         return baseLinkFrame
-        #return robotSystem.footstepsDriver.getFeetMidPoint(robotModel)
 
     def computeAffordanceFrame(self):
         position = self.properties.getProperty('Position')
@@ -1119,85 +1037,3 @@ class SpawnDrillRotaryAffordance(AsyncTask):
         affordance.actor.SetUserTransform(frame.transform)
         affordance.setAffordanceParams(params)
         affordance.updateParamsFromActorTransform()
-
-
-class PlanGazeTrajectory(AsyncTask):
-
-    @staticmethod
-    def getDefaultProperties(properties):
-        properties.addProperty('Target frame name', '')
-        properties.addProperty('Annotation input name', '')
-        properties.addProperty('Side', 1, attributes=om.PropertyAttributes(enumNames=['Left', 'Right']))
-
-        properties.addProperty('Cone threshold degrees', 5.0, attributes=om.PropertyAttributes(decimals=1, minimum=0, maximum=360))
-        properties.addProperty('Palm offset', 0.0, attributes=om.PropertyAttributes(decimals=3, minimum=-1e4, maximum=1e4))
-
-
-    def getAnnotationInputPoints(self):
-        obj = om.findObjectByName(self.properties.getProperty('Annotation input name'))
-        if obj is None:
-            self.fail('user annotation not found')
-        return obj.annotationPoints
-
-
-    def appendPositionConstraintForTargetFrame(self, goalFrame, t):
-        positionConstraint, _ = self.ikPlanner.createPositionOrientationGraspConstraints(self.graspingHand, goalFrame, self.graspToHandLinkFrame)
-        positionConstraint.tspan = [t, t]
-        self.constraintSet.constraints.append(positionConstraint)
-
-    def initGazeConstraintSet(self, goalFrame):
-
-        # create constraint set
-
-        startPose = robotSystem.robotStateJointController.q.copy()
-        startPoseName = 'gaze_plan_start'
-        endPoseName = 'gaze_plan_end'
-        self.ikPlanner.addPose(startPose, startPoseName)
-        self.ikPlanner.addPose(startPose, endPoseName)
-        self.constraintSet = ikplanner.ConstraintSet(self.ikPlanner, [], startPoseName, endPoseName)
-        self.constraintSet.endPose = startPose
-
-        # add body constraints
-        bodyConstraints = self.ikPlanner.createMovingBodyConstraints(startPoseName, lockBase=True, lockBack=False, lockLeftArm=self.graspingHand=='right', lockRightArm=self.graspingHand=='left')
-        self.constraintSet.constraints.extend(bodyConstraints)
-
-        # add gaze constraint
-        self.graspToHandLinkFrame = self.ikPlanner.newPalmOffsetGraspToHandFrame(self.graspingHand, self.properties.getProperty('Palm offset'))
-        gazeConstraint = self.ikPlanner.createGazeGraspConstraint(self.graspingHand, goalFrame, self.graspToHandLinkFrame, coneThresholdDegrees=self.properties.getProperty('Cone threshold degrees'))
-        self.constraintSet.constraints.insert(0, gazeConstraint)
-
-
-    def getGazeTargetFrame(self):
-        frame = om.findObjectByName(self.properties.getProperty('Target frame name'))
-        if not frame:
-            self.fail('could not find ground frame')
-        return frame
-
-    def run(self):
-
-        self.ikPlanner = robotSystem.ikPlanner
-        side = self.properties.getPropertyEnumValue('Side').lower()
-        self.graspingHand = side
-
-        targetPoints = self.getAnnotationInputPoints()
-        gazeTargetFrame = self.getGazeTargetFrame()
-
-        self.initGazeConstraintSet(gazeTargetFrame)
-
-        numberOfSamples = len(targetPoints)
-
-        for i in xrange(numberOfSamples):
-            targetPos = targetPoints[i]
-            targetFrame = transformUtils.copyFrame(gazeTargetFrame.transform)
-            targetFrame.Translate(targetPos - np.array(targetFrame.GetPosition()))
-            self.appendPositionConstraintForTargetFrame(targetFrame, i+1)
-
-        gazeConstraint = self.constraintSet.constraints[0]
-        assert isinstance(gazeConstraint, ikplanner.ikconstraints.WorldGazeDirConstraint)
-        gazeConstraint.tspan = [1.0, numberOfSamples]
-
-
-        plan = self.constraintSet.runIkTraj()
-
-        _addPlanItem(plan, '%s gaze plan' % gazeTargetFrame.getProperty('Name'), ManipulationPlanItem)
-

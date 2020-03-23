@@ -1,7 +1,7 @@
 import os
 import math
 from director.consoleapp import ConsoleApp
-from director import ioUtils
+from director import ioutils
 from director import segmentation
 from director import segmentationroutines
 from director import applogic
@@ -29,7 +29,7 @@ robotStateJointController.push()
 
 # load poly data
 dataDir = app.getTestingDataDirectory()
-polyData = ioUtils.readPolyData(os.path.join(dataDir, 'misc/tabletop/table-and-bin-scene.vtp'))
+polyData = ioutils.readPolyData(os.path.join(dataDir, 'misc/tabletop/table-and-bin-scene.vtp'))
 vis.showPolyData(polyData, 'pointcloud snapshot')
 
 p1 = [-1.58661389,  2.91242337,  0.79958105]

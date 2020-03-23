@@ -7,8 +7,9 @@ from director import callbacks
 from director import cameracontrol
 from director import splinewidget
 from director import transformUtils
-from director import teleoppanel
-from director import footstepsdriverpanel
+from director.debugpolydata import DebugData
+from director.pointpicker import PlacerWidget
+from director import vtkNumpy as vnp
 from director import applogic as app
 from director import vtkAll as vtk
 from director import filterUtils
@@ -23,13 +24,12 @@ from director.utime import getUtime
 from director import drcargs
 
 import numpy as np
-import ioUtils
+import ioutils
 import os
 import re
 import random
 import colorsys
 
-#import bot_core as lcmbotcore
 
 # todo: refactor these global variables
 # several functions in this module depend on these global variables
@@ -37,7 +37,6 @@ import colorsys
 # These could be refactored to be members of a new behaviors class.
 robotSystem = None
 robotModel = None
-footstepsDriver = None
 robotLinkSelector = None
 lastRandomColor = 0.0
 
@@ -140,8 +139,6 @@ def placeHandModel(displayPoint, view, side='left'):
 
 def newWalkingGoal(displayPoint, view):
 
-    # put walking goal at robot's feet
-    #footFrame = footstepsDriver.getFeetMidPoint(robotModel)
     # put walking goal at robot's base
     mainLink = drcargs.getDirectorConfig()['pelvisLink']
     footFrame = robotModel.getLinkFrame(mainLink)
@@ -157,8 +154,49 @@ def newWalkingGoal(displayPoint, view):
 
     walkingTarget = transformUtils.frameFromPositionAndRPY(selectedGroundPoint, np.array(footFrame.GetOrientation()))
 
-    footstepsdriverpanel.panel.onNewWalkingGoal(walkingTarget)
+    frameObj = vis.updateFrame(walkingTarget, 'walking goal', parent='planning', scale=0.25)
+    frameObj.setProperty('Edit', True)
 
+
+    rep = frameObj.widget.GetRepresentation()
+    rep.SetTranslateAxisEnabled(2, False)
+    rep.SetRotateAxisEnabled(0, False)
+    rep.SetRotateAxisEnabled(1, False)
+    frameObj.widget.HandleRotationEnabledOff()
+
+    terrain = om.findObjectByName('HEIGHT_MAP_SCENE')
+    if terrain:
+
+        pos = np.array(frameObj.transform.GetPosition())
+
+        polyData = filterUtils.removeNonFinitePoints(terrain.polyData)
+        if polyData.GetNumberOfPoints():
+            polyData = segmentation.labelDistanceToLine(polyData, pos, pos+[0,0,1])
+            polyData = segmentation.thresholdPoints(polyData, 'distance_to_line', [0.0, 0.1])
+            if polyData.GetNumberOfPoints():
+                pos[2] = np.nanmax(vnp.getNumpyFromVtk(polyData, 'Points')[:,2])
+                frameObj.transform.Translate(pos - np.array(frameObj.transform.GetPosition()))
+
+        d = DebugData()
+        d.addSphere((0,0,0), radius=0.03)
+        handle = vis.showPolyData(d.getPolyData(), 'walking goal terrain handle', parent=frameObj, visible=True, color=[1,1,0])
+        handle.actor.SetUserTransform(frameObj.transform)
+        placer = PlacerWidget(app.getCurrentRenderView(), handle, terrain)
+
+        def onFramePropertyModified(propertySet, propertyName):
+            if propertyName == 'Edit':
+                if propertySet.getProperty(propertyName):
+                    placer.start()
+                else:
+                    placer.stop()
+
+        frameObj.properties.connectPropertyChanged(onFramePropertyModified)
+        onFramePropertyModified(frameObj, 'Edit')
+
+    frameObj.connectFrameModified(onWalkingGoalModified)
+
+def onWalkingGoalModified(frame):
+    om.removeFromObjectModel(om.findObjectByName('footstep widget'))
 
 def onNewDrivingGoal(frame):
     msg = lcmbotcore.pose_t()
@@ -250,19 +288,7 @@ def toggleFootstepWidget(displayPoint, view, useHorizontalWidget=False):
     if walkGoal:
         walkGoal.setProperty('Edit', False)
 
-
-    def onFootWidgetChanged(frame):
-        footstepsDriver.onStepModified(stepIndex - 1, frame)
-
-    frameObj.connectFrameModified(onFootWidgetChanged)
     return True
-
-
-def reachToFrame(frameObj, side, collisionObj):
-    goalFrame = teleoppanel.panel.endEffectorTeleop.newReachTeleop(frameObj.transform, side, collisionObj)
-    goalFrame.frameSync = vis.FrameSync()
-    goalFrame.frameSync.addFrame(goalFrame, ignoreIncoming=True)
-    goalFrame.frameSync.addFrame(frameObj)
 
 
 def getAsFrame(obj):
@@ -565,12 +591,8 @@ class RobotViewEventFilter(ViewEventFilter):
     def onLeftMousePress(self, event):
         if event.modifiers() == QtCore.Qt.ControlModifier:
             displayPoint = self.getMousePositionInView(event)
-            if footstepsDriver:
-                newWalkingGoal(displayPoint, self.view)
-                self.consumeEvent()
-            else:
-                newDrivingGoal(displayPoint, self.view)
-                self.consumeEvent()
+            newWalkingGoal(displayPoint, self.view)
+            self.consumeEvent()
 
         for picker in segmentation.viewPickers:
             if not picker.enabled:
@@ -621,10 +643,9 @@ class RobotViewBehaviors(object):
         self.viewBehaviors = viewbehaviors.ViewBehaviors(view)
         self.robotViewBehaviors = RobotViewEventFilter(view)
 
-        global robotSystem, robotModel, footstepsDriver, robotLinkSelector
+        global robotSystem, robotModel, robotLinkSelector
 
         robotSystem = _robotSystem
         robotModel = robotSystem.robotStateModel
-        footstepsDriver = robotSystem.footstepsDriver
         if app.getMainWindow() is not None:
             robotLinkSelector = RobotLinkSelector()

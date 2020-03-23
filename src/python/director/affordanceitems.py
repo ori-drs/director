@@ -3,11 +3,11 @@ import director.objectmodel as om
 from director import visualization as vis
 from director.visualization import PolyDataItem
 from director import filterUtils
-from director import ioUtils
+from director import ioutils
 from director import meshmanager
 from director import transformUtils
 from director.uuidutil import newUUID
-from director.debugVis import DebugData
+from director.debugpolydata import DebugData
 from director import vtkAll as vtk
 import numpy as np
 
@@ -235,7 +235,7 @@ class MeshAffordanceItem(AffordanceItem):
                 filename = os.path.join(director.getDRCBaseDir(), filename)
 
             if os.path.isfile(filename):
-                polyData = ioUtils.readPolyData(filename)
+                polyData = ioutils.readPolyData(filename)
             else:
                 # use axes as a placeholder mesh
                 d = DebugData()
