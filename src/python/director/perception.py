@@ -718,7 +718,7 @@ class PointCloudSource(vis.PolyDataItem):
                 self.timer.stop()
         elif propertyName == 'Number of Point Clouds':
             numberOfPointCloud = self.getProperty(propertyName)
-            self.provider.SetNumberOfPointClouds(numberOfPointCloud)
+            self.provider.set_num_pointclouds(numberOfPointCloud)
 
         if self.provider:
             self.provider._on_property_changed(propertySet, propertyName)
