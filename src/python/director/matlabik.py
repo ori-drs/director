@@ -421,7 +421,8 @@ class AsyncIKCommunicator():
         commands.append('eeId = r.findLinkId(\'{:s}\');'.format(eeName))
         commands.append('additional_constraints = {};')
         commands.append('goal_constraints = {};')
-        commands.append('capability_map = CapabilityMap([\'{:s}\', \'/{:s}\']);'.format(os.path.dirname(drcargs.args().directorConfigFile), drcargs.getDirectorConfig()['capabilityMapFile']))
+        commands.append('capability_map = CapabilityMap([\'{:s}\', \'/{:s}\']);'.format(os.path.dirname(drcargs.args().directorConfigFile), drcargs.getRobotConfig(
+            None)['capabilityMapFile']))
         for constraint in constraintNames:
             commands.append('if isa({0:s}, \'Point2PointDistanceConstraint\') && {0:s}.body_a.idx == eeId '
                             '|| isa({0:s}, \'EulerConstraint\') && {0:s}.body == eeId '

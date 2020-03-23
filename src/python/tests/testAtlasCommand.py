@@ -699,7 +699,7 @@ class JointTeleopPanel(object):
             mirrorJoint = jointName.replace('l_', 'r_') if jointName.startswith('l_') else jointName.replace('r_', 'l_')
             mirrorIndex = self.toJointIndex(mirrorJoint)
             mirrorValue = jointValue
-            if mirrorJoint in drcargs.getDirectorConfig()['mirrorJointSignFlips']:
+            if mirrorJoint in drcargs.getRobotConfig()['mirrorJointSignFlips']:
                 mirrorValue = -mirrorValue
             self.endPose[mirrorIndex] = mirrorValue
 
@@ -745,7 +745,7 @@ class AtlasCommandPanel(object):
         self.view = self.app.createView()
         self.robotSystem = robotsystem.create(self.view)
 
-        self.config = drcargs.getDirectorConfig()
+        self.config = drcargs.getRobotConfig()
         jointGroups = self.config['teleopJointGroups']
         self.jointTeleopPanel = JointTeleopPanel(self.robotSystem, jointGroups)
         self.jointCommandPanel = JointCommandPanel(self.robotSystem)

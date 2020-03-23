@@ -199,7 +199,7 @@ class FixedLinkFromRobotPoseConstraintQuadruped (ConstraintBase):
                           #quaternionVarName=quaternionVarName,
 
         # HARDCODED MAGIC NUMBERS
-        if drcargs.getDirectorConfig()['modelName'] == 'hyq':
+        if drcargs.getRobotConfig(None)['modelName'] == 'hyq':
             # 0.341 is the distance down to the end of the foot on HyQ
             commands.append(
                'point_in_link_frame = [0.341; 0; 0];\n'

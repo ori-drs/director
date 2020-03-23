@@ -198,9 +198,7 @@ class CameraView(object):
 
         try:
             if self.robotName:
-                self.images = [camera['name'] for camera in drcargs.getDirectorConfig()[self.robotName]['sensors']['camera']['color']]
-            else:
-                self.images = [camera['name'] for camera in drcargs.getDirectorConfig()['sensors']['camera']['color']]
+                self.images = [camera['name'] for camera in drcargs.getRobotConfig(self.robotName)['sensors']['camera']['color']]
         except KeyError as e:
             raise Exception("CameraView requires color cameras to be defined at sensors/camera/color."
                             " Check your director config.")
@@ -677,9 +675,7 @@ def init(view=None, addToView=True, robotName=""):
     global cameraView
     cameraView = CameraView(imageManager, view, robotName)
 
-    directorConfig = drcargs.getDirectorConfig()
-    if "modelName" not in directorConfig:
-        directorConfig = drcargs.getDirectorConfig()[robotName]
+    directorConfig = drcargs.getRobotConfig(robotName)
 
     _modelName = directorConfig['modelName']
     cameraNames = imageManager.images[robotName]

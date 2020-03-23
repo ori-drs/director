@@ -2052,12 +2052,12 @@ def refitDrillWall(aff, point1, origin, normal):
 
 # this should be depreciated!
 def getGroundHeightFromFeet():
-    rfoot = getLinkFrame( drcargs.getDirectorConfig()['rightFootLink'] )
+    rfoot = getLinkFrame(drcargs.getRobotConfig(None)['rightFootLink'])
     return np.array(rfoot.GetPosition())[2] -  0.0745342
 
 # this should be depreciated!
 def getTranslationRelativeToFoot(t):
-    rfoot = getLinkFrame( drcargs.getDirectorConfig()['rightFootLink'] )
+    rfoot = getLinkFrame(drcargs.getRobotConfig(None)['rightFootLink'])
 
 
 def segmentDrillWallConstrained(rightAngleLocation, point1, point2):
@@ -2159,7 +2159,7 @@ def createDrillWall(rightAngleLocation, trianglePose):
 
 
     '''
-    rfoot = getLinkFrame(drcargs.getDirectorConfig()['rightFootLink'])
+    rfoot = getLinkFrame(drcargs.getRobotConfig()['rightFootLink'])
     tt = getTransformFromAxes(xaxis, yaxis, zaxis)
     tt.PostMultiply()
     tt.Translate(rfoot.GetPosition())

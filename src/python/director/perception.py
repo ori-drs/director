@@ -897,10 +897,7 @@ def init(view, robotStateJointController):
     sensorsFolder = om.getOrCreateContainer('sensors', om.getOrCreateContainer(robotStateJointController.robotName or
                                                                                "Robot"))
 
-    if robotStateJointController.robotName:
-        config = drcargs.getDirectorConfig()[robotStateJointController.robotName]['perceptionSources']
-    else:
-        config = drcargs.getDirectorConfig()['perceptionSources']
+    config = drcargs.getRobotConfig(robotStateJointController.robotName)['perceptionSources']
 
     validSourceTypes = ['gridMap', 'depthImagePointCloud', 'pointCloud']
 

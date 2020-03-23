@@ -40,9 +40,6 @@ class DRCArgParser(object):
         self._args.data_files = flatten(self._args.data_files)
 
 
-    def getDefaultBotConfigFile(self):
-        return os.path.join(director.getDRCBaseDir(), 'config/anymal/robot.cfg')
-
     def getDefaultDirectorConfigFile(self):
         return self.getDefaultAnymalDirectorConfigFile();
 
@@ -161,21 +158,25 @@ class DRCArgParser(object):
 
     def addDefaultArgs(self, parser):
 
-        parser.add_argument('-c', '--bot-config', '--config_file', dest='config_file',
-                            metavar='filename', type=str, help='Robot cfg file')
-
         parser.add_argument('--matlab-host', metavar='hostname', type=str,
                             help='hostname to connect with external matlab server')
 
+        class IgnoreROSArgsAction(argparse.Action):
+            """
+            This action allows us to ignore ROS arguments, which are always added and prefixed by __
+            """
+            def __call__(self, parser, namespace, values, option_string=None):
+                valid_paths = [path for path in values if not path.startswith("__")]
+                setattr(namespace, self.dest, valid_paths)
+
         directorConfig = parser.add_mutually_exclusive_group(required=False)
         directorConfig.add_argument('--director-config', '--director_config', dest='directorConfigFile',
-                                    type=str, default='', metavar='filename',
-                                    help='YAML file specifying which urdfs to use')
+                                    default=[], metavar='filename', nargs='+', action=IgnoreROSArgsAction,
+                                    help='YAML files specifying configurations for robots to display')
 
         if director.getDRCBaseIsSet():
             self.addOpenHumanoidsConfigShortcuts(directorConfig)
-            parser.set_defaults(directorConfigFile=self.getDefaultDirectorConfigFile(),
-                                config_file=self.getDefaultBotConfigFile())
+            parser.set_defaults(directorConfigFile=self.getDefaultDirectorConfigFile())
 
         if self._isPyDrakeAvailable():
             self.addDrakeConfigShortcuts(directorConfig)
@@ -206,46 +207,77 @@ def requireStrict():
 def args():
     return getGlobalArgParser().getArgs()
 
+class RobotConfig(object):
+
+    def __init__(self, configPath):
+        if not os.path.isfile(configPath):
+            raise Exception('Director config file not found: %s' % configPath)
+
+        self.dirname = os.path.dirname(os.path.abspath(configPath))
+        self.config = yaml.safe_load(open(configPath))
+
+        self.config['fixedPointFile'] = os.path.join(self.dirname, self.config['fixedPointFile'])
+
+        urdfConfig = self.config['urdfConfig']
+        for key, urdf in list(urdfConfig.items()):
+            urdfConfig[key] = os.path.join(self.dirname, urdf)
+
+        print(self.config['colorMode'])
+
+    def __getitem__(self, key):
+        """Used for dictionary accesses to on a robotconfig object"""
+        return self.config[key]
+
+    def __contains__(self, item):
+        """Used for 'in' statements on a robotconfig object"""
+        return item in self.config
+
+    def get(self, item):
+        """Some places call get rather than using []"""
+        return self[item]
 
 class DirectorConfig(object):
 
-    def __init__(self, filename):
-
-        self.filename = filename
-        if not os.path.isfile(filename):
-            raise Exception('Director config file not found: %s' % filename)
-
-        self.dirname = os.path.dirname(os.path.abspath(filename))
-        self.config = yaml.safe_load(open(filename))
-
-        if self.config.get('fixedPointFile'):
-            self.config['fixedPointFile'] = os.path.join(self.dirname, self.config['fixedPointFile'])
-        else:
-            for robot in self.config:
-                self.config[robot]['fixedPointFile'] = os.path.join(self.dirname, self.config[robot]['fixedPointFile'])
-
-        urdfConfigs = []
-        if self.config.get('urdfConfig'):
-            urdfConfigs.append(self.config['urdfConfig'])
-        else:
-            for robot in self.config:
-                urdfConfigs.append(self.config[robot]['urdfConfig'])
-
-        for urdfConfig in urdfConfigs:
-            for key, urdf in list(urdfConfig.items()):
-                urdfConfig[key] = os.path.join(self.dirname, urdf)
-
     _defaultInstance = None
+
+    def __init__(self, filePaths):
+
+        self.robotConfigs = {}
+
+        self.file_paths = filePaths
+        for path in self.file_paths:
+            robotConfig = RobotConfig(path)
+            self.robotConfigs[robotConfig['robotName']] = robotConfig
+
+    def getConfig(self, robotName):
+        """
+        Get the configuration for a robot with the given name. If no name is given and there is only a single
+        configuration, the function will return it. Otherwise, throw a ValueError
+
+        :param robotName: The name of the robot whose configuration is to be retrieved
+        :return:
+        """
+        if not robotName:
+            if len(self.robotConfigs) == 1:
+                import warnings
+                warnings.warn("DirectorConfig.getConfig should be called with a valid robot name and not an empty "
+                              "string. Be specific about the robot you want the configuration for.")
+                return self.robotConfigs[self.robotConfigs.keys()[0]]
+            else:
+                raise ValueError("DirectorConfig.getConfig was called without a valid robotName specified and had "
+                                 "more than one robot. A name should be specified when calling.")
+        else:
+            return self.robotConfigs[robotName]
 
     @classmethod
     def getDefaultInstance(cls):
         if cls._defaultInstance is None:
             if not args().directorConfigFile:
-                raise Exception('Director config file is not defined. '
+                raise Exception('Director config file is not defined. You must pass at least one.'
                                 'Use --director-config <filename> on the command line.')
             cls._defaultInstance = DirectorConfig(args().directorConfigFile)
         return cls._defaultInstance
 
 
-def getDirectorConfig():
-    return DirectorConfig.getDefaultInstance().config
+def getRobotConfig(robotName=""):
+    return DirectorConfig.getDefaultInstance().getConfig(robotName)

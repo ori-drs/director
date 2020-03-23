@@ -156,20 +156,14 @@ class RobotState(object):
     def getDrakePoseJointNames(self):
 
         if not self._drakePoseJointNames:
-            if not self.robotName:
-                self._drakePoseJointNames = drcargs.getDirectorConfig()['drakeJointNames']
-            else:
-                self._drakePoseJointNames = drcargs.getDirectorConfig()[self.robotName]['drakeJointNames']
+            self._drakePoseJointNames = drcargs.getRobotConfig(self.robotName)['drakeJointNames']
 
         return self._drakePoseJointNames
 
     def getRobotStateJointNames(self):
 
         if not self._robotStateJointNames:
-            if not self.robotName:
-                self._robotStateJointNames = drcargs.getDirectorConfig()['robotStateJointNames']
-            else:
-                self._robotStateJointNames = drcargs.getDirectorConfig()[self.robotName]['robotStateJointNames']
+            self._robotStateJointNames = drcargs.getRobotConfig(self.robotName)['robotStateJointNames']
 
         return self._robotStateJointNames
 

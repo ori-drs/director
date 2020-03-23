@@ -49,10 +49,7 @@ class RobotViewBehaviors(object):
         viewbehaviors.registerContextMenuActions(self.getRobotActions)
 
     def resetCameraToRobot(self, view):
-        if 'pelvisLink' in drcargs.getDirectorConfig():
-            link = drcargs.getDirectorConfig()['pelvisLink']
-        else:
-            link = drcargs.getDirectorConfig()[self.robotName]['pelvisLink']
+        link = drcargs.getRobotConfig(self.robotName)['pelvisLink']
 
         t = self.robotModel.getLinkFrame(link)
         if t is None:
@@ -66,10 +63,7 @@ class RobotViewBehaviors(object):
         flyer.zoomTo(focalPoint, position)
 
     def resetCameraToRobotAbove(self, view):
-        if 'pelvisLink' in drcargs.getDirectorConfig():
-            link = drcargs.getDirectorConfig()['pelvisLink']
-        else:
-            link = drcargs.getDirectorConfig()[self.robotName]['pelvisLink']
+        link = drcargs.getRobotConfig(self.robotName)['pelvisLink']
 
         t = self.robotModel.getLinkFrame(link)
         if t is None:
@@ -84,8 +78,8 @@ class RobotViewBehaviors(object):
 
     def resetCameraToHeadView(self, view):
 
-        head = self.robotModel.getLinkFrame(drcargs.getDirectorConfig()['headLink'])
-        pelvis = self.robotModel.getLinkFrame(drcargs.getDirectorConfig()['pelvisLink'])
+        head = self.robotModel.getLinkFrame(drcargs.getRobotConfig(self.robotName)['headLink'])
+        pelvis = self.robotModel.getLinkFrame(drcargs.getRobotConfig(self.robotName)['pelvisLink'])
 
         viewDirection = np.array([1.0, 0.0, 0.0])
         pelvis.TransformVector(viewDirection, viewDirection)
@@ -108,10 +102,7 @@ class RobotViewBehaviors(object):
         # put walking goal at robot's feet
         #footFrame = footstepsDriver.getFeetMidPoint(robotModel)
         # put walking goal at robot's base
-        if 'pelvisLink' in drcargs.getDirectorConfig():
-            link = drcargs.getDirectorConfig()['pelvisLink']
-        else:
-            link = drcargs.getDirectorConfig()[self.robotName]['pelvisLink']
+        link = drcargs.getRobotConfig(self.robotName)['pelvisLink']
 
         mainLink = link
         footFrame = self.robotModel.getLinkFrame(mainLink)
@@ -134,7 +125,7 @@ class RobotViewBehaviors(object):
         # for husky: the bottom of the wheels.
         # for hyq/anymal the midpoint of the trunk
         # TODO: read the link from the director config
-        mainLink = drcargs.getDirectorConfig()['pelvisLink']
+        mainLink = drcargs.getRobotConfig(self.robotName)['pelvisLink']
         footFrame = self.robotModel.getLinkFrame(mainLink)
 
         worldPt1, worldPt2 = vis.getRayFromDisplayPoint(view, displayPoint)

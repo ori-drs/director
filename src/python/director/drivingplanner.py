@@ -45,8 +45,8 @@ class DrivingPlanner(object):
         self.tagToLocalTransform = transformUtils.transformFromPose([0,0,0],[1,0,0,0])
 
         self.commandStreamChannel = 'JOINT_POSITION_GOAL'
-        self.drivingThrottleJoint = drcargs.getDirectorConfig()['drivingThrottleJoint']
-        self.drivingSteeringJoint = drcargs.getDirectorConfig()['drivingSteeringJoint']
+        self.drivingThrottleJoint = drcargs.getRobotConfig(robotSystem.robotName)['drivingThrottleJoint']
+        self.drivingSteeringJoint = drcargs.getRobotConfig(robotSystem.robotName)['drivingSteeringJoint']
         self.akyIdx =  robotstate.getDrakePoseJointNames().index( self.drivingThrottleJoint )
         self.lwyIdx =  robotstate.getDrakePoseJointNames().index( self.drivingSteeringJoint )
         self.anklePositions = np.array([np.nan,np.nan])
@@ -74,9 +74,8 @@ class DrivingPlanner(object):
         self.steeringCommandTimer.callback = self.publishSteeringCommand
         self.steeringCommandMsg = None
 
-    @staticmethod
-    def isCompatibleWithConfig():
-        return 'drivingThrottleJoint' in drcargs.getDirectorConfig()
+    def isCompatibleWithConfig(self):
+        return 'drivingThrottleJoint' in drcargs.getRobotConfig(self.robotSystem.robotName)
 
     def getInitCommands(self):
 
@@ -806,7 +805,7 @@ class DrivingPlanner(object):
         msg = lcmdrc.joint_position_goal_t()
         msg.utime = getUtime()
         msg.joint_position = ankleGoalPositionRadians
-        msg.joint_name = drcargs.getDirectorConfig()['drivingThrottleJoint']
+        msg.joint_name = drcargs.getRobotConfig(self.robotSystem.robotName)['drivingThrottleJoint']
         self.throttleCommandMsg = msg
 
     def publishThrottleCommand(self):

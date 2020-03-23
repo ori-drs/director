@@ -122,7 +122,8 @@ class ConstraintSet(object):
             eeName = self.ikPlanner.handModels[1].handLinkName
         ikParameters = self.ikPlanner.mergeWithDefaultIkParameters(self.ikParameters)
         eePose = np.concatenate(transformUtils.poseFromTransform(eeTransform))
-        self.endPose, self.info = self.ikPlanner.ikServer.searchFinalPose(self.constraints, side, eeName, eePose, nominalPoseName, drcargs.getDirectorConfig()['capabilityMapFile'], ikParameters)
+        self.endPose, self.info = self.ikPlanner.ikServer.searchFinalPose(self.constraints, side, eeName, eePose, nominalPoseName, drcargs.getRobotConfig(
+            None)['capabilityMapFile'], ikParameters)
         if self.info == 1:
             self.ikPlanner.addPose(self.endPose, 'reach_end')
         print 'info:', self.info
@@ -281,10 +282,10 @@ class IKPlanner(object):
 
         om.addToObjectModel(IkOptionsItem(self), parentObj=om.getOrCreateContainer('planning'))
 
-        self.jointGroups = drcargs.getDirectorConfig()['teleopJointGroups']
+        self.jointGroups = drcargs.getRobotConfig(None)['teleopJointGroups']
         
-        if 'kneeJoints' in drcargs.getDirectorConfig():
-            self.kneeJoints = drcargs.getDirectorConfig()['kneeJoints']
+        if 'kneeJoints' in drcargs.getRobotConfig(None):
+            self.kneeJoints = drcargs.getRobotConfig(None)['kneeJoints']
 
         # list of joints, otherwise []
         self.baseJoints      = self.getJointGroup('Base')
@@ -295,18 +296,18 @@ class IKPlanner(object):
         self.leftLegJoints   = self.getJointGroup('Left Leg')
         self.rightLegJoints  = self.getJointGroup('Right Leg')
 
-        if 'pelvisLink' in drcargs.getDirectorConfig():
-            self.pelvisLink = drcargs.getDirectorConfig()['pelvisLink']
+        if 'pelvisLink' in drcargs.getRobotConfig(None):
+            self.pelvisLink = drcargs.getRobotConfig(None)['pelvisLink']
         
-        if 'leftFootLink' in drcargs.getDirectorConfig():
-            self.leftFootLink =  drcargs.getDirectorConfig()['leftFootLink']
-            self.rightFootLink = drcargs.getDirectorConfig()['rightFootLink']
+        if 'leftFootLink' in drcargs.getRobotConfig(None):
+            self.leftFootLink =  drcargs.getRobotConfig(None)['leftFootLink']
+            self.rightFootLink = drcargs.getRobotConfig(None)['rightFootLink']
         else:
             # print "No foot links found in config, assuming fixedBaseArm=True"
             self.fixedBaseArm = True
 
         self.quadruped = False
-        if 'quadruped' in drcargs.getDirectorConfig():
+        if 'quadruped' in drcargs.getRobotConfig(None):
             self.quadruped = True
             # default shrink factor for humanoid is 0.2. increasing here, perhaps too much
             # 1 = no shrinking. 0 = full shrinking
@@ -314,9 +315,9 @@ class IKPlanner(object):
 
         # Using 'hands' to signify quadruped front feet, for now:
         # Note: there has not been the use of leftHandLink for previous bipeds
-        if 'leftHandLink' in drcargs.getDirectorConfig():
-            self.leftHandLink =  drcargs.getDirectorConfig()['leftHandLink']
-            self.rightHandLink = drcargs.getDirectorConfig()['rightHandLink']
+        if 'leftHandLink' in drcargs.getRobotConfig(None):
+            self.leftHandLink =  drcargs.getRobotConfig(None)['leftHandLink']
+            self.rightHandLink = drcargs.getRobotConfig(None)['rightHandLink']
 
 
         # Assume first neck joint is the joint which pitches then neck
@@ -1758,7 +1759,7 @@ class RobotPoseGUIWrapper(object):
             assert pose['nominal_handedness'] in sides
 
             if pose['nominal_handedness'] != side:
-                if 'leftFootLink' in drcargs.getDirectorConfig(): #if not self.fixedBaseArm:
+                if 'leftFootLink' in drcargs.getRobotConfig(None): #if not self.fixedBaseArm:
                     joints = cls.rpg.applyMirror(joints)
 
         return joints

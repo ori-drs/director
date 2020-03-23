@@ -111,8 +111,8 @@ class EndEffectorTeleopPanel(object):
             self.setLHandPlanningSupportEnabled(True)
             self.setRHandPlanningSupportEnabled(True)
 
-        if 'kneeJointLimits' in drcargs.getDirectorConfig():
-            self.kneeJointLimits = drcargs.getDirectorConfig()['kneeJointLimits']
+        if 'kneeJointLimits' in drcargs.getRobotConfig(None):
+            self.kneeJointLimits = drcargs.getRobotConfig(None)['kneeJointLimits']
 
     def setComboText(self, combo, text):
         index = combo.findText(text)
@@ -448,7 +448,7 @@ class EndEffectorTeleopPanel(object):
             if self.getLFootConstraint() == 'fixed':
                 constraints.append(ikPlanner.createFixedLinkConstraintsQuadruped(startPoseName, ikPlanner.leftFootLink, tspan=[0.0, 1.0], lowerBound=-0.0001*np.ones(3), upperBound=0.0001*np.ones(3), angleToleranceInDegrees=0.1))
             elif self.getLFootConstraint() == 'constrained':
-                if drcargs.getDirectorConfig()['modelName'] == 'hyq':
+                if drcargs.getRobotConfig(None)['modelName'] == 'hyq':
                     constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.leftFootLink, pointInLink=[0.341,0,0], tspan=[1.0, 1.0]))
                 else: # anymal
                     constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.leftFootLink, pointInLink=[0.0, -0.016, -0.31], tspan=[1.0, 1.0]))
@@ -458,7 +458,7 @@ class EndEffectorTeleopPanel(object):
             if self.getRFootConstraint() == 'fixed':
                 constraints.append(ikPlanner.createFixedLinkConstraintsQuadruped(startPoseName, ikPlanner.rightFootLink, tspan=[0.0, 1.0], lowerBound=-0.0001*np.ones(3), upperBound=0.0001*np.ones(3), angleToleranceInDegrees=0.1))
             elif self.getRFootConstraint() == 'constrained':
-                if drcargs.getDirectorConfig()['modelName'] == 'hyq': # hyq:
+                if drcargs.getRobotConfig(None)['modelName'] == 'hyq': # hyq:
                     constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.rightFootLink, pointInLink=[0.341,0,0], tspan=[1.0, 1.0]))
                 else: # anymal
                     constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.rightFootLink, pointInLink=[0.0, 0.016, -0.31], tspan=[1.0, 1.0]))
@@ -468,7 +468,7 @@ class EndEffectorTeleopPanel(object):
             if self.getLHandConstraint() == 'arm fixed':
                 constraints.append(ikPlanner.createFixedLinkConstraintsQuadruped(startPoseName, ikPlanner.leftHandLink, tspan=[0.0, 1.0], lowerBound=-0.0001*np.ones(3), upperBound=0.0001*np.ones(3), angleToleranceInDegrees=0.1))
             elif self.getLHandConstraint() == 'position':
-                if drcargs.getDirectorConfig()['modelName'] == 'hyq': # hyq:
+                if drcargs.getRobotConfig(None)['modelName'] == 'hyq': # hyq:
                     constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.leftHandLink, pointInLink=[0.341,0,0], tspan=[1.0, 1.0]))
                 else: # anymal:
                     constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.leftHandLink, pointInLink=[0.0, -0.016, -0.31], tspan=[1.0, 1.0]))
@@ -478,7 +478,7 @@ class EndEffectorTeleopPanel(object):
             if self.getRHandConstraint() == 'arm fixed':
                 constraints.append(ikPlanner.createFixedLinkConstraintsQuadruped(startPoseName, ikPlanner.rightHandLink, tspan=[0.0, 1.0], lowerBound=-0.0001*np.ones(3), upperBound=0.0001*np.ones(3), angleToleranceInDegrees=0.1))
             elif self.getRHandConstraint() == 'position':
-                if drcargs.getDirectorConfig()['modelName'] == 'hyq': # hyq:
+                if drcargs.getRobotConfig(None)['modelName'] == 'hyq': # hyq:
                     constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.rightHandLink, pointInLink=[0.341,0,0], tspan=[1.0, 1.0]))
                 else: # anymal
                     constraints.append(ikPlanner.createSixDofLinkConstraintsQuadruped(startPoseName, ikPlanner.rightHandLink, pointInLink=[0.0, 0.016, -0.31], tspan=[1.0, 1.0]))
@@ -817,8 +817,8 @@ class EndEffectorTeleopPanel(object):
         self.ui.lhandCombo.enabled = False
 
     def initFinalPosePlanning(self):
-        if drcargs.getDirectorConfig()['modelName'] != 'valkyrie':
-            message = 'Final pose planning is not yet available for %s' % drcargs.getDirectorConfig()['modelName']
+        if drcargs.getRobotConfig(None)['modelName'] != 'valkyrie':
+            message = 'Final pose planning is not yet available for %s' % drcargs.getRobotConfig(None)['modelName']
             QtGui.QMessageBox.warning(app.getMainWindow(), 'Model not supported', message,
                   QtGui.QMessageBox.Ok)
             self.setCheckboxState(self.ui.finalPosePlanningOptions, False)
@@ -1036,7 +1036,7 @@ class GeneralEndEffectorTeleopPanel(object):
         addButton('end ik', self.endIk)
         addButton('plan', self.planIk)
 
-        config = drcargs.getDirectorConfig()['endEffectorConfig']
+        config = drcargs.getRobotConfig(None)['endEffectorConfig']
         self.endEffectorLinkNames = config['endEffectorLinkNames']
         self.graspOffsetFrame = transformUtils.frameFromPositionAndRPY(config['graspOffsetFrame'][0], np.degrees(config['graspOffsetFrame'][1]))
         self.fixedJoints = config['fixedJoints']
@@ -1130,8 +1130,8 @@ class JointTeleopPanel(object):
         self.jointLimitsMax = np.array([self.panel.teleopRobotModel.model.getJointLimits(jointName)[1] for jointName in robotstate.getDrakePoseJointNames()])
 
         # this need to be generalized
-        if 'baseZJointLimits' in drcargs.getDirectorConfig():
-            baseZLimits = drcargs.getDirectorConfig()['baseZJointLimits']
+        if 'baseZJointLimits' in drcargs.getRobotConfig(None):
+            baseZLimits = drcargs.getRobotConfig(None)['baseZJointLimits']
         else: # TODO generalise so the base sliders are deactivated
             baseZLimits = [-0.1, 0.1]
 
@@ -1144,7 +1144,7 @@ class JointTeleopPanel(object):
             #telopJointGroupNames = ['Back', 'Base', 'Left Arm', 'Right Arm', 'Neck']
             # Add only these joint groups:
             telopJointGroupNames = ['Back', 'Base', 'Left Arm', 'Right Arm', 'Left Hind', 'Right Hind']
-            allJointGroups = drcargs.getDirectorConfig()['teleopJointGroups']
+            allJointGroups = drcargs.getRobotConfig(None)['teleopJointGroups']
             jointGroups = []
             for jointGroup in allJointGroups:
                 if jointGroup['name'] in telopJointGroupNames:
@@ -1453,7 +1453,7 @@ class TeleopPanel(object):
         self.endEffectorTeleop = EndEffectorTeleopPanel(self)
         self.jointTeleop = JointTeleopPanel(self)
 
-        if 'endEffectorConfig' in drcargs.getDirectorConfig():
+        if 'endEffectorConfig' in drcargs.getRobotConfig(None):
             self.ui.endEffectorTeleopFrame.setVisible(False)
             self.generalEndEffectorTeleopPanel = GeneralEndEffectorTeleopPanel(ikPlanner, self, robotStateModel, robotStateJointController)
             self.widget.layout().addWidget(self.generalEndEffectorTeleopPanel.widget, 0, 0, 1, 2)

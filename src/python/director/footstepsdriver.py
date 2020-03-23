@@ -215,6 +215,7 @@ class FootstepsDriver(object):
         self.contact_slices = DEFAULT_CONTACT_SLICES
         self.show_contact_slices = False
         self.toolbarWidget = None
+        self.robotName = robotName
 
         ### Stuff pertaining to rendering BDI-frame steps
         self.poseAlt = None
@@ -253,39 +254,35 @@ class FootstepsDriver(object):
         self._rightHandLink = ''
         self._quadruped = False
 
-        with open(drcargs.args().directorConfigFile) as directorConfigFile:
-            directorConfigFull = yaml.safe_load(directorConfigFile)
-            directorConfig = directorConfigFull[robotName] if robotName else directorConfigFull
+        directorConfig = drcargs.getRobotConfig(self.robotName)
 
-            self._modelName = directorConfig['modelName']
+        self._modelName = directorConfig['modelName']
 
-            directorConfigDirectory = os.path.dirname(os.path.abspath(directorConfigFile.name))
+        if 'leftFootMeshFiles' in directorConfig:
+            self._footMeshFiles.append(directorConfig['leftFootMeshFiles'])
+            self._footMeshFiles.append(directorConfig['rightFootMeshFiles'])
+            for j in range(0, 2):
+                for i in range(len(self._footMeshFiles[j])):
+                    self._footMeshFiles[j][i] = os.path.join(directorConfig.dirname, self._footMeshFiles[j][i])
 
-            if 'leftFootMeshFiles' in directorConfig:
-                self._footMeshFiles.append(directorConfig['leftFootMeshFiles'])
-                self._footMeshFiles.append(directorConfig['rightFootMeshFiles'])
-                for j in range(0, 2):
-                    for i in range(len(self._footMeshFiles[j])):
-                        self._footMeshFiles[j][i] = os.path.join(directorConfigDirectory, self._footMeshFiles[j][i])
+        if 'pelvisLink' in directorConfig:
+            self._pelvisLink = directorConfig['pelvisLink']
 
-            if 'pelvisLink' in directorConfig:
-                self._pelvisLink = directorConfig['pelvisLink']
+        if 'leftFootLink' in directorConfig:
+            self._leftFootLink = directorConfig['leftFootLink']
+            self._rightFootLink = directorConfig['rightFootLink']
 
-            if 'leftFootLink' in directorConfig:
-                self._leftFootLink = directorConfig['leftFootLink']
-                self._rightFootLink = directorConfig['rightFootLink']
-
-            if 'quadruped' in drcargs.getDirectorConfig():
-                _quadruped = True
-                # Using 'hands' to signify quadruped front feet, for now:
-                # Note: there has not been the use of leftHandLink for previous bipeds
-                if 'leftHandLink' in drcargs.getDirectorConfig():
-                    self._leftHandLink = drcargs.getDirectorConfig()['leftHandLink']
-                    self._rightHandLink = drcargs.getDirectorConfig()['rightHandLink']
+        if 'quadruped' in directorConfig:
+            _quadruped = True
+            # Using 'hands' to signify quadruped front feet, for now:
+            # Note: there has not been the use of leftHandLink for previous bipeds
+            if 'leftHandLink' in directorConfig:
+                self._leftHandLink = directorConfig['leftHandLink']
+                self._rightHandLink = directorConfig['rightHandLink']
 
         global footstepsDrivers
-        if robotName:
-            footstepsDrivers[robotName] = self
+        if self.robotName:
+            footstepsDrivers[self.robotName] = self
         else:
             footstepsDrivers[""] = self
 

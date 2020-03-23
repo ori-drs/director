@@ -73,8 +73,8 @@ class MotionPlanningPanel(object):
 
         self.ui.fpButton.connect('clicked()', self.onSearchFinalPose)
                 
-        if 'kneeJointLimits' in drcargs.getDirectorConfig():
-            self.kneeJointLimits = drcargs.getDirectorConfig()['kneeJointLimits']
+        if 'kneeJointLimits' in drcargs.getRobotConfig(None):
+            self.kneeJointLimits = drcargs.getRobotConfig(None)['kneeJointLimits']
         self.constraintSet = None
         self.palmOffsetDistance = 0.0        
         

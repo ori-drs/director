@@ -37,7 +37,7 @@ class RobotModelItem(om.ObjectModelItem):
 
     MODEL_CHANGED_SIGNAL = 'MODEL_CHANGED_SIGNAL'
 
-    def __init__(self, model=None, visible=True, color="#ff0000", colorMode=0, alpha=1.0):
+    def __init__(self, model=None, visible=True, color="#ff0000", colorMode=0, alpha=1.0, robotName=""):
 
         if model:
             alpha = model.alpha()
@@ -48,6 +48,8 @@ class RobotModelItem(om.ObjectModelItem):
         else:
             filename = ""
             self.initialised = False
+
+        self.robotName = robotName
 
         modelName = os.path.basename(filename)
         om.ObjectModelItem.__init__(self, modelName, om.Icons.Robot)
@@ -124,7 +126,7 @@ class RobotModelItem(om.ObjectModelItem):
             return None
 
     def getHeadLink(self):
-        headLink = drcargs.getDirectorConfig().get('headLink')
+        headLink = drcargs.getRobotConfig(self.robotName).get('headLink')
         if not headLink:
             import warnings
             warnings.warn("headLink is not defined in director config - certain features will be broken")
@@ -245,7 +247,7 @@ def loadRobotModel(name=None, view=None, parent='scene', urdfFile=None, color=No
     jointController = jointcontrol.JointController([obj], jointNames=jointNames, robotName=robotName, pushToModel=haveModel)
 
     if useConfigFile:
-        fixedPointFile = drcargs.getDirectorConfig().get('fixedPointFile') or drcargs.getDirectorConfig()[robotName].get('fixedPointFile')
+        fixedPointFile = drcargs.getRobotConfig(robotName).get('fixedPointFile')
         if fixedPointFile:
             jointController.setPose('q_nom', jointController.loadPoseFromFile(fixedPointFile), pushToModel=haveModel)
         else:
@@ -395,7 +397,7 @@ class HandFactory(object):
         self.defaultHandTypes = {}
         self.loaders = {}
 
-        handCombinations = drcargs.getDirectorConfig().get('handCombinations', [])
+        handCombinations = drcargs.getRobotConfig(None).get('handCombinations', [])
         for description in handCombinations:
 
             handType = description['handType']
@@ -447,7 +449,7 @@ class HandLoader(object):
         assert self.side in ('left', 'right')
 
         thisCombination = None
-        handCombinations = drcargs.getDirectorConfig()['handCombinations']
+        handCombinations = drcargs.getRobotConfig(robotModel.robotName)['handCombinations']
         numberOfHands = len(handCombinations)
 
         for i in range(0, numberOfHands ):

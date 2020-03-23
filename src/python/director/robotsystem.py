@@ -45,10 +45,7 @@ class RobotSystemFactory(object):
 
     def initDirectorConfig(self, robotSystem):
 
-        if robotSystem.robotName:
-            directorConfig = drcargs.getDirectorConfig()[robotSystem.robotName]
-        else:
-            directorConfig = drcargs.getDirectorConfig()
+        directorConfig = drcargs.getRobotConfig(robotSystem.robotName)
 
         if 'colorMode' not in directorConfig:
             defaultColorMode = 'URDF Colors'

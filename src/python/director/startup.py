@@ -361,7 +361,7 @@ orbit = cameracontrol.OrbitController(view)
 showPolyData = segmentation.showPolyData
 updatePolyData = segmentation.updatePolyData
 
-directorConfigFull = drcargs.getDirectorConfig()
+
 
 selector = RobotSelector()
 # To hide the selector if there is only one robot we actually need to hide the action that is created by the
@@ -370,14 +370,12 @@ selectorAction = app.getMainWindow().toolBar().addWidget(selector)
 
 # If this is a single robot configuration, we expect modelName as a top level key. Otherwise it will be a second
 # level one.
-if "modelName" not in directorConfigFull:
-    robotSystems = []
-    for robot in directorConfigFull:
-        robotSystems.append(robotsystem.create(view, robotName=robot))
+robotSystems = []
+for _, robotConfig in drcargs.DirectorConfig.getDefaultInstance().robotConfigs.iteritems():
+    robotSystems.append(robotsystem.create(view, robotName=robotConfig["robotName"]))
 
-    app.getMainWindow().toolBar().addSeparator()
-else:
-    robotSystems = [robotsystem.create(view, robotName="")]
+# If there is only one robot, the selector should not be shown
+if len(robotSystems) == 1:
     selectorAction.setVisible(False)
 
 setupScene = True  # The scene setup is done only once, unset this flag once it is done
@@ -385,7 +383,7 @@ setupScene = True  # The scene setup is done only once, unset this flag once it 
 for robotSystem in robotSystems:
     selector.addRobot(robotSystem.robotName)
     selector.associateViewBehaviorWithRobot(robotSystem.viewBehaviors, robotSystem.robotName)
-    directorConfig = directorConfigFull[robotSystem.robotName] if robotSystem.robotName else directorConfigFull
+    directorConfig = drcargs.getRobotConfig(robotSystem.robotName)
 
     useIk = True
     usePerception = True
