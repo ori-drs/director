@@ -161,22 +161,14 @@ class DRCArgParser(object):
         parser.add_argument('--matlab-host', metavar='hostname', type=str,
                             help='hostname to connect with external matlab server')
 
-        class IgnoreROSArgsAction(argparse.Action):
-            """
-            This action allows us to ignore ROS arguments, which are always added and prefixed by __
-            """
-            def __call__(self, parser, namespace, values, option_string=None):
-                valid_paths = [path for path in values if not path.startswith("__")]
-                setattr(namespace, self.dest, valid_paths)
-
         directorConfig = parser.add_mutually_exclusive_group(required=False)
-        directorConfig.add_argument('--director-config', '--director_config', dest='directorConfigFile',
-                                    default=[], metavar='filename', nargs='+', action=IgnoreROSArgsAction,
-                                    help='YAML files specifying configurations for robots to display')
+        directorConfig.add_argument('--director-config', dest='directorConfigFile',
+                                    action='append', metavar='filename',
+                                    help='YAML files specifying configurations for robots to display. Can be provided '
+                                         'multiple times to display multiple robots.')
 
         if director.getDRCBaseIsSet():
             self.addOpenHumanoidsConfigShortcuts(directorConfig)
-            parser.set_defaults(directorConfigFile=self.getDefaultDirectorConfigFile())
 
         if self._isPyDrakeAvailable():
             self.addDrakeConfigShortcuts(directorConfig)
