@@ -104,71 +104,15 @@ class DRCArgParser(object):
             const=pydrake.common.FindResourceOrThrow('drake/examples/kuka_iiwa_arm/director_config.yaml'),
             help='Use KUKA IIWA from drake/examples')
 
-    def addOpenHumanoidsConfigShortcuts(self, directorConfig):
-
-        directorConfig.add_argument('-v3', '--atlas_v3', dest='directorConfigFile',
-                            action='store_const',
-                            const=self.getDefaultAtlasV3DirectorConfigFile(),
-                            help='Use Atlas V3')
-
-        directorConfig.add_argument('-v4', '--atlas_v4', dest='directorConfigFile',
-                            action='store_const',
-                            const=self.getDefaultAtlasV4DirectorConfigFile(),
-                            help='Use Atlas V4')
-
-        directorConfig.add_argument('-v5', '--atlas_v5', dest='directorConfigFile',
-                            action='store_const',
-                            const=self.getDefaultAtlasV5DirectorConfigFile(),
-                            help='Use Atlas V5')
-
-        directorConfig.add_argument('-val', '--valkyrie', dest='directorConfigFile',
-                            action='store_const',
-                            const=self.getDefaultValkyrieDirectorConfigFile(),
-                            help='Use Valkyrie (Default)')
-
-        directorConfig.add_argument('-val_simple', '--valkyrie_simple', dest='directorConfigFile',
-                            action='store_const',
-                            const=self.getDefaultValkyrieSimpleDirectorConfigFile(),
-                            help='Use Valkyrie (Simple/Primitive Shapes)')
-
-        directorConfig.add_argument('-hyq', '--hyq', dest='directorConfigFile',
-                            action='store_const',
-                            const=self.getDefaultHyQDirectorConfigFile(),
-                            help='Use HyQ')
-
-        directorConfig.add_argument('-anymal', '--anymal', dest='directorConfigFile',
-                            action='store_const',
-                            const=self.getDefaultAnymalDirectorConfigFile(),
-                            help='Use Anymal')
-
-        directorConfig.add_argument('-lwr', '--lwr', dest='directorConfigFile',
-                            action='store_const',
-                            const=self.getDefaultKukaLWRConfigFile(),
-                            help='Use Kuka LWR')
-
-        directorConfig.add_argument('-husky', '--husky', dest='directorConfigFile',
-                            action='store_const',
-                            const=self.getDefaultHuskyConfigFile(),
-                            help='Use Husky')
-
-        directorConfig.add_argument('-dual_arm_husky', '--dual_arm_husky', dest='directorConfigFile',
-                            action='store_const',
-                            const=self.getDefaultDualArmHuskyConfigFile(),
-                            help='Use Dual Arm Husky')
-
     def addDefaultArgs(self, parser):
 
         parser.add_argument('--matlab-host', metavar='hostname', type=str,
                             help='hostname to connect with external matlab server')
 
-        directorConfig = parser.add_mutually_exclusive_group(required=False)
-        directorConfig.add_argument('--director-config', dest='directorConfigFile',
-                                    action='append', metavar='filename',
-                                    help='YAML files specifying configurations for robots to display. Can be provided '
-                                         'multiple times to display multiple robots.')
-
-        if director.getDRCBaseIsSet():
-            self.addOpenHumanoidsConfigShortcuts(directorConfig)
+        parser.add_argument('--director-config', dest='directorConfigFile',
+                            action='append', metavar='filename',
+                            help='YAML files specifying configurations for robots to display. Can be provided '
+                                 'multiple times to display multiple robots.')
 
         if self._isPyDrakeAvailable():
             self.addDrakeConfigShortcuts(directorConfig)
