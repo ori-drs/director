@@ -8,8 +8,6 @@ import PythonQt
 from PythonQt import QtCore
 from PythonQt import QtGui
 from director import getDRCBaseDir as getDRCBase
-from director import botspy
-from director import openscope
 import functools
 
 _mainWindow = None
@@ -312,13 +310,6 @@ def addShortcut(widget, keySequence, func):
     return shortcut
 
 
-def setupActions():
-    botApyAction = getToolsMenuActions()['ActionBotSpy']
-    botApyAction.connect(botApyAction, 'triggered()', botspy.startBotSpy)
-    scopeAction = getToolsMenuActions()['ActionSignalScope']
-    scopeAction.connect(scopeAction, 'triggered()', openscope.startSignalScope)
-
-
 def showErrorMessage(message, title='Error'):
     QtGui.QMessageBox.warning(getMainWindow(), title, message)
 
@@ -370,5 +361,4 @@ def startup(globals):
     _mainWindow.connect('toggleStereoRender()', toggleStereoRender)
     _mainWindow.connect('toggleCameraTerrainMode()', toggleCameraTerrainMode)
 
-    setupActions()
     setupViewManager()

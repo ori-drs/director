@@ -1,5 +1,5 @@
 import os
-from director import ioUtils
+from director import ioutils
 from director import objectmodel as om
 from director import visualization as vis
 from PythonQt import QtGui
@@ -23,7 +23,7 @@ class OpenDataHandler(object):
         return om.getOrCreateContainer(self.rootFolderName)
 
     def onOpenVrml(self, filename):
-        meshes, color = ioUtils.readVrml(filename)
+        meshes, color = ioutils.readVrml(filename)
         folder = om.getOrCreateContainer(os.path.basename(filename), parentObj=self.getRootFolder())
         for i, pair in enumerate(zip(meshes, color)):
             mesh, color = pair
@@ -36,7 +36,7 @@ class OpenDataHandler(object):
             self.onOpenVrml(filename)
             return
 
-        polyData = ioUtils.readPolyData(filename)
+        polyData = ioutils.readPolyData(filename)
 
         if not polyData or not polyData.GetNumberOfPoints():
             self.app.showErrorMessage('Failed to read any data from file: %s' % filename, title='Reader error')

@@ -7,8 +7,9 @@ from director import callbacks
 from director import cameracontrol
 from director import splinewidget
 from director import transformUtils
-from director import teleoppanel
-from director import footstepsdriverpanel
+from director.debugpolydata import DebugData
+from director.pointpicker import PlacerWidget
+from director import vtkNumpy as vnp
 from director import applogic as app
 from director import vtkAll as vtk
 from director import filterUtils
@@ -23,7 +24,7 @@ from director.utime import getUtime
 from director import drcargs
 
 import numpy as np
-import ioUtils
+import ioutils
 import os
 import re
 import random
@@ -42,7 +43,6 @@ class RobotViewBehaviors(object):
 
         self.robotSystem = _robotSystem
         self.robotModel = self.robotSystem.robotStateModel
-        self.footstepsDriver = self.robotSystem.footstepsDriver
         if app.getMainWindow() is not None:
             self.robotLinkSelector = RobotLinkSelector()
 
@@ -99,14 +99,9 @@ class RobotViewBehaviors(object):
 
     def newWalkingGoal(self, displayPoint, view):
 
-        # put walking goal at robot's feet
-        #footFrame = footstepsDriver.getFeetMidPoint(robotModel)
         # put walking goal at robot's base
-        link = drcargs.getRobotConfig(self.robotName)['pelvisLink']
-
-        mainLink = link
+        mainLink = drcargs.getDirectorConfig()['pelvisLink']
         footFrame = self.robotModel.getLinkFrame(mainLink)
-
 
         worldPt1, worldPt2 = vis.getRayFromDisplayPoint(view, displayPoint)
         groundOrigin = footFrame.GetPosition()
@@ -116,9 +111,52 @@ class RobotViewBehaviors(object):
         t = vtk.mutable(0.0)
         vtk.vtkPlane.IntersectWithLine(worldPt1, worldPt2, groundNormal, groundOrigin, t, selectedGroundPoint)
 
-        walkingTarget = transformUtils.frameFromPositionAndRPY(selectedGroundPoint, np.array(footFrame.GetOrientation()))
+        walkingTarget = transformUtils.frameFromPositionAndRPY(selectedGroundPoint,
+                                                               np.array(footFrame.GetOrientation()))
 
-        footstepsdriverpanel.panels[self.robotName].onNewWalkingGoal(walkingTarget)
+        frameObj = vis.updateFrame(walkingTarget, 'walking goal', parent='planning', scale=0.25)
+        frameObj.setProperty('Edit', True)
+
+        rep = frameObj.widget.GetRepresentation()
+        rep.SetTranslateAxisEnabled(2, False)
+        rep.SetRotateAxisEnabled(0, False)
+        rep.SetRotateAxisEnabled(1, False)
+        frameObj.widget.HandleRotationEnabledOff()
+
+        terrain = om.findObjectByName('HEIGHT_MAP_SCENE')
+        if terrain:
+
+            pos = np.array(frameObj.transform.GetPosition())
+
+            polyData = filterUtils.removeNonFinitePoints(terrain.polyData)
+            if polyData.GetNumberOfPoints():
+                polyData = segmentation.labelDistanceToLine(polyData, pos, pos + [0, 0, 1])
+                polyData = segmentation.thresholdPoints(polyData, 'distance_to_line', [0.0, 0.1])
+                if polyData.GetNumberOfPoints():
+                    pos[2] = np.nanmax(vnp.getNumpyFromVtk(polyData, 'Points')[:, 2])
+                    frameObj.transform.Translate(pos - np.array(frameObj.transform.GetPosition()))
+
+            d = DebugData()
+            d.addSphere((0, 0, 0), radius=0.03)
+            handle = vis.showPolyData(d.getPolyData(), 'walking goal terrain handle', parent=frameObj, visible=True,
+                                      color=[1, 1, 0])
+            handle.actor.SetUserTransform(frameObj.transform)
+            placer = PlacerWidget(app.getCurrentRenderView(), handle, terrain)
+
+            def onFramePropertyModified(propertySet, propertyName):
+                if propertyName == 'Edit':
+                    if propertySet.getProperty(propertyName):
+                        placer.start()
+                    else:
+                        placer.stop()
+
+            frameObj.properties.connectPropertyChanged(onFramePropertyModified)
+            onFramePropertyModified(frameObj, 'Edit')
+
+        frameObj.connectFrameModified(self.onWalkingGoalModified)
+
+    def onWalkingGoalModified(frame):
+        om.removeFromObjectModel(om.findObjectByName('footstep widget'))
 
     def newDrivingGoal(self, displayPoint, view):
         # Places the driving goal on the plane of the root link current yaw
@@ -241,6 +279,7 @@ def placeHandModel(displayPoint, view, side='left'):
         handFrame.frameSync.addFrame(syncFrame)
 
 
+
 def onNewDrivingGoal(frame):
     msg = lcmbotcore.pose_t()
     msg.utime = getUtime()
@@ -298,19 +337,7 @@ def toggleFootstepWidget(displayPoint, view, useHorizontalWidget=False):
     if walkGoal:
         walkGoal.setProperty('Edit', False)
 
-
-    def onFootWidgetChanged(frame):
-        footstepsDriver.onStepModified(stepIndex - 1, frame)
-
-    frameObj.connectFrameModified(onFootWidgetChanged)
     return True
-
-
-def reachToFrame(frameObj, side, collisionObj):
-    goalFrame = teleoppanel.panel.endEffectorTeleop.newReachTeleop(frameObj.transform, side, collisionObj)
-    goalFrame.frameSync = vis.FrameSync()
-    goalFrame.frameSync.addFrame(goalFrame, ignoreIncoming=True)
-    goalFrame.frameSync.addFrame(frameObj)
 
 
 def getAsFrame(obj):
@@ -585,12 +612,8 @@ class RobotViewEventFilter(ViewEventFilter):
     def onLeftMousePress(self, event):
         if event.modifiers() == QtCore.Qt.ControlModifier:
             displayPoint = self.getMousePositionInView(event)
-            if self.viewBehaviors.footstepsDriver:
-                self.viewBehaviors.newWalkingGoal(displayPoint, self.view)
-                self.consumeEvent()
-            else:
-                self.viewBehaviors.newDrivingGoal(displayPoint, self.view)
-                self.consumeEvent()
+            self.viewBehaviors.newWalkingGoal(displayPoint, self.view)
+            self.consumeEvent()
 
         for picker in segmentation.viewPickers:
             if not picker.enabled:

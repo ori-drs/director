@@ -1,6 +1,6 @@
 from director import objectmodel as om
 from director import affordanceitems
-from director import lcmobjectcollection
+from director import objectcollection
 from director import visualization as vis
 from director.timercallback import TimerCallback
 from director.uuidutil import newUUID
@@ -11,7 +11,7 @@ import traceback
 class AffordanceObjectModelManager(object):
 
     def __init__(self, view):
-        self.collection = lcmobjectcollection.LCMObjectCollection(channel='AFFORDANCE_COLLECTION_COMMAND')
+        self.collection = objectcollection.ObjectCollection(channel='AFFORDANCE_COLLECTION_COMMAND')
         self.collection.connectDescriptionUpdated(self._onDescriptionUpdated)
         self.collection.connectDescriptionRemoved(self._onDescriptionRemoved)
         self.view = view

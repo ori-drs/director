@@ -39,7 +39,6 @@ set(python_tests_robot_core
 set(python_tests_robot_extra
   testActionSequence.py
   testAffordanceItems.py
-  testAtlasDriver.py
   testCameraView.py
   testContinuousWalking.py
   testDrawRobotLog.py

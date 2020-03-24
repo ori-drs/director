@@ -9,8 +9,6 @@ from director import vtkAll as vtk
 import PythonQt
 from PythonQt import QtGui
 
-import bot_core as lcmbotcore
-
 
 class ImageViewApp(object):
 
@@ -70,10 +68,10 @@ class ImageViewApp(object):
             self.views.append(cameraView.view)
 
             imageName2 = channel + '_D'
-            if args.disparity:
-                imageManager.queue.addCameraStream(channel, imageName2, lcmbotcore.images_t.DISPARITY_ZIPPED)
-            else:
-                imageManager.queue.addCameraStream(channel, imageName2, lcmbotcore.images_t.DEPTH_MM_ZIPPED)
+            # if args.disparity:
+            #     imageManager.queue.addCameraStream(channel, imageName2, lcmbotcore.images_t.DISPARITY_ZIPPED)
+            # else:
+            #     imageManager.queue.addCameraStream(channel, imageName2, lcmbotcore.images_t.DEPTH_MM_ZIPPED)
             imageManager.addImage(imageName2)
             cameraView2 = cameraview.CameraImageView(imageManager, imageName2, view=PythonQt.dd.ddQVTKWidgetView())
             cameraView2.eventFilterEnabled = False

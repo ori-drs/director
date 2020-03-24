@@ -1,5 +1,5 @@
 from director import applogic as app
-from director.debugVis import DebugData
+from director.debugpolydata import DebugData
 from director import transformUtils
 from director import objectmodel as om
 from director import affordanceitems

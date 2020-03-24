@@ -1,6 +1,6 @@
-from director import lcmobjectcollection
+from director import objectcollection
 from director import geometryencoder
-from director import ioUtils
+from director import ioutils
 from director.uuidutil import newUUID
 import os
 
@@ -11,7 +11,7 @@ class MeshManager(object):
         self.meshes = {}
         self.cacheDirectory = '/tmp'
         self.cacheDataType = 'stl'
-        self.collection = lcmobjectcollection.LCMObjectCollection(channel='MESH_COLLECTION_COMMAND')
+        self.collection = objectcollection.ObjectCollection(channel='MESH_COLLECTION_COMMAND')
         self.collection.connectDescriptionUpdated(self._onDescriptionUpdated)
 
     def add(self, polyData, publish=True):
@@ -28,7 +28,7 @@ class MeshManager(object):
         if meshId in self.meshes:
             filename = os.path.join(self.cacheDirectory, '%s.%s' % (meshId, self.cacheDataType))
             if not os.path.isfile(filename):
-                ioUtils.writePolyData(self.get(meshId), filename)
+                ioutils.writePolyData(self.get(meshId), filename)
             return filename
         return None
 

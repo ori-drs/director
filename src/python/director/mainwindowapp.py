@@ -293,10 +293,10 @@ class MainWindowAppFactory(object):
         from director import applogic
         from director import transformUtils
         from director import filterUtils
-        from director import ioUtils
+        from director import ioutils
         from director import vtkAll as vtk
         from director import vtkNumpy as vnp
-        from director.debugVis import DebugData
+        from director.debugpolydata import DebugData
         from director.timercallback import TimerCallback
         from director.fieldcontainer import FieldContainer
         import numpy as np
@@ -343,14 +343,12 @@ class MainWindowPanelFactory(object):
             'OutputConsole' : ['MainWindow'],
             'UndoRedo' : ['MainWindow'],
             'DrakeVisualizer' : ['MainWindow'],
-            'TreeViewer' : ['MainWindow'],
             'LCMGLRenderer' : ['MainWindow']}
 
         # these components depend on lcm and lcmgl
         # so they are disabled by default
         disabledComponents = [
             'DrakeVisualizer',
-            'TreeViewer',
             'LCMGLRenderer']
 
         return components, disabledComponents
@@ -441,28 +439,6 @@ class MainWindowPanelFactory(object):
         undoAction=undoAction,
         redoAction=redoAction
         )
-
-    def initDrakeVisualizer(self, fields):
-
-        from director import drakevisualizer
-        drakeVisualizer = drakevisualizer.DrakeVisualizer(fields.view)
-
-        applogic.MenuActionToggleHelper('Tools', drakeVisualizer.name, drakeVisualizer.isEnabled, drakeVisualizer.setEnabled)
-
-        return FieldContainer(
-          drakeVisualizer=drakeVisualizer
-          )
-
-    def initTreeViewer(self, fields):
-
-        from director import treeviewer
-        treeViewer = treeviewer.TreeViewer(fields.view)
-
-        applogic.MenuActionToggleHelper('Tools', treeViewer.name, treeViewer.isEnabled, treeViewer.setEnabled)
-
-        return FieldContainer(
-          treeViewer=treeViewer
-          )
 
     def initLCMGLRenderer(self, fields):
 

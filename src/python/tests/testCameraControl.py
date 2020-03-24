@@ -11,11 +11,11 @@ from director import applogic
 from director import transformUtils
 from director import filterUtils
 from director import visualization as vis
-from director import ioUtils
+from director import ioutils
 from director import vtkAll as vtk
 from director import objectmodel as om
 from director import cameracontrolpanel
-from director.debugVis import DebugData
+from director.debugpolydata import DebugData
 
 import numpy as np
 

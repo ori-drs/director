@@ -4,7 +4,7 @@ Listens to the Elevation Map and writes the first one to file (as a point cloud)
 '''
 
 from director import vtkAll as vtk
-from director import ioUtils
+from director import ioutils
 import vtkRosPython as vtkRos
 from director.shallowCopy import shallowCopy
 
@@ -31,7 +31,7 @@ while (continueLoop):
 
 
     if (polyDataPC.GetNumberOfPoints() > 0):
-        ioUtils.writePolyData(polyDataPC, 'out.ply')
+        ioutils.writePolyData(polyDataPC, 'out.ply')
         continueLoop = False
 
     time.sleep(0.1)

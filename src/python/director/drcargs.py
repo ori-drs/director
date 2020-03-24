@@ -222,8 +222,6 @@ class RobotConfig(object):
         for key, urdf in list(urdfConfig.items()):
             urdfConfig[key] = os.path.join(self.dirname, urdf)
 
-        print(self.config['colorMode'])
-
     def __getitem__(self, key):
         """Used for dictionary accesses to on a robotconfig object"""
         return self.config[key]

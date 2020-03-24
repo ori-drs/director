@@ -5,7 +5,8 @@
 
    Segment: means seperating clusters from a single cloud
 '''
-import footstepsdriver
+
+
 from director.filterUtils import *
 import director.visualization as vis
 from director import objectmodel as om
@@ -15,7 +16,7 @@ from director import vtkAll as vtk
 import vtkNumpy
 import numpy as np
 from shallowCopy import shallowCopy
-from debugVis import DebugData
+from debugpolydata import DebugData
 
 
 
@@ -107,8 +108,7 @@ class RobotModelGroundHeightProvider(object):
         self.robotName = robotName
 
     def getGroundHeight(self):
-        import director.footstepsdriver
-        return footstepsdriver.getFootstepsDriver(self.robotName).getFeetMidPoint(self.model).GetPosition()[2]
+        return self.model.getFeetMidPoint().GetPosition()[2]
 
 
 class RobotModelViewProvider(object):
