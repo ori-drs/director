@@ -36,7 +36,6 @@ class RobotModelItem(om.ObjectModelItem):
     MODEL_CHANGED_SIGNAL = 'MODEL_CHANGED_SIGNAL'
 
     def __init__(self, model=None, visible=True, color="#ff0000", colorMode=0, alpha=1.0, robotName=""):
-        print("robotmodelitem robotname is {}".format(robotName))
         if model:
             alpha = model.alpha()
             visible = model.visible()
@@ -277,8 +276,7 @@ class RobotModelItem(om.ObjectModelItem):
             contact_pts_right = contact_pts_left.copy()
 
         else:
-            print self._modelName
-            raise ValueError("modelName not recognised")
+            raise ValueError("modelName {} not recognised".format(self._modelName))
 
         return contact_pts_left, contact_pts_right
 

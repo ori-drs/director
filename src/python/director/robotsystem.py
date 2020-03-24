@@ -42,7 +42,6 @@ class RobotSystemFactory(object):
         from director import roboturdf
         from director import objectmodel as om
 
-        print("robotsystem name is {}".format(robotSystem.robotName))
         robotStateModel, robotStateJointController = roboturdf.loadRobotModel(
             'robot state model',
             robotSystem.view,

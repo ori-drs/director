@@ -345,8 +345,6 @@ selectorAction = app.getMainWindow().toolBar().addWidget(selector)
 # level one.
 robotSystems = []
 for _, robotConfig in drcargs.DirectorConfig.getDefaultInstance().robotConfigs.iteritems():
-    print(robotConfig.config.keys())
-    print(robotConfig.config['robotName'])
     robotSystems.append(robotsystem.create(view, robotName=robotConfig["robotName"]))
 
 # If there is only one robot, the selector should not be shown
@@ -428,6 +426,9 @@ for robotSystem in robotSystems:
             viewBackgroundLightHandler.action.trigger()
         setupScene = False
 
+        gridUpdater = RobotGridUpdater(grid.getChildFrame(), robotSystem.robotStateModel,
+                                       robotSystem.robotStateJointController)
+
     # reset time button and connections
     button = QtGui.QPushButton('Reset time')
     button.setObjectName("resettime")
@@ -491,7 +492,6 @@ for robotSystem in robotSystems:
             model.connectModelChanged(drawCenterOfMass)
             drawCenterOfMass(model)
 
-    gridUpdater = RobotGridUpdater(grid.getChildFrame(), robotSystem.robotStateModel, robotSystem.robotStateJointController)
 
     if useFeetlessRobot:
         robotSystem.ikPlanner.robotNoFeet = True
