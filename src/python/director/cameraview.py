@@ -666,14 +666,21 @@ class CameraImageView(object):
                 self.imageInitialized = True
 
 
+imageManager = None
+cameraViews = None
 views = {}
 
-def init(view=None, addToView=True, robotName=""):
-    global imageManager
-    imageManager = ImageManager()
 
-    global cameraView
-    cameraView = CameraView(imageManager, view, robotName)
+def init(view=None, robotName=""):
+    global imageManager
+    if not imageManager:
+        imageManager = ImageManager()
+
+    global cameraViews
+    if not cameraViews:
+        cameraViews = {}
+
+    cameraViews[robotName] = CameraView(imageManager, view, robotName)
 
     directorConfig = drcargs.getRobotConfig(robotName)
 

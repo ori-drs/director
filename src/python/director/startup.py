@@ -404,7 +404,7 @@ for robotSystem in robotSystems:
         segmentationpanel.init()
         cameraview.init(robotName=robotSystem.robotName)
 
-        cameraview.cameraView.rayCallback = segmentation.extractPointsAlongClickRay
+        cameraview.cameraViews[robotSystem.robotName].rayCallback = segmentation.extractPointsAlongClickRay
 
     if setupScene:
         sceneRoot = om.getOrCreateContainer('scene')
@@ -438,7 +438,7 @@ for robotSystem in robotSystems:
         if str.lower(name).endswith("source"):
             button.connect('clicked()', attr.resetTime)
 
-    button.connect('clicked()', cameraview.cameraView.resetTime)
+    button.connect('clicked()', cameraview.cameraViews[robotSystem.robotName].resetTime)
     app.getMainWindow().statusBar().addPermanentWidget(button)
     app.getRobotSelector().associateWidgetWithRobot(button, robotSystem.robotName)
 
@@ -495,6 +495,8 @@ for robotSystem in robotSystems:
 
     if useFeetlessRobot:
         robotSystem.ikPlanner.robotNoFeet = True
+
+print("===== director setup complete, calling scripts for further setup =====")
 
 for scriptArgs in drcargs.args().scripts:
     execfile(scriptArgs[0])
