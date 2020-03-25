@@ -478,6 +478,13 @@ class RosGridMap(vis.PolyDataItem):
             self.provider = None
 
     def setProvider(self, provider):
+        """
+        Set the provider for this grid map. This completes the initialisation of the object and displays the grid map
+        by pulling data from the provider
+
+        :param provider: An instantiation of the RosGridMapMeta abstract class
+        :return:
+        """
         if not issubclass(provider.__class__, self._requiredProviderClass):
             raise TypeError("Attempted to set {} provider to {}, but it was not a"
                             " subclass of {} as is required.".format(self.__class__,
@@ -560,6 +567,13 @@ class MarkerSource(vis.PolyDataItem):
             self.provider = None
 
     def setProvider(self, provider):
+        """
+        Set the provider for this marker. This completes the initialisation of the object and displays the markers
+        by pulling data from the provider
+
+        :param provider: An instantiation of the MarkerSourceMeta abstract class
+        :return:
+        """
         if not issubclass(provider.__class__, self._requiredProviderClass):
             raise TypeError("Attempted to set {} provider to {}, but it was not a"
                             " subclass of {} as is required.".format(self.__class__,
@@ -630,6 +644,13 @@ class MarkerArraySource(vis.PolyDataItemList):
             self.provider = None
 
     def setProvider(self, provider):
+        """
+        Set the provider for this marker array. This completes the initialisation of the object and displays the marker
+        array by pulling data from the provider
+
+        :param provider: An instantiation of the MarkerArraySourceMeta abstract class
+        :return:
+        """
         if not issubclass(provider.__class__, self._requiredProviderClass):
             raise TypeError("Attempted to set {} provider to {}, but it was not a"
                             " subclass of {} as is required.".format(self.__class__,
@@ -696,6 +717,13 @@ class PointCloudSource(vis.PolyDataItem):
             self.provider = None
 
     def setProvider(self, provider):
+        """
+        Set the provider for this cloud. This completes the initialisation of the object and displays the cloud by
+        pulling data from the provider
+
+        :param provider: An instantiation of the PointCloudSourceMeta abstract class
+        :return:
+        """
         if not issubclass(provider.__class__, self._requiredProviderClass):
             raise TypeError("Attempted to set {} provider to {}, but it was not a"
                             " subclass of {} as is required.".format(self.__class__,
@@ -789,6 +817,13 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
             self.provider = None
 
     def setProvider(self, provider):
+        """
+        Set the provider for this depth image cloud. This completes the initialisation of the object and displays the
+        cloud by pulling data from the provider
+
+        :param provider: An instantiation of the DepthImageSourceMeta abstract class
+        :return:
+        """
         if not issubclass(provider.__class__, self._requiredProviderClass):
             raise TypeError("Attempted to set {} provider to {}, but it was not a"
                             " subclass of {} as is required.".format(self.__class__,
