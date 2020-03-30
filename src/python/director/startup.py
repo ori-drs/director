@@ -55,7 +55,6 @@ from director import segmentationroutines
 
 
 from director.tasks import taskmanagerwidget
-from director.tasks.descriptions import loadTaskDescriptions
 
 from collections import OrderedDict
 import functools

@@ -1,5 +1,4 @@
 from director.tasks.robottasks import *
-from director.tasks.descriptions import loadTaskDescription
 import director.applogic as app
 
 def _splitCamelCase(name):
@@ -422,13 +421,6 @@ class TaskWidgetManager(object):
         self.taskLibraryWidget = TaskLibraryWidget()
         self.taskQueueWidget = TaskQueueWidget()
         self.taskLibraryWidget.callbacks.connect('OnAddTask', self.taskQueueWidget.taskTree.onAddTask)
-        self.addDefaultTasksToLibrary()
-
-
-    def addDefaultTasksToLibrary(self):
-
-        desc = loadTaskDescription('taskLibrary')
-        self.taskLibraryWidget.taskTree.loadTaskDescription(desc)
 
 
 def init():
