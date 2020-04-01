@@ -120,6 +120,13 @@ class ImageManager(object):
             self.queue[robotName][name] = None
 
     def setProviderClass(self, provider, robotName):
+        """
+        Set the provider class for this imagemanager. Images can only be displayed when the provider is initialised.
+
+        :param provider: A concrete class which is a subclass of ImageSourceMeta in perceptionmeta
+        :param robotName: Specifies the robot for which this provider is to be used.
+        :return:
+        """
         if not issubclass(provider, self._requiredProviderClass):
             raise TypeError("Attempted to set {} provider to {}, but it was not a"
                             " subclass of {} as is required.".format(self.__class__,
