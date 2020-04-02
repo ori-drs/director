@@ -350,6 +350,12 @@ for _, robotConfig in drcargs.DirectorConfig.getDefaultInstance().robotConfigs.i
 # If there is only one robot, the selector should not be shown
 if len(robotSystems) == 1:
     selectorAction.setVisible(False)
+    # When there is only one robot we do not want to prefix topics
+    robotSystems[0]._add_fields(rosPrefix="", single=True)
+else:
+    for robotSystem in robotSystems:
+        # With multiple robots, prefix the topics with the robot names
+        robotSystem._add_fields(rosPrefix=robotSystem.robotName, single=False)
 
 setupScene = True  # The scene setup is done only once, unset this flag once it is done
 
