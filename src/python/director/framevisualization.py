@@ -32,9 +32,12 @@ class FrameUpdater(object):
         self.folderName = folderName
         self.listWidget = listWidget
         self.itemMap = {}
+        self.initialised = False  # TODO: not an ideal method...
         self.initListWidget()
 
         self.trace = {}
+
+
 
     def getFrameTransform(self, frameName):
         return vtk.vtkTransform()
@@ -45,6 +48,10 @@ class FrameUpdater(object):
     def initListWidget(self):
 
         frameNames = self.getFramesNames()
+        # If the model is not yet initialised don't do anything. This function will be called once it's initialised
+        if not frameNames:
+            return
+
         for name in frameNames:
             item = QtGui.QListWidgetItem(name)
             item.setData(QtCore.Qt.CheckStateRole, QtCore.Qt.Unchecked)
@@ -52,6 +59,7 @@ class FrameUpdater(object):
             self.itemMap[name] = item
 
         self.listWidget.connect('itemChanged(QListWidgetItem*)', self.onItemChecked)
+        self.initialised = True
 
     def onItemChecked(self, item):
         name = str(item.text())
@@ -146,15 +154,20 @@ class LinkFrameUpdater(FrameUpdater):
         return self.robotModel.getLinkFrame(frameName)
 
     def getFramesNames(self):
+        # Do this to allow for deferred initialisation of robot model
+        if not self.robotModel.model:
+            return []
         return sorted(list(self.robotModel.model.getLinkNames()))
 
     def onModelChanged(self, model):
+        if not self.initialised:
+            self.initListWidget()
         self.updateFrames()
 
 
 class FrameVisualizationPanel(object):
 
-    def __init__(self, view):
+    def __init__(self, view, robotSystem):
 
         self.view = view
 
@@ -168,8 +181,7 @@ class FrameVisualizationPanel(object):
 
         #self.botFrameUpdater = BotFrameUpdater(self.ui.botFramesListWidget)
 
-        robotModel = om.findObjectByName('robot state model')
-        self.linkFrameUpdater = LinkFrameUpdater(robotModel, self.ui.linkFramesListWidget)
+        self.linkFrameUpdater = LinkFrameUpdater(robotSystem.robotStateModel, self.ui.linkFramesListWidget)
 
         self.eventFilter = PythonQt.dd.ddPythonEventFilter()
         self.ui.scrollArea.installEventFilter(self.eventFilter)
@@ -198,17 +210,17 @@ class FrameVisualizationPanel(object):
 
 
 
-def _getAction():
-    #return app.getToolBarActions()['ActionFrameVisualizationPanel']
-    return None
+def init(view, robotSystem):
 
-def init(view):
+    global panels
 
-    global panel
-    global dock
+    if 'panels' not in globals():
+        panels = {}
 
-    panel = FrameVisualizationPanel(view)
-    dock = app.addWidgetToDock(panel.widget, action=_getAction())
+    panel = FrameVisualizationPanel(view, robotSystem)
+    dock = app.addWidgetToDock(panel.widget, action=None)
     dock.hide()
+
+    panels[robotSystem.robotName] = (panel, dock)
 
     return panel

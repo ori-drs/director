@@ -16,6 +16,7 @@ from director import cameracontrol
 from director import cameracontrolpanel
 from director import cameraview
 from director import drcargs
+from director import framevisualization
 from director import objectmodel as om
 from director import robotsystem
 from director import screengrabberpanel
@@ -471,7 +472,7 @@ for robotSystem in robotSystems:
     imageViewHandler = ToggleImageViewHandler(imageWidget)
 
     screengrabberpanel.init(view, imageWidget, robotSystem.robotName)
-    #framevisualization.init(view)
+    framevisualization.init(view, robotSystem)
     affordancePanel = affordancepanel.init(view, robotSystem.affordanceManager, robotSystem.robotStateJointController)
     cameraBooksmarksPanel = camerabookmarks.init(view)
 
