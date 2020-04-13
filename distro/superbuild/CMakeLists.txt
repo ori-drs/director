@@ -12,7 +12,7 @@ find_package(catkin  REQUIRED COMPONENTS
 catkin_package(
   CATKIN_DEPENDS  
     pcl_ros pcl_plugin
-    forward_kinematics ctk_python_console
+    ctk_python_console
     qt_property_browser python_qt
     anymal_msgs vtk_ros)
 

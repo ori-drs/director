@@ -9,7 +9,7 @@
 
 #include <kdl_parser/kdl_parser.hpp>
 #include <kdl/treejnttojacsolver.hpp>
-#include <forward_kinematics/treefksolverposfull_recursive.hpp>
+#include <treefksolverposfull_recursive.hpp>
 
 #include <urdf/model.h>
 
@@ -173,7 +173,7 @@ public:
     bool kinematics_status;
     std::map<std::string, KDL::Frame > cartpos_out;
     bool flatten_tree = true; // determines absolute transforms to robot origin, otherwise relative transforms between joints.
-    boost::shared_ptr<KDL::TreeFkSolverPosFull_recursive> fksolver = boost::shared_ptr<KDL::TreeFkSolverPosFull_recursive>(new KDL::TreeFkSolverPosFull_recursive(my_tree_));
+    boost::shared_ptr<TreeFkSolverPosFull_recursive> fksolver = boost::shared_ptr<TreeFkSolverPosFull_recursive>(new   TreeFkSolverPosFull_recursive(my_tree_));
     kinematics_status = fksolver->JntToCart(jointpos_in, cartpos_out, flatten_tree);
     std::map<std::string, Eigen::Isometry3d >& linksTransformation = cache.getLinksTransformations();
     for (auto link_pos : cartpos_out) {
