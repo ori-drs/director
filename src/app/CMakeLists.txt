@@ -127,7 +127,7 @@ set(pkg_deps)
 #####
 project(ddApp)
 find_package(catkin  REQUIRED COMPONENTS 
-    kdl_parser forward_kinematics ctk_python_console qt_property_browser python_qt topic_tools tf)
+    kdl_parser ctk_python_console qt_property_browser python_qt topic_tools tf)
 
 
 ##################################
@@ -148,6 +148,7 @@ qt_wrap_cpp(moc_srcs
 
 list(APPEND srcs
   DirectorRigidBodyTree.cpp
+  treefksolverposfull_recursive.cpp
 )
 
 list(APPEND srcs
