@@ -111,8 +111,6 @@ class DRCArgParser(object):
             This action allows us to ignore ROS arguments, which are always added and prefixed by __
             """
             def __call__(self, parser, namespace, values, option_string=None):
-                print("dest {}".format(self.dest))
-                print(values)
                 valid_args = [arg for arg in values if not arg.startswith("__")]
                 if getattr(namespace, self.dest):
                     # Already received a config argument previously, need to append to the list
@@ -160,7 +158,7 @@ class RobotConfig(object):
     def __init__(self, config):
         config_file = config[0]
         if not os.path.isfile(config_file):
-            raise Exception('Director config file not found: %s' % config_file)
+            raise Exception('Robot config file not found: %s' % config_file)
 
         self.dirname = os.path.dirname(os.path.abspath(config_file))
         self.config = yaml.safe_load(open(config_file))
@@ -230,8 +228,8 @@ class DirectorConfig(object):
     def getDefaultInstance(cls):
         if cls._defaultInstance is None:
             if not args().robotConfigs:
-                raise Exception('Director config files not defined. You must pass at least one. '
-                                'Use --director-config <filename> on the command line.')
+                raise Exception('Robot config files not defined. You must pass at least one. '
+                                'Use --robot-config <filename> on the command line.')
             cls._defaultInstance = DirectorConfig(args().robotConfigs)
         return cls._defaultInstance
 
