@@ -114,7 +114,7 @@ class RobotViewBehaviors(object):
         walkingTarget = transformUtils.frameFromPositionAndRPY(selectedGroundPoint,
                                                                np.array(footFrame.GetOrientation()))
 
-        frameObj = vis.updateFrame(walkingTarget, 'walking goal', parent='planning', scale=0.25)
+        frameObj = vis.updateFrame(walkingTarget, self.robotName + ' walking goal', parent='planning', scale=0.25)
         frameObj.setProperty('Edit', True)
 
         rep = frameObj.widget.GetRepresentation()
@@ -155,7 +155,7 @@ class RobotViewBehaviors(object):
 
         frameObj.connectFrameModified(self.onWalkingGoalModified)
 
-    def onWalkingGoalModified(frame):
+    def onWalkingGoalModified(self, frame):
         om.removeFromObjectModel(om.findObjectByName('footstep widget'))
 
     def newDrivingGoal(self, displayPoint, view):
