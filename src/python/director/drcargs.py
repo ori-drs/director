@@ -106,13 +106,25 @@ class DRCArgParser(object):
 
     def addDefaultArgs(self, parser):
 
-        parser.add_argument('--matlab-host', metavar='hostname', type=str,
-                            help='hostname to connect with external matlab server')
+        class IgnoreROSArgsAction(argparse.Action):
+            """
+            This action allows us to ignore ROS arguments, which are always added and prefixed by __
+            """
+            def __call__(self, parser, namespace, values, option_string=None):
+                print("dest {}".format(self.dest))
+                print(values)
+                valid_args = [arg for arg in values if not arg.startswith("__")]
+                if getattr(namespace, self.dest):
+                    # Already received a config argument previously, need to append to the list
+                    setattr(namespace, self.dest, [getattr(namespace, self.dest), valid_args])
+                else:
+                    setattr(namespace, self.dest, valid_args)
 
-        parser.add_argument('--director-config', dest='directorConfigFile',
-                            action='append', metavar='filename',
+        parser.add_argument('--robot-config', dest='robotConfigs',
+                            action=IgnoreROSArgsAction, nargs='+', metavar=('file_path', 'robot_name'),
                             help='YAML files specifying configurations for robots to display. Can be provided '
-                                 'multiple times to display multiple robots.')
+                                 'multiple times to display multiple robots. The second argument specifying the robot '
+                                 'name is required if using the same configuration file more than once.')
 
         if self._isPyDrakeAvailable():
             self.addDrakeConfigShortcuts(directorConfig)
@@ -145,14 +157,19 @@ def args():
 
 class RobotConfig(object):
 
-    def __init__(self, configPath):
-        if not os.path.isfile(configPath):
-            raise Exception('Director config file not found: %s' % configPath)
+    def __init__(self, config):
+        config_file = config[0]
+        if not os.path.isfile(config_file):
+            raise Exception('Director config file not found: %s' % config_file)
 
-        self.dirname = os.path.dirname(os.path.abspath(configPath))
-        self.config = yaml.safe_load(open(configPath))
+        self.dirname = os.path.dirname(os.path.abspath(config_file))
+        self.config = yaml.safe_load(open(config_file))
 
         self.config['fixedPointFile'] = os.path.join(self.dirname, self.config['fixedPointFile'])
+
+        # we received a robot name along with the config file
+        if len(config) > 1:
+            self.config['robotName'] = config[1]
 
         urdfConfig = self.config['urdfConfig']
         for key, urdf in list(urdfConfig.items()):
@@ -174,14 +191,20 @@ class DirectorConfig(object):
 
     _defaultInstance = None
 
-    def __init__(self, filePaths):
+    def __init__(self, robotConfigs):
+
+        print(robotConfigs)
 
         self.robotConfigs = {}
 
-        self.file_paths = filePaths
-        for path in self.file_paths:
-            robotConfig = RobotConfig(path)
-            self.robotConfigs[robotConfig['robotName']] = robotConfig
+        for config in robotConfigs:
+            robotConfig = RobotConfig(config)
+            if robotConfig['robotName'] in self.robotConfigs:
+                raise ValueError("At least two robot configuration files given have the same robot name. Make sure "
+                                 "all names are unique by providing '--robot-config config_file.yaml robot_name' in the "
+                                 "arguments to the director node for the conflicting robots.")
+            else:
+                self.robotConfigs[robotConfig['robotName']] = robotConfig
 
     def getConfig(self, robotName):
         """
@@ -206,10 +229,10 @@ class DirectorConfig(object):
     @classmethod
     def getDefaultInstance(cls):
         if cls._defaultInstance is None:
-            if not args().directorConfigFile:
-                raise Exception('Director config file is not defined. You must pass at least one.'
+            if not args().robotConfigs:
+                raise Exception('Director config files not defined. You must pass at least one. '
                                 'Use --director-config <filename> on the command line.')
-            cls._defaultInstance = DirectorConfig(args().directorConfigFile)
+            cls._defaultInstance = DirectorConfig(args().robotConfigs)
         return cls._defaultInstance
 
 

@@ -928,9 +928,7 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
 def init(view, robotStateJointController):
     global _multisenseItem
 
-    # If the robot name is blank, put Robot in instead so that it's not just a blank box.
-    sensorsFolder = om.getOrCreateContainer('sensors', om.getOrCreateContainer(robotStateJointController.robotName or
-                                                                               "Robot"))
+    sensorsFolder = om.getOrCreateContainer('sensors', om.getOrCreateContainer(robotStateJointController.robotName))
 
     config = drcargs.getRobotConfig(robotStateJointController.robotName)['perceptionSources']
 
