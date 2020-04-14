@@ -100,7 +100,7 @@ class RobotViewBehaviors(object):
     def newWalkingGoal(self, displayPoint, view):
 
         # put walking goal at robot's base
-        mainLink = drcargs.getDirectorConfig()['pelvisLink']
+        mainLink = drcargs.getRobotConfig(self.robotName)['pelvisLink']
         footFrame = self.robotModel.getLinkFrame(mainLink)
 
         worldPt1, worldPt2 = vis.getRayFromDisplayPoint(view, displayPoint)

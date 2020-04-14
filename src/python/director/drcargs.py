@@ -114,9 +114,9 @@ class DRCArgParser(object):
                 valid_args = [arg for arg in values if not arg.startswith("__")]
                 if getattr(namespace, self.dest):
                     # Already received a config argument previously, need to append to the list
-                    setattr(namespace, self.dest, [getattr(namespace, self.dest), valid_args])
+                    getattr(namespace, self.dest).append(valid_args)
                 else:
-                    setattr(namespace, self.dest, valid_args)
+                    setattr(namespace, self.dest, [valid_args])
 
         parser.add_argument('--robot-config', dest='robotConfigs',
                             action=IgnoreROSArgsAction, nargs='+', metavar=('file_path', 'robot_name'),
@@ -190,9 +190,6 @@ class DirectorConfig(object):
     _defaultInstance = None
 
     def __init__(self, robotConfigs):
-
-        print(robotConfigs)
-
         self.robotConfigs = {}
 
         for config in robotConfigs:
