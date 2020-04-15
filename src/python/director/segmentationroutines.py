@@ -40,17 +40,42 @@ class SegmentationContext(object):
         self.groundHeightProviders = {providerName: groundHeightProvider}
         self.viewProviders = {providerName: viewProvider}
 
-    def getGroundHeight(self, providerName):
-        return self.groundHeightProviders[providerName].getGroundHeight()
+    def getGroundHeight(self, providerName=None):
+        if not providerName:
+            if len(self.groundHeightProviders.keys()) > 1:
+                raise ValueError("No providername was given to getGroundHeight but there is more than one possible provider.")
+            else:
+                return self.groundHeightProviders[self.groundHeightProviders.keys()[0]].getGroundHeight()
+        else:
+            return self.groundHeightProviders[providerName].getGroundHeight()
 
-    def getViewFrame(self, providerName):
-        return self.viewProviders[providerName].getViewFrame()
+    def getViewFrame(self, providerName=None):
+        if not providerName:
+            if len(self.viewProviders.keys()) > 1:
+                raise ValueError("No providername was given to getViewFrame but there is more than one possible provider.")
+            else:
+                return self.viewProviders[self.viewProviders.keys()[0]].getViewFrame()
+        else:
+            return self.viewProviders[providerName].getViewFrame()
 
-    def getViewOrigin(self, providerName):
-        return self.viewProviders[providerName].getViewOrigin()
+    def getViewOrigin(self, providerName=None):
+        if not providerName:
+            if len(self.viewProviders.keys()) > 1:
+                raise ValueError("No providername was given to getViewOrigin but there is more than one possible provider.")
+            else:
+                return self.viewProviders[self.viewProviders.keys()[0]].getViewOrigin()
+        else:
+            return self.viewProviders[providerName].getViewOrigin()
 
-    def getViewDirection(self, providerName):
-        return self.viewProviders[providerName].getViewDirection()
+    def getViewDirection(self, providerName=None):
+        if not providerName:
+            if len(self.viewProviders.keys()) > 1:
+                raise ValueError(
+                    "No providername was given to getViewDirection but there is more than one possible provider.")
+            else:
+                return self.viewProviders[self.viewProviders.keys()[0]].getViewDirection()
+        else:
+            return self.viewProviders[providerName].getViewDirection()
 
     def addProvider(self, groundHeightProvider, viewProvider, providerName):
         self.groundHeightProviders[providerName] = groundHeightProvider
