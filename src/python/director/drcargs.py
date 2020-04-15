@@ -201,7 +201,7 @@ class DirectorConfig(object):
             else:
                 self.robotConfigs[robotConfig['robotName']] = robotConfig
 
-    def getConfig(self, robotName):
+    def getConfig(self, robotName=None):
         """
         Get the configuration for a robot with the given name. If no name is given and there is only a single
         configuration, the function will return it. Otherwise, throw a ValueError
