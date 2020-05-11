@@ -278,14 +278,14 @@ class CameraView(object):
         if sphereObj:
             return sphereObj
 
-        if not self.imageManager.getImage(imageName).GetDimensions()[0]:
+        if not self.imageManager.getImage(imageName, self.robotName).GetDimensions()[0]:
             return None
 
         sphereResolution = 50
         sphereRadii = 20
 
         geometry = makeSphere(sphereRadii, sphereResolution)
-        self.imageManager.queue[imageName].compute_texture_coords(imageName, geometry)
+        self.imageManager.queue[self.robotName][imageName].compute_texture_coords(imageName, geometry)
 
         tcoordsArrayName = 'tcoords_%s' % imageName
         vtkNumpy.addNumpyToVtk(geometry, vtkNumpy.getNumpyFromVtk(geometry, tcoordsArrayName)[:,0].copy(), 'tcoords_U')
@@ -295,7 +295,7 @@ class CameraView(object):
         geometry.GetPointData().SetTCoords(geometry.GetPointData().GetArray(tcoordsArrayName))
 
         sphereObj = vis.showPolyData(geometry, imageName, view=self.view, parent='cameras')
-        sphereObj.actor.SetTexture(self.imageManager.getTexture(imageName))
+        sphereObj.actor.SetTexture(self.imageManager.getTexture(imageName, self.robotName))
         sphereObj.actor.GetProperty().LightingOff()
 
         self.view.renderer().RemoveActor(sphereObj.actor)
@@ -313,7 +313,7 @@ class CameraView(object):
                 continue
 
             transform = vtk.vtkTransform()
-            self.imageManager.queue[imageName].get_body_to_camera_transform(transform)
+            self.imageManager.queue[self.robotName][imageName].get_body_to_camera_transform(transform)
             sphereObj.actor.SetUserTransform(transform.GetLinearInverse())
 
     def updateImages(self):
