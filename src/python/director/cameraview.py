@@ -341,9 +341,10 @@ class CameraView(object):
 
 class ImageWidget(object):
 
-    def __init__(self, imageManager, imageNames, view, visible=True):
+    def __init__(self, imageManager, imageNames, view, visible=True, robotName=None):
         self.view = view
         self.imageManager = imageManager
+        self.robotName = robotName
         self.imageNames = imageNames
         self.visible = visible
         self.widgetWidth = 400
@@ -374,7 +375,7 @@ class ImageWidget(object):
 
         self.flips[i] = vtk.vtkImageFlip()
         self.flips[i].SetFilteredAxis(1)
-        self.flips[i].SetInputData(imageManager.getImage(self.imageNames[i]))
+        self.flips[i].SetInputData(imageManager.getImage(self.imageNames[i], self.robotName))
 
         self.imageWidgets[i] = vtk.vtkLogoWidget()
         self.imageWidgets[i].ResizableOff()
@@ -393,7 +394,7 @@ class ImageWidget(object):
             if not self.imageWidgets[i]:
                 continue
 
-            image = self.imageManager.getImage(imageName)
+            image = self.imageManager.getImage(imageName, self.robotName)
             dims = image.GetDimensions()
             if 0 in dims:
                 continue
@@ -444,7 +445,7 @@ class ImageWidget(object):
 
     def haveImage(self):
         for imageName in self.imageNames:
-            image = self.imageManager.getImage(imageName)
+            image = self.imageManager.getImage(imageName, self.robotName)
             dims = image.GetDimensions()
             if 0 not in dims:
                 return True
@@ -456,7 +457,7 @@ class ImageWidget(object):
 
         currentUtime = 0
         for imageName in self.imageNames:
-            currentUtime = max(self.imageManager.updateImage(imageName), currentUtime)
+            currentUtime = max(self.imageManager.updateImage(imageName, self.robotName), currentUtime)
 
 
         if currentUtime == 0:
@@ -466,7 +467,7 @@ class ImageWidget(object):
         if currentUtime != self.updateUtime:
             self.updateUtime = currentUtime
             for i in range(0, len(self.flips)):
-                image = self.imageManager.getImage(self.imageNames[i])
+                image = self.imageManager.getImage(self.imageNames[i], self.robotName)
                 if 0 not in image.GetDimensions():
                     #the image is not empty
                     self.initImageFlip(i)

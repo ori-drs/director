@@ -468,7 +468,7 @@ for robotSystem in robotSystems:
 
     cameras = [camera['name'] for camera in directorConfig['sensors']['camera']['color']]
     imageOverlayManager = ImageOverlayManager(cameras, robotSystem.robotName)
-    imageWidget = cameraview.ImageWidget(cameraview.imageManager, cameras, view, visible=False)
+    imageWidget = cameraview.ImageWidget(cameraview.imageManager, cameras, view, visible=False, robotName=robotSystem.robotName)
     imageViewHandler = ToggleImageViewHandler(imageWidget)
 
     screengrabberpanel.init(view, imageWidget, robotSystem.robotName)
