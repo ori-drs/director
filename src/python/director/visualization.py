@@ -589,8 +589,12 @@ class FrameItem(PolyDataItem):
             self.rep.SetWorldSize(scale)
             self._updateAxesGeometry()
         elif propertyName == 'Visible':
-            # Need to add this to show or hide the editing handles along with the frame display
-            self.widget.SetEnabled(self.getProperty(propertyName))
+            pass
+            if self.widget.GetInteractor():
+                # Need to add this to show or hide the editing handles for modifying the frame along with the frame
+                # display. Without it the editing handles will remain visible when the lines representing the frame
+                # are not
+                self.widget.SetEnabled(self.getProperty(propertyName))
         elif propertyName == 'Edit':
             view = app.getCurrentRenderView()
             if view not in self.views:
