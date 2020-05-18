@@ -138,7 +138,7 @@ class RobotViewBehaviors(object):
 
             d = DebugData()
             d.addSphere((0, 0, 0), radius=0.03)
-            handle = vis.showPolyData(d.getPolyData(), 'walking goal terrain handle', parent=frameObj, visible=True,
+            handle = vis.showPolyData(d.getPolyData(), 'walking goal terrain handle ' + self.robotName, parent=frameObj, visible=True,
                                       color=[1, 1, 0])
             handle.actor.SetUserTransform(frameObj.transform)
             placer = PlacerWidget(app.getCurrentRenderView(), handle, terrain)

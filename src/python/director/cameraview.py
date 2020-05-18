@@ -86,8 +86,9 @@ class ImageManager(object):
     #        return frames.split(',')
 
     def resetTime(self):
-        for cameraName, subscriber in self.queue.iteritems():
-            subscriber.reset_time()
+        for robotName in self.queue.keys():
+            for cameraName in self.queue[robotName]:
+                self.queue[robotName][cameraName].reset_time()
 
     def addImage(self, name, robotName):
 
