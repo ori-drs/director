@@ -329,17 +329,25 @@ def test(n=30, height=1080, aspect=16/9.0, ext='tiff', shouldRender=True, should
     print '%.2f' % (n/elapsed), 'fps'
 
 
-def _getAction():
-    return app.getToolBarActions()['ActionScreenGrabberPanel']
+def init(view, imageWidget, robotName=""):
+    global panels
+    global docks
 
-
-def init(view, imageWidget):
-
-    global panel
-    global dock
+    if 'panels' not in globals():
+        panels = {}
+    if 'docks' not in globals():
+        docks = {}
 
     panel = ScreenGrabberPanel(view, imageWidget)
-    dock = app.addWidgetToDock(panel.widget, action=_getAction())
+    action = app.addDockAction('ActionScreenGrabberPanel' + robotName, 'Screen Grabber',
+                               os.path.join(os.path.dirname(__file__), 'images/video_record.png'),
+                               append=True)
+    dock = app.addWidgetToDock(panel.widget, action=action)
+    app.getRobotSelector().associateWidgetWithRobot(action, robotName)
+
     dock.hide()
+
+    panels[robotName] = panel
+    docks[robotName] = dock
 
     return panel

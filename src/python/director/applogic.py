@@ -13,6 +13,7 @@ import functools
 _mainWindow = None
 _defaultRenderView = None
 
+
 def getMainWindow():
 
     global _mainWindow
@@ -23,6 +24,15 @@ def getMainWindow():
                 break
 
     return _mainWindow
+
+
+def getRobotSelector():
+    """
+    Return the robotselector object for this director instance. Specifying a robot to display will show UI components
+    corresponding only to that robot.
+    :return: RobotSelector object
+    """
+    return getMainWindow().toolBar().findChild("QWidget", "RobotSelector")
 
 
 def quit():
@@ -65,12 +75,43 @@ def showPythonConsole():
 
 _exclusiveDockWidgets = {}
 
-def hideDockWidgets(action):
-    for a, w in _exclusiveDockWidgets.iteritems():
+
+def hideDockWidgets(action=None):
+    for a, wList in _exclusiveDockWidgets.iteritems():
         if a is not action:
-            dock, widget = w
-            if not dock.isFloating():
-                dock.hide()
+            for dock, widget in wList:
+                if not dock.isFloating():
+                    dock.hide()
+
+
+def addDockAction(actionName, actionText, iconPath, append=False):
+    """
+    Get a dock action in the right-hand action toolbar. If it does not exist, it will be created
+
+    :param actionName: The name of the action, the objectName field of the QAction
+    :param actionText: The text shown on mouseover of the action and also when viewing the right-click menu
+    :param iconPath: The path to the icon to display for this action
+    :param append: If true, put this action at the bottom of the toolbar rather than at the top
+    :return: The QAction added to the dock, or the existing action if it was already there
+    """
+
+    action = getToolBarActions().get(actionName)
+
+    if action is None:
+        assert os.path.isfile(iconPath)
+
+        action = QtGui.QAction(QtGui.QIcon(iconPath), actionText, None)
+        action.objectName = actionName
+        action.checkable = True
+
+        toolbar = getMainWindow().panelToolBar()
+
+        if append:
+            toolbar.addAction(action)
+        else:
+            toolbar.insertAction(toolbar.actions()[0], action)
+
+    return action
 
 
 def addWidgetToDock(widget, dockArea=QtCore.Qt.RightDockWidgetArea, action=None):
@@ -81,7 +122,10 @@ def addWidgetToDock(widget, dockArea=QtCore.Qt.RightDockWidgetArea, action=None)
     getMainWindow().addDockWidget(dockArea, dock)
 
     if dockArea == QtCore.Qt.RightDockWidgetArea and action:
-        _exclusiveDockWidgets[action] = (dock, widget)
+        if action in _exclusiveDockWidgets:
+            _exclusiveDockWidgets[action].append((dock, widget))
+        else:
+            _exclusiveDockWidgets[action] = [(dock, widget)]
         action.connect('triggered()', functools.partial(hideDockWidgets, action))
 
     if action is None:
@@ -247,14 +291,14 @@ def onCurrentViewChanged(previousView, currentView):
     updateToggleTerrainAction(currentView)
 
 
-def addToolbarMacro(name, func):
+def addToolbarMacro(name, func, robotName=""):
     toolbar = getMainWindow().macrosToolBar()
     action = toolbar.addAction(name)
     action.connect('triggered()', func)
-
+    getRobotSelector().associateWidgetWithRobot(action, robotName)
 
 def removeToolbarMacro(name):
-    action = getToolBarActions()[name]
+    action = getToolBarActions().get(name)
     if action:
         getMainWindow().panelToolBar().removeAction(action)
 

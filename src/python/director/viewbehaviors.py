@@ -6,19 +6,33 @@ from director import cameracontrol
 from director import propertyset
 from director import frameupdater
 from director import vieweventfilter
+from director import applogic
 
 
-_contextMenuActions = []
+# Empty string are actions that should appear regardless of which robot is selected. Robot name key means those actions
+# are tied to that specific robot.
+_contextMenuActions = {"": []}
 
-def registerContextMenuActions(getActionsFunction):
-    _contextMenuActions.append(getActionsFunction)
+
+def registerContextMenuActions(getActionsFunction, robotName=""):
+    if robotName not in _contextMenuActions:
+        _contextMenuActions[robotName] = []
+    _contextMenuActions[robotName].append(getActionsFunction)
 
 
 def getContextMenuActions(view, pickedObj, pickedPoint):
     actions = []
-    for func in _contextMenuActions:
-        actions.extend(func(view, pickedObj, pickedPoint))
+
+    robotName = applogic.getRobotSelector().selectedRobotName()
+    # TODO replace iteritems with items in python3
+    for contextName, actionList in _contextMenuActions.iteritems():
+        # Only return default menu items or the items associated with the currently selected robot
+        if contextName == "" or contextName == robotName:
+            for func in actionList:
+                actions.extend(func(view, pickedObj, pickedPoint))
+
     return actions
+
 
 def getDefaultContextMenuActions(view, pickedObj, pickedPoint):
 

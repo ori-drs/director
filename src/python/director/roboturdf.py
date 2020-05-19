@@ -35,8 +35,7 @@ class RobotModelItem(om.ObjectModelItem):
 
     MODEL_CHANGED_SIGNAL = 'MODEL_CHANGED_SIGNAL'
 
-    def __init__(self, model=None, visible=True, color="#ff0000", colorMode=0, alpha=1.0):
-
+    def __init__(self, model=None, visible=True, color="#ff0000", colorMode=0, alpha=1.0, robotName=""):
         if model:
             alpha = model.alpha()
             visible = model.visible()
@@ -46,6 +45,8 @@ class RobotModelItem(om.ObjectModelItem):
         else:
             filename = ""
             self.initialised = False
+
+        self.robotName = robotName
 
         modelName = os.path.basename(filename)
         om.ObjectModelItem.__init__(self, modelName, om.Icons.Robot)
@@ -74,34 +75,32 @@ class RobotModelItem(om.ObjectModelItem):
         self._leftHandLink = ''
         self._rightHandLink = ''
         self._quadruped = False
-        with open(drcargs.args().directorConfigFile) as directorConfigFile:
-            directorConfig = json.load(directorConfigFile)
 
-            self.modelName = directorConfig['modelName']
+        directorConfig = drcargs.getRobotConfig(self.robotName)
 
-            directorConfigDirectory = os.path.dirname(os.path.abspath(directorConfigFile.name))
+        self.modelName = directorConfig['modelName']
 
-            if 'leftFootMeshFiles' in directorConfig:
-                self.footMeshFiles.append(directorConfig['leftFootMeshFiles'])
-                self.footMeshFiles.append(directorConfig['rightFootMeshFiles'])
-                for j in range(0, 2):
-                    for i in range(len(self.footMeshFiles[j])):
-                        self.footMeshFiles[j][i] = os.path.join(directorConfigDirectory, self.footMeshFiles[j][i])
+        if 'leftFootMeshFiles' in directorConfig:
+            self.footMeshFiles.append(directorConfig['leftFootMeshFiles'])
+            self.footMeshFiles.append(directorConfig['rightFootMeshFiles'])
+            for j in range(0, 2):
+                for i in range(len(self.footMeshFiles[j])):
+                    self.footMeshFiles[j][i] = os.path.join(directorConfig.dirname, self.footMeshFiles[j][i])
 
-            if 'pelvisLink' in directorConfig:
-                self.pelvisLink = directorConfig['pelvisLink']
+        if 'pelvisLink' in directorConfig:
+            self.pelvisLink = directorConfig['pelvisLink']
 
-            if 'leftFootLink' in directorConfig:
-                self.leftFootLink = directorConfig['leftFootLink']
-                self.rightFootLink = directorConfig['rightFootLink']
+        if 'leftFootLink' in directorConfig:
+            self.leftFootLink = directorConfig['leftFootLink']
+            self.rightFootLink = directorConfig['rightFootLink']
 
-            if 'quadruped' in drcargs.getDirectorConfig():
-                self.quadruped = True
-                # Using 'hands' to signify quadruped front feet, for now:
-                # Note: there has not been the use of leftHandLink for previous bipeds
-                if 'leftHandLink' in drcargs.getDirectorConfig():
-                    self.leftHandLink = drcargs.getDirectorConfig()['leftHandLink']
-                    self.rightHandLink = drcargs.getDirectorConfig()['rightHandLink']
+        if 'quadruped' in directorConfig:
+            self.quadruped = True
+            # Using 'hands' to signify quadruped front feet, for now:
+            # Note: there has not been the use of leftHandLink for previous bipeds
+            if 'leftHandLink' in directorConfig:
+                self.leftHandLink = directorConfig['leftHandLink']
+                self.rightHandLink = directorConfig['rightHandLink']
 
     def _onPropertyChanged(self, propertySet, propertyName):
         om.ObjectModelItem._onPropertyChanged(self, propertySet, propertyName)
@@ -160,7 +159,7 @@ class RobotModelItem(om.ObjectModelItem):
             return None
 
     def getHeadLink(self):
-        headLink = drcargs.getDirectorConfig().get('headLink')
+        headLink = drcargs.getRobotConfig(self.robotName).get('headLink')
         if not headLink:
             import warnings
             warnings.warn("headLink is not defined in director config - certain features will be broken")
@@ -277,8 +276,7 @@ class RobotModelItem(om.ObjectModelItem):
             contact_pts_right = contact_pts_left.copy()
 
         else:
-            print self._modelName
-            raise ValueError("modelName not recognised")
+            raise ValueError("modelName {} not recognised".format(self._modelName))
 
         return contact_pts_left, contact_pts_right
 
@@ -325,7 +323,7 @@ class RobotModelItem(om.ObjectModelItem):
             return t_feet_mid
 
 
-def loadRobotModel(name=None, view=None, parent='scene', urdfFile=None, color=None, visible=True, colorMode='URDF Colors', useConfigFile=True):
+def loadRobotModel(name=None, view=None, parent='scene', urdfFile=None, color=None, visible=True, colorMode='URDF Colors', useConfigFile=True, robotName=""):
 
     if isinstance(parent, str):
         parent = om.getOrCreateContainer(parent)
@@ -341,7 +339,7 @@ def loadRobotModel(name=None, view=None, parent='scene', urdfFile=None, color=No
     colorModes = {'Solid Color': 0, 'Textures': 1, 'URDF Colors': 2}
 
     obj = RobotModelItem(model=model, visible=visible, color=color or getRobotGrayColor(),
-                         colorMode=colorModes[colorMode])
+                         colorMode=colorModes[colorMode], robotName=robotName)
     om.addToObjectModel(obj, parent)
 
     if name:
@@ -355,10 +353,10 @@ def loadRobotModel(name=None, view=None, parent='scene', urdfFile=None, color=No
     else:
         jointNames = model.getJointNames()
 
-    jointController = jointcontrol.JointController([obj], jointNames=jointNames, pushToModel=haveModel)
+    jointController = jointcontrol.JointController([obj], jointNames=jointNames, robotName=robotName, pushToModel=haveModel)
 
     if useConfigFile:
-        fixedPointFile = drcargs.getDirectorConfig().get('fixedPointFile')
+        fixedPointFile = drcargs.getRobotConfig(robotName).get('fixedPointFile')
         if fixedPointFile:
             jointController.setPose('q_nom', jointController.loadPoseFromFile(fixedPointFile), pushToModel=haveModel)
         else:
@@ -519,7 +517,7 @@ class HandFactory(object):
         self.defaultHandTypes = {}
         self.loaders = {}
 
-        handCombinations = drcargs.getDirectorConfig().get('handCombinations', [])
+        handCombinations = drcargs.getRobotConfig(None).get('handCombinations', [])
         for description in handCombinations:
 
             handType = description['handType']
@@ -571,7 +569,7 @@ class HandLoader(object):
         assert self.side in ('left', 'right')
 
         thisCombination = None
-        handCombinations = drcargs.getDirectorConfig()['handCombinations']
+        handCombinations = drcargs.getRobotConfig(robotModel.robotName)['handCombinations']
         numberOfHands = len(handCombinations)
 
         for i in range(0, numberOfHands ):

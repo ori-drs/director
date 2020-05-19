@@ -108,11 +108,12 @@ class ImageSourceMeta(SourceMeta):
 
     @staticmethod
     @abc.abstractmethod
-    def initialise_from_name(name):
+    def initialise_from_name(name, robot_name):
         """
         Initialise an image source object from a camera name. This is used to help with deferred intialisation
         :param name: The name from which to initialise. This is assumed to refer to a camera name in the director
         configuration
+        :param robot_name: The robot this camera is associated with
         :return:
         """
         pass

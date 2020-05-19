@@ -1,6 +1,7 @@
 
 from director.consoleapp import ConsoleApp
 from director import robotsystem
+from director import drcargs
 
 app = ConsoleApp()
 
@@ -22,7 +23,9 @@ if testMinimalOptions:
     options = factory.getDisabledOptions()
     options.useDirectorConfig = True
 
-    robotSystem = factory.construct(view=view, options=options)
+    config = drcargs.DirectorConfig.getDefaultInstance().getConfig()
+
+    robotSystem = factory.construct(view=view, options=options, robotName=config['robotName'])
 
 else:
 

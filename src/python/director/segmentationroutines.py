@@ -36,21 +36,50 @@ class SegmentationContext(object):
            - where ground plane from feet cannot be used
     '''
 
-    def __init__(self, groundHeightProvider, viewProvider):
-        self.groundHeightProvider = groundHeightProvider
-        self.viewProvider = viewProvider
+    def __init__(self, groundHeightProvider, viewProvider, providerName):
+        self.groundHeightProviders = {providerName: groundHeightProvider}
+        self.viewProviders = {providerName: viewProvider}
 
-    def getGroundHeight(self):
-        return self.groundHeightProvider.getGroundHeight()
+    def getGroundHeight(self, providerName=None):
+        if not providerName:
+            if len(self.groundHeightProviders.keys()) > 1:
+                raise ValueError("No providername was given to getGroundHeight but there is more than one possible provider.")
+            else:
+                return self.groundHeightProviders[self.groundHeightProviders.keys()[0]].getGroundHeight()
+        else:
+            return self.groundHeightProviders[providerName].getGroundHeight()
 
-    def getViewFrame(self):
-        return self.viewProvider.getViewFrame()
+    def getViewFrame(self, providerName=None):
+        if not providerName:
+            if len(self.viewProviders.keys()) > 1:
+                raise ValueError("No providername was given to getViewFrame but there is more than one possible provider.")
+            else:
+                return self.viewProviders[self.viewProviders.keys()[0]].getViewFrame()
+        else:
+            return self.viewProviders[providerName].getViewFrame()
 
-    def getViewOrigin(self):
-        return self.viewProvider.getViewOrigin()
+    def getViewOrigin(self, providerName=None):
+        if not providerName:
+            if len(self.viewProviders.keys()) > 1:
+                raise ValueError("No providername was given to getViewOrigin but there is more than one possible provider.")
+            else:
+                return self.viewProviders[self.viewProviders.keys()[0]].getViewOrigin()
+        else:
+            return self.viewProviders[providerName].getViewOrigin()
 
-    def getViewDirection(self):
-        return self.viewProvider.getViewDirection()
+    def getViewDirection(self, providerName=None):
+        if not providerName:
+            if len(self.viewProviders.keys()) > 1:
+                raise ValueError(
+                    "No providername was given to getViewDirection but there is more than one possible provider.")
+            else:
+                return self.viewProviders[self.viewProviders.keys()[0]].getViewDirection()
+        else:
+            return self.viewProviders[providerName].getViewDirection()
+
+    def addProvider(self, groundHeightProvider, viewProvider, providerName):
+        self.groundHeightProviders[providerName] = groundHeightProvider
+        self.viewProviders[providerName] = viewProvider
 
     '''
     These static methods are provided for convenience to initialize
@@ -73,25 +102,35 @@ class SegmentationContext(object):
         return SegmentationContext._globalSegmentationContext
 
     @staticmethod
-    def initWithRobot(model):
-        sc = SegmentationContext(RobotModelGroundHeightProvider(model), RobotModelViewProvider(model))
-        SegmentationContext.installGlobalInstance(sc)
+    def initContext(groundHeightProvider, viewProvider, providerName):
+        if SegmentationContext._globalSegmentationContext:
+            SegmentationContext._globalSegmentationContext.addProvider(groundHeightProvider, viewProvider,
+                                                                       providerName)
+        else:
+            SegmentationContext.installGlobalInstance(SegmentationContext(groundHeightProvider, viewProvider,
+                                                                          providerName))
 
     @staticmethod
-    def initWithCamera(camera, userGroundHeight):
-        sc = SegmentationContext(UserGroundHeightProvider(userGroundHeight), CameraViewProvider(camera))
-        SegmentationContext.installGlobalInstance(sc)
+    def initWithRobot(model, robotName=""):
+        SegmentationContext.initContext(RobotModelGroundHeightProvider(model, robotName),
+                                        RobotModelViewProvider(model), robotName)
 
     @staticmethod
-    def initWithUser(userGroundHeight, userViewFrame, viewAxis=0):
-        sc = SegmentationContext(UserGroundHeightProvider(userGroundHeight), UserViewProvider(userViewFrame, viewAxis))
-        SegmentationContext.installGlobalInstance(sc)
+    def initWithCamera(camera, userGroundHeight, providerName="defaultCamera"):
+        SegmentationContext.initContext(UserGroundHeightProvider(userGroundHeight), CameraViewProvider(camera),
+                                        providerName)
+
+    @staticmethod
+    def initWithUser(userGroundHeight, userViewFrame, viewAxis=0, providerName="defaultUser"):
+        SegmentationContext.initContext(UserGroundHeightProvider(userGroundHeight),
+                                        UserViewProvider(userViewFrame, viewAxis), providerName)
 
 
 class RobotModelGroundHeightProvider(object):
 
-    def __init__(self, model):
+    def __init__(self, model, robotName=""):
         self.model = model
+        self.robotName = robotName
 
     def getGroundHeight(self):
         return self.model.getFeetMidPoint().GetPosition()[2]

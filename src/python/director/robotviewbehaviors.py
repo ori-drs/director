@@ -30,65 +30,207 @@ import re
 import random
 import colorsys
 
-
-# todo: refactor these global variables
-# several functions in this module depend on these global variables
-# which are set by calling ViewBehaviors.addRobotBehaviors().
-# These could be refactored to be members of a new behaviors class.
-robotSystem = None
-robotModel = None
-robotLinkSelector = None
 lastRandomColor = 0.0
 
 
-def resetCameraToRobot(view):
-    t = robotModel.getLinkFrame(drcargs.getDirectorConfig()['pelvisLink'] )
-    if t is None:
-        t = vtk.vtkTransform()
+class RobotViewBehaviors(object):
 
-    focalPoint = [0.0, 0.0, 0.25]
-    position = [-4.0, -2.0, 2.25]
-    t.TransformPoint(focalPoint, focalPoint)
-    t.TransformPoint(position, position)
-    flyer = cameracontrol.Flyer(view)
-    flyer.zoomTo(focalPoint, position)
+    def __init__(self, view, _robotSystem):
+        self.view = view
+        self.viewBehaviors = viewbehaviors.ViewBehaviors(view)
+        self.robotViewBehaviors = RobotViewEventFilter(self, view)
+        self.robotName = _robotSystem.robotName
 
+        self.robotSystem = _robotSystem
+        self.robotModel = self.robotSystem.robotStateModel
+        if app.getMainWindow() is not None:
+            self.robotLinkSelector = RobotLinkSelector()
 
-def resetCameraToRobotAbove(view):
-    t = robotModel.getLinkFrame(drcargs.getDirectorConfig()['pelvisLink'] )
-    if t is None:
-        t = vtk.vtkTransform()
+        viewbehaviors.registerContextMenuActions(self.getRobotActions)
 
-    focalPoint = [2, 0.0, 0.25]
-    position = [1, 0.0, 15.25] # to avoid singularities
-    t.TransformPoint(focalPoint, focalPoint)
-    t.TransformPoint(position, position)
-    flyer = cameracontrol.Flyer(view)
-    flyer.zoomTo(focalPoint, position)
+    def resetCameraToRobot(self, view):
+        link = drcargs.getRobotConfig(self.robotName)['pelvisLink']
 
+        t = self.robotModel.getLinkFrame(link)
+        if t is None:
+            t = vtk.vtkTransform()
 
-def resetCameraToHeadView(view):
+        focalPoint = [0.0, 0.0, 0.25]
+        position = [-4.0, -2.0, 2.25]
+        t.TransformPoint(focalPoint, focalPoint)
+        t.TransformPoint(position, position)
+        flyer = cameracontrol.Flyer(view)
+        flyer.zoomTo(focalPoint, position)
 
+    def resetCameraToRobotAbove(self, view):
+        link = drcargs.getRobotConfig(self.robotName)['pelvisLink']
 
-    head = robotModel.getLinkFrame(drcargs.getDirectorConfig()['headLink'] )
-    pelvis = robotModel.getLinkFrame(drcargs.getDirectorConfig()['pelvisLink'] )
+        t = self.robotModel.getLinkFrame(link)
+        if t is None:
+            t = vtk.vtkTransform()
 
-    viewDirection = np.array([1.0, 0.0, 0.0])
-    pelvis.TransformVector(viewDirection, viewDirection)
+        focalPoint = [2, 0.0, 0.25]
+        position = [1, 0.0, 15.25] # to avoid singularities
+        t.TransformPoint(focalPoint, focalPoint)
+        t.TransformPoint(position, position)
+        flyer = cameracontrol.Flyer(view)
+        flyer.zoomTo(focalPoint, position)
 
-    cameraPosition = np.array(head.GetPosition()) + 0.10 * viewDirection
+    def resetCameraToHeadView(self, view):
 
-    camera = view.camera()
+        head = self.robotModel.getLinkFrame(drcargs.getRobotConfig(self.robotName)['headLink'])
+        pelvis = self.robotModel.getLinkFrame(drcargs.getRobotConfig(self.robotName)['pelvisLink'])
 
-    focalOffset = np.array(camera.GetFocalPoint()) - np.array(camera.GetPosition())
-    focalOffset /= np.linalg.norm(focalOffset)
+        viewDirection = np.array([1.0, 0.0, 0.0])
+        pelvis.TransformVector(viewDirection, viewDirection)
 
-    camera.SetPosition(cameraPosition)
-    camera.SetFocalPoint(cameraPosition + focalOffset*0.03)
-    camera.SetViewUp([0, 0, 1])
-    camera.SetViewAngle(90)
-    view.render()
+        cameraPosition = np.array(head.GetPosition()) + 0.10 * viewDirection
 
+        camera = view.camera()
+
+        focalOffset = np.array(camera.GetFocalPoint()) - np.array(camera.GetPosition())
+        focalOffset /= np.linalg.norm(focalOffset)
+
+        camera.SetPosition(cameraPosition)
+        camera.SetFocalPoint(cameraPosition + focalOffset*0.03)
+        camera.SetViewUp([0, 0, 1])
+        camera.SetViewAngle(90)
+        view.render()
+
+    def newWalkingGoal(self, displayPoint, view):
+
+        # put walking goal at robot's base
+        mainLink = drcargs.getRobotConfig(self.robotName)['pelvisLink']
+        footFrame = self.robotModel.getLinkFrame(mainLink)
+
+        worldPt1, worldPt2 = vis.getRayFromDisplayPoint(view, displayPoint)
+        groundOrigin = footFrame.GetPosition()
+        groundNormal = [0.0, 0.0, 1.0]
+        selectedGroundPoint = [0.0, 0.0, 0.0]
+
+        t = vtk.mutable(0.0)
+        vtk.vtkPlane.IntersectWithLine(worldPt1, worldPt2, groundNormal, groundOrigin, t, selectedGroundPoint)
+
+        walkingTarget = transformUtils.frameFromPositionAndRPY(selectedGroundPoint,
+                                                               np.array(footFrame.GetOrientation()))
+
+        frameObj = vis.updateFrame(walkingTarget, self.robotName + ' walking goal', parent='planning', scale=0.25)
+        frameObj.setProperty('Edit', True)
+
+        rep = frameObj.widget.GetRepresentation()
+        rep.SetTranslateAxisEnabled(2, False)
+        rep.SetRotateAxisEnabled(0, False)
+        rep.SetRotateAxisEnabled(1, False)
+        frameObj.widget.HandleRotationEnabledOff()
+
+        terrain = om.findObjectByName('HEIGHT_MAP_SCENE')
+        if terrain:
+
+            pos = np.array(frameObj.transform.GetPosition())
+
+            polyData = filterUtils.removeNonFinitePoints(terrain.polyData)
+            if polyData.GetNumberOfPoints():
+                polyData = segmentation.labelDistanceToLine(polyData, pos, pos + [0, 0, 1])
+                polyData = segmentation.thresholdPoints(polyData, 'distance_to_line', [0.0, 0.1])
+                if polyData.GetNumberOfPoints():
+                    pos[2] = np.nanmax(vnp.getNumpyFromVtk(polyData, 'Points')[:, 2])
+                    frameObj.transform.Translate(pos - np.array(frameObj.transform.GetPosition()))
+
+            d = DebugData()
+            d.addSphere((0, 0, 0), radius=0.03)
+            handle = vis.showPolyData(d.getPolyData(), 'walking goal terrain handle ' + self.robotName, parent=frameObj, visible=True,
+                                      color=[1, 1, 0])
+            handle.actor.SetUserTransform(frameObj.transform)
+            placer = PlacerWidget(app.getCurrentRenderView(), handle, terrain)
+
+            def onFramePropertyModified(propertySet, propertyName):
+                if propertyName == 'Edit':
+                    if propertySet.getProperty(propertyName):
+                        placer.start()
+                    else:
+                        placer.stop()
+
+            frameObj.properties.connectPropertyChanged(onFramePropertyModified)
+            onFramePropertyModified(frameObj, 'Edit')
+
+        frameObj.connectFrameModified(self.onWalkingGoalModified)
+
+    def onWalkingGoalModified(self, frame):
+        om.removeFromObjectModel(om.findObjectByName('footstep widget'))
+
+    def newDrivingGoal(self, displayPoint, view):
+        # Places the driving goal on the plane of the root link current yaw
+        # for husky: the bottom of the wheels.
+        # for hyq/anymal the midpoint of the trunk
+        # TODO: read the link from the director config
+        mainLink = drcargs.getRobotConfig(self.robotName)['pelvisLink']
+        footFrame = self.robotModel.getLinkFrame(mainLink)
+
+        worldPt1, worldPt2 = vis.getRayFromDisplayPoint(view, displayPoint)
+        groundOrigin = footFrame.GetPosition()
+        groundNormal = [0.0, 0.0, 1.0]
+        selectedGroundPoint = [0.0, 0.0, 0.0]
+
+        t = vtk.mutable(0.0)
+        vtk.vtkPlane.IntersectWithLine(worldPt1, worldPt2, groundNormal, groundOrigin, t, selectedGroundPoint)
+
+        footFrameRPY = transformUtils.rollPitchYawFromTransform(footFrame)
+        drivingTarget = transformUtils.frameFromPositionAndRPY(selectedGroundPoint,
+                                                               [0, 0, footFrameRPY[2] * 180.0 / np.pi])
+
+        # Create the widget and send a message:
+        # walkingGoal = walkingGoal or self.newWalkingGoalFrame(self.robotModel)
+        frameObj = vis.updateFrame(drivingTarget, 'driving goal', parent='planning', scale=0.25)
+        frameObj.setProperty('Edit', True)
+
+        rep = frameObj.widget.GetRepresentation()
+        rep.SetTranslateAxisEnabled(2, False)
+        rep.SetRotateAxisEnabled(0, False)
+        rep.SetRotateAxisEnabled(1, False)
+        frameObj.widget.HandleRotationEnabledOff()
+
+        frameObj.connectFrameModified(onNewDrivingGoal)
+        onNewDrivingGoal(frameObj)
+
+    def getRobotActions(self, view, pickedObj, pickedPoint):
+        # TODO this is a somewhat crude transplant to maintain functionality. The context menu construction that uses
+        #  this should be improved
+        affordanceObj = pickedObj if isinstance(pickedObj, affordanceitems.AffordanceItem) else None
+
+        def addNewFrame():
+            t = transformUtils.copyFrame(affordanceObj.getChildFrame().transform)
+            t.PostMultiply()
+            t.Translate(np.array(pickedPoint) - np.array(t.GetPosition()))
+            newFrame = vis.showFrame(t,
+                                     '%s frame %d' % (affordanceObj.getProperty('Name'), len(affordanceObj.children())),
+                                     scale=0.2, parent=affordanceObj)
+            affordanceObj.getChildFrame().getFrameSync().addFrame(newFrame, ignoreIncoming=True)
+
+        def copyAffordance():
+            desc = dict(affordanceObj.getDescription())
+            del desc['uuid']
+            desc['Name'] = desc['Name'] + ' copy'
+            aff = self.robotSystem.affordanceManager.newAffordanceFromDescription(desc)
+            aff.getChildFrame().setProperty('Edit', True)
+
+        def onPromoteToAffordance():
+            affObj = affordanceitems.MeshAffordanceItem.promotePolyDataItem(pickedObj)
+            self.robotSystem.affordanceManager.registerAffordance(affObj)
+
+        actions = []
+
+        if affordanceObj:
+            actions.extend([
+                ('Copy affordance', copyAffordance),
+                ('Add new frame', addNewFrame),
+            ])
+
+        elif type(pickedObj) == vis.PolyDataItem:
+            actions.extend([
+                ('Promote to Affordance', onPromoteToAffordance),
+            ])
+
+        return actions
 
 def getChildFrame(obj):
     if hasattr(obj, 'getChildFrame'):
@@ -137,104 +279,11 @@ def placeHandModel(displayPoint, view, side='left'):
         handFrame.frameSync.addFrame(syncFrame)
 
 
-def newWalkingGoal(displayPoint, view):
-
-    # put walking goal at robot's base
-    mainLink = drcargs.getDirectorConfig()['pelvisLink']
-    footFrame = robotModel.getLinkFrame(mainLink)
-
-
-    worldPt1, worldPt2 = vis.getRayFromDisplayPoint(view, displayPoint)
-    groundOrigin = footFrame.GetPosition()
-    groundNormal = [0.0, 0.0, 1.0]
-    selectedGroundPoint = [0.0, 0.0, 0.0]
-
-    t = vtk.mutable(0.0)
-    vtk.vtkPlane.IntersectWithLine(worldPt1, worldPt2, groundNormal, groundOrigin, t, selectedGroundPoint)
-
-    walkingTarget = transformUtils.frameFromPositionAndRPY(selectedGroundPoint, np.array(footFrame.GetOrientation()))
-
-    frameObj = vis.updateFrame(walkingTarget, 'walking goal', parent='planning', scale=0.25)
-    frameObj.setProperty('Edit', True)
-
-
-    rep = frameObj.widget.GetRepresentation()
-    rep.SetTranslateAxisEnabled(2, False)
-    rep.SetRotateAxisEnabled(0, False)
-    rep.SetRotateAxisEnabled(1, False)
-    frameObj.widget.HandleRotationEnabledOff()
-
-    terrain = om.findObjectByName('HEIGHT_MAP_SCENE')
-    if terrain:
-
-        pos = np.array(frameObj.transform.GetPosition())
-
-        polyData = filterUtils.removeNonFinitePoints(terrain.polyData)
-        if polyData.GetNumberOfPoints():
-            polyData = segmentation.labelDistanceToLine(polyData, pos, pos+[0,0,1])
-            polyData = segmentation.thresholdPoints(polyData, 'distance_to_line', [0.0, 0.1])
-            if polyData.GetNumberOfPoints():
-                pos[2] = np.nanmax(vnp.getNumpyFromVtk(polyData, 'Points')[:,2])
-                frameObj.transform.Translate(pos - np.array(frameObj.transform.GetPosition()))
-
-        d = DebugData()
-        d.addSphere((0,0,0), radius=0.03)
-        handle = vis.showPolyData(d.getPolyData(), 'walking goal terrain handle', parent=frameObj, visible=True, color=[1,1,0])
-        handle.actor.SetUserTransform(frameObj.transform)
-        placer = PlacerWidget(app.getCurrentRenderView(), handle, terrain)
-
-        def onFramePropertyModified(propertySet, propertyName):
-            if propertyName == 'Edit':
-                if propertySet.getProperty(propertyName):
-                    placer.start()
-                else:
-                    placer.stop()
-
-        frameObj.properties.connectPropertyChanged(onFramePropertyModified)
-        onFramePropertyModified(frameObj, 'Edit')
-
-    frameObj.connectFrameModified(onWalkingGoalModified)
-
-def onWalkingGoalModified(frame):
-    om.removeFromObjectModel(om.findObjectByName('footstep widget'))
 
 def onNewDrivingGoal(frame):
     msg = lcmbotcore.pose_t()
     msg.utime = getUtime()
     msg.pos, msg.orientation = transformUtils.poseFromTransform(frame.transform)
-
-def newDrivingGoal(displayPoint, view):
-    # Places the driving goal on the plane of the root link current yaw
-    # for husky: the bottom of the wheels.
-    # for hyq/anymal the midpoint of the trunk
-    # TODO: read the link from the director config
-    mainLink = drcargs.getDirectorConfig()['pelvisLink']
-    footFrame = robotModel.getLinkFrame(mainLink)
-
-    worldPt1, worldPt2 = vis.getRayFromDisplayPoint(view, displayPoint)
-    groundOrigin = footFrame.GetPosition()
-    groundNormal = [0.0, 0.0, 1.0]
-    selectedGroundPoint = [0.0, 0.0, 0.0]
-
-    t = vtk.mutable(0.0)
-    vtk.vtkPlane.IntersectWithLine(worldPt1, worldPt2, groundNormal, groundOrigin, t, selectedGroundPoint)
-
-    footFrameRPY = transformUtils.rollPitchYawFromTransform(footFrame)
-    drivingTarget = transformUtils.frameFromPositionAndRPY(selectedGroundPoint, [0, 0, footFrameRPY[2]*180.0/np.pi ] )
-
-    # Create the widget and send a message:
-    #walkingGoal = walkingGoal or self.newWalkingGoalFrame(self.robotModel)
-    frameObj = vis.updateFrame(drivingTarget, 'driving goal', parent='planning', scale=0.25)
-    frameObj.setProperty('Edit', True)
-
-    rep = frameObj.widget.GetRepresentation()
-    rep.SetTranslateAxisEnabled(2, False)
-    rep.SetRotateAxisEnabled(0, False)
-    rep.SetRotateAxisEnabled(1, False)
-    frameObj.widget.HandleRotationEnabledOff()
-
-    frameObj.connectFrameModified(onNewDrivingGoal)
-    onNewDrivingGoal(frameObj)
 
 
 def toggleFootstepWidget(displayPoint, view, useHorizontalWidget=False):
@@ -339,7 +388,6 @@ def getRobotActions(view, pickedObj, pickedPoint):
     reachFrame = getAsFrame(pickedObj)
     collisionParent = getCollisionParent(pickedObj)
     pointCloudObj = getObjectAsPointCloud(pickedObj)
-    affordanceObj = pickedObj if isinstance(pickedObj, affordanceitems.AffordanceItem) else None
 
     def onReachLeft():
         reachToFrame(reachFrame, 'left', collisionParent)
@@ -505,38 +553,7 @@ def getRobotActions(view, pickedObj, pickedPoint):
     def onSegmentationEditor():
         segmentationpanel.activateSegmentationMode(pointCloudObj.polyData)
 
-    def addNewFrame():
-        t = transformUtils.copyFrame(affordanceObj.getChildFrame().transform)
-        t.PostMultiply()
-        t.Translate(np.array(pickedPoint) - np.array(t.GetPosition()))
-        newFrame = vis.showFrame(t, '%s frame %d' % (affordanceObj.getProperty('Name'), len(affordanceObj.children())), scale=0.2, parent=affordanceObj)
-        affordanceObj.getChildFrame().getFrameSync().addFrame(newFrame, ignoreIncoming=True)
-
-    def copyAffordance():
-        desc = dict(affordanceObj.getDescription())
-        del desc['uuid']
-        desc['Name'] = desc['Name'] + ' copy'
-        aff = robotSystem.affordanceManager.newAffordanceFromDescription(desc)
-        aff.getChildFrame().setProperty('Edit', True)
-
-    def onPromoteToAffordance():
-        affObj = affordanceitems.MeshAffordanceItem.promotePolyDataItem(pickedObj)
-        robotSystem.affordanceManager.registerAffordance(affObj)
-
-
     actions = []
-
-
-    if affordanceObj:
-        actions.extend([
-            ('Copy affordance', copyAffordance),
-            ('Add new frame', addNewFrame),
-        ])
-
-    elif type(pickedObj) == vis.PolyDataItem:
-        actions.extend([
-            ('Promote to Affordance', onPromoteToAffordance),
-        ])
 
     if isGraspSeed(pickedObj):
         actions.extend([
@@ -578,6 +595,10 @@ viewbehaviors.registerContextMenuActions(getRobotActions)
 
 
 class RobotViewEventFilter(ViewEventFilter):
+    # TODO this class taking the class that contains it as a parameter so that it can access its functions is not ideal
+    def __init__(self, viewBehaviors, view):
+        super(RobotViewEventFilter, self).__init__(view)
+        self.viewBehaviors = viewBehaviors
 
     def onMouseMove(self, event):
 
@@ -591,7 +612,7 @@ class RobotViewEventFilter(ViewEventFilter):
     def onLeftMousePress(self, event):
         if event.modifiers() == QtCore.Qt.ControlModifier:
             displayPoint = self.getMousePositionInView(event)
-            newWalkingGoal(displayPoint, self.view)
+            self.viewBehaviors.newWalkingGoal(displayPoint, self.view)
             self.consumeEvent()
 
         for picker in segmentation.viewPickers:
@@ -610,7 +631,8 @@ class RobotViewEventFilter(ViewEventFilter):
             self.consumeEvent()
             return
 
-        if robotLinkSelector and robotLinkSelector.selectLink(displayPoint, self.view):
+        if self.viewBehaviors.robotLinkSelector and self.viewBehaviors.robotLinkSelector.selectLink(displayPoint,
+                                                                                                    self.view):
             self.consumeEvent()
             return
 
@@ -622,30 +644,13 @@ class RobotViewEventFilter(ViewEventFilter):
 
         if key == 'r':
             consumed = True
-            if robotModel is not None:
-                resetCameraToRobot(self.view)
+            if self.viewBehaviors.robotModel is not None:
+                self.viewBehaviors.resetCameraToRobot(self.view)
 
         if key == 't': # aka 'top'
             consumed = True
-            if robotModel is not None:
-                resetCameraToRobotAbove(self.view)
+            if self.viewBehaviors.robotModel is not None:
+                self.viewBehaviors.resetCameraToRobotAbove(self.view)
 
         if consumed:
             self.consumeEvent()
-
-
-
-
-class RobotViewBehaviors(object):
-
-    def __init__(self, view, _robotSystem):
-        self.view = view
-        self.viewBehaviors = viewbehaviors.ViewBehaviors(view)
-        self.robotViewBehaviors = RobotViewEventFilter(view)
-
-        global robotSystem, robotModel, robotLinkSelector
-
-        robotSystem = _robotSystem
-        robotModel = robotSystem.robotStateModel
-        if app.getMainWindow() is not None:
-            robotLinkSelector = RobotLinkSelector()

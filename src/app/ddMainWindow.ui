@@ -113,7 +113,6 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="ActionFootstepPanel"/>
    <addaction name="ActionPythonConsole"/>
    <addaction name="ActionMatlabConsole"/>
    <addaction name="separator"/>
@@ -123,6 +122,7 @@
    <addaction name="ActionToggleFramesSize"/>
    <addaction name="ActionToggleCameraTerrainMode"/>
    <addaction name="ActionResetCamera"/>
+   <addaction name="separator"/>
   </widget>
   <widget class="QDockWidget" name="PropertiesDock">
    <property name="windowTitle">
@@ -216,8 +216,6 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="ActionScreenGrabberPanel"/>
-   <addaction name="ActionTaskLauncher"/>
   </widget>
   <action name="ActionQuit">
    <property name="text">
@@ -390,24 +388,6 @@
     <string>&amp;Colorize Lidar</string>
    </property>
   </action>
-  <action name="ActionFootstepPanel">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="images/resources.qrc">
-     <normaloff>:/images/feet.png</normaloff>:/images/feet.png</iconset>
-   </property>
-   <property name="text">
-    <string>Footstep Panel</string>
-   </property>
-   <property name="toolTip">
-    <string>Footstep Panel</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+F</string>
-   </property>
-  </action>
   <action name="ActionTaskManagerPanel">
    <property name="checkable">
     <bool>true</bool>
@@ -421,21 +401,6 @@
    </property>
    <property name="toolTip">
     <string>Action Manager</string>
-   </property>
-  </action>
-  <action name="ActionScreenGrabberPanel">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="images/resources.qrc">
-     <normaloff>:/images/video_record.png</normaloff>:/images/video_record.png</iconset>
-   </property>
-   <property name="text">
-    <string>Screen Grabber</string>
-   </property>
-   <property name="toolTip">
-    <string>Screen Grabber</string>
    </property>
   </action>
   <action name="ActionTeleopPanel">
@@ -481,21 +446,6 @@
    </property>
    <property name="toolTip">
     <string>Navigation Panel</string>
-   </property>
-  </action>
-  <action name="ActionTaskLauncher">
-   <property name="icon">
-    <iconset resource="images/resources.qrc">
-     <normaloff>:/images/task_icon.png</normaloff>:/images/task_icon.png</iconset>
-   </property>
-   <property name="text">
-    <string>Task Launcher</string>
-   </property>
-   <property name="toolTip">
-    <string>Task Launcher</string>
-   </property>
-   <property name="shortcut">
-    <string>F10</string>
    </property>
   </action>
   <action name="ActionPFGraspPanel">
