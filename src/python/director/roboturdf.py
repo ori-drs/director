@@ -48,8 +48,10 @@ class RobotModelItem(om.ObjectModelItem):
 
         self.robotName = robotName
 
-        modelName = os.path.basename(filename)
-        om.ObjectModelItem.__init__(self, modelName, om.Icons.Robot)
+        directorConfig = drcargs.getRobotConfig(self.robotName)
+        self._modelName = directorConfig['modelName']
+
+        om.ObjectModelItem.__init__(self, self._modelName, om.Icons.Robot)
 
         self.views = []
         self.model = None
@@ -67,18 +69,14 @@ class RobotModelItem(om.ObjectModelItem):
             self.setModel(model)
 
         self.footMeshFiles = []
-        self._modelName = "valkyrie"  # either atlas_v3/v4/v5 or valkyrie
-        self._pelvisLink = ''  # pelvis
-        self._leftFootLink = ''  # l_foot
-        self._rightFootLink = ''  # r_foot
+        self.pelvisLink = ''  # pelvis
+        self.leftFootLink = ''  # l_foot
+        self.rightFootLink = ''  # r_foot
 
-        self._leftHandLink = ''
-        self._rightHandLink = ''
-        self._quadruped = False
+        self.leftHandLink = ''
+        self.rightHandLink = ''
+        self.quadruped = False
 
-        directorConfig = drcargs.getRobotConfig(self.robotName)
-
-        self.modelName = directorConfig['modelName']
 
         if 'leftFootMeshFiles' in directorConfig:
             self.footMeshFiles.append(directorConfig['leftFootMeshFiles'])
@@ -287,15 +285,15 @@ class RobotModelItem(om.ObjectModelItem):
         left and right foot yaw in world frame, and Z axis aligned with world Z.
         The foot reference point is the average of the foot contact points in the foot frame.
         '''
-        if (self._quadruped):
-            t_lf = np.array(self.getLinkFrame(self._leftHandLink).GetPosition())
-            t_rf = np.array(self.getLinkFrame(self._rightHandLink).GetPosition())
-            t_lh = np.array(self.getLinkFrame(self._leftFootLink).GetPosition())
-            t_rh = np.array(self.getLinkFrame(self._rightFootLink).GetPosition())
+        if (self.quadruped):
+            t_lf = np.array(self.getLinkFrame(self.leftHandLink).GetPosition())
+            t_rf = np.array(self.getLinkFrame(self.rightHandLink).GetPosition())
+            t_lh = np.array(self.getLinkFrame(self.leftFootLink).GetPosition())
+            t_rh = np.array(self.getLinkFrame(self.rightFootLink).GetPosition())
             mid = (t_lf + t_rf + t_lh + t_rh) / 4
             # this is not optimal, correct approach should use contact points to
             # determine desired orientation, not the current orientation
-            rpy = [0.0, 0.0, self.getLinkFrame(self._pelvisLink).GetOrientation()[2]]
+            rpy = [0.0, 0.0, self.getLinkFrame(self.pelvisLink).GetOrientation()[2]]
             return transformUtils.frameFromPositionAndRPY(mid, rpy)
 
         contact_pts_left, contact_pts_right = self.getContactPts()
@@ -303,11 +301,11 @@ class RobotModelItem(om.ObjectModelItem):
         contact_pts_mid_left = np.mean(contact_pts_left, axis=0)  # mid point on foot relative to foot frame
         contact_pts_mid_right = np.mean(contact_pts_right, axis=0)  # mid point on foot relative to foot frame
 
-        t_lf_mid = self.getLinkFrame(self._leftFootLink)
+        t_lf_mid = self.getLinkFrame(self.leftFootLink)
         t_lf_mid.PreMultiply()
         t_lf_mid.Translate(contact_pts_mid_left)
 
-        t_rf_mid = self.getLinkFrame(self._rightFootLink)
+        t_rf_mid = self.getLinkFrame(self.rightFootLink)
         t_rf_mid.PreMultiply()
         t_rf_mid.Translate(contact_pts_mid_right)
 
