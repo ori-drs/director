@@ -3,13 +3,14 @@ from director import vtkNumpy as vnp
 from director.shallowCopy import shallowCopy
 import numpy as np
 
+
 def encodePolyData(polyData):
-    '''Given a vtkPolyData, returns a numpy int8 array that contains
+    """Given a vtkPolyData, returns a numpy int8 array that contains
     the serialization of the data.  This array can be passed to the
     decodePolyData function to construct a new vtkPolyData object from
-    the serialized data.'''
+    the serialized data."""
 
-    if not hasattr(vtk, 'vtkCommunicator'):
+    if not hasattr(vtk, "vtkCommunicator"):
         w = vtk.vtkPolyDataWriter()
         w.WriteToOutputStringOn()
         w.SetInput(polyData)
@@ -22,11 +23,12 @@ def encodePolyData(polyData):
     assert numpyArray.dtype == np.int8
     return numpyArray
 
-def decodePolyData(data):
-    '''Given a numpy int8 array, deserializes the data to construct a new
-    vtkPolyData object and returns the result.'''
 
-    if not hasattr(vtk, 'vtkCommunicator'):
+def decodePolyData(data):
+    """Given a numpy int8 array, deserializes the data to construct a new
+    vtkPolyData object and returns the result."""
+
+    if not hasattr(vtk, "vtkCommunicator"):
         r = vtk.vtkPolyDataReader()
         r.ReadFromInputStringOn()
         r.SetInputString(str(data.data))

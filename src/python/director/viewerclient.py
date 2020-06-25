@@ -1,4 +1,4 @@
-#Used only in removed tests, To REMOVE
+# Used only in removed tests, To REMOVE
 from __future__ import absolute_import, division, print_function
 
 import time
@@ -32,7 +32,7 @@ def to_lcm(data):
     msg.format = "treeviewer_json"
     msg.format_version_major = 1
     msg.format_version_minor = 0
-    msg.data = bytearray(json.dumps(data), encoding='utf-8')
+    msg.data = bytearray(json.dumps(data), encoding="utf-8")
     msg.num_bytes = len(msg.data)
     return msg
 
@@ -40,13 +40,14 @@ def to_lcm(data):
 def serialize_transform(tform):
     return {
         "translation": list(transformations.translation_from_matrix(tform)),
-        "quaternion": list(transformations.quaternion_from_matrix(tform))
+        "quaternion": list(transformations.quaternion_from_matrix(tform)),
     }
 
 
 class GeometryData(object):
     __slots__ = ["geometry", "color", "transform"]
-    def __init__(self, geometry, color=(1., 1., 1., 1.), transform=np.eye(4)):
+
+    def __init__(self, geometry, color=(1.0, 1.0, 1.0, 1.0), transform=np.eye(4)):
         self.geometry = geometry
         self.color = color
         self.transform = transform
@@ -65,71 +66,67 @@ class BaseGeometry(object):
 
 class Box(BaseGeometry):
     __slots__ = ["lengths"]
-    def __init__(self, lengths=[1,1,1]):
+
+    def __init__(self, lengths=[1, 1, 1]):
         self.lengths = lengths
 
     def serialize(self):
-        return {
-            "type": "box",
-            "lengths": list(self.lengths)
-        }
+        return {"type": "box", "lengths": list(self.lengths)}
 
 
 class Sphere(BaseGeometry):
     __slots__ = ["radius"]
+
     def __init__(self, radius=1):
         self.radius = radius
 
     def serialize(self):
-        return {
-            "type": "sphere",
-            "radius": self.radius
-        }
+        return {"type": "sphere", "radius": self.radius}
 
 
 class Ellipsoid(BaseGeometry):
     __slots__ = ["radii"]
-    def __init__(self, radii=[1,1,1]):
+
+    def __init__(self, radii=[1, 1, 1]):
         self.radii = radii
 
     def serialize(self):
-        return {
-            "type": "ellipsoid",
-            "radii": list(self.radii)
-        }
+        return {"type": "ellipsoid", "radii": list(self.radii)}
 
 
 class Cylinder(BaseGeometry):
     __slots__ = ["length", "radius"]
+
     def __init__(self, length=1, radius=1):
         self.length = length
         self.radius = radius
 
     def serialize(self):
-        return {
-            "type": "cylinder",
-            "length": self.length,
-            "radius": self.radius
-        }
+        return {"type": "cylinder", "length": self.length, "radius": self.radius}
 
 
 class Triad(BaseGeometry):
     __slots__ = ["tube", "scale"]
+
     def __init__(self, scale=1.0, tube=False):
         self.scale = scale
         self.tube = tube
 
     def serialize(self):
-        return {
-            "type": "triad",
-            "scale": self.scale,
-            "tube": self.tube
-        }
+        return {"type": "triad", "scale": self.scale, "tube": self.tube}
+
 
 class PolyLine(BaseGeometry):
-    def __init__(self, points, radius=0.01, closed=False,
-                 start_head=False, end_head=False,
-                 head_radius=0.05, head_length=None):
+    def __init__(
+        self,
+        points,
+        radius=0.01,
+        closed=False,
+        start_head=False,
+        end_head=False,
+        head_radius=0.05,
+        head_length=None,
+    ):
         self.points = points
         self.radius = radius
         self.closed = closed
@@ -143,7 +140,7 @@ class PolyLine(BaseGeometry):
             "type": "line",
             "points": self.points,
             "radius": self.radius,
-            "closed": self.closed
+            "closed": self.closed,
         }
         if self.start_head or self.end_head:
             data["start_head"] = self.start_head
@@ -205,6 +202,7 @@ class Visualizer(object):
     a sub-part of the viewer tree.
     Many Visualizer objects can all share the same CoreVisualizer.
     """
+
     __slots__ = ["core", "path"]
 
     def __init__(self, path=None, lcm=None, core=None):
@@ -251,9 +249,7 @@ class Visualizer(object):
         Indexing into a visualizer returns a new visualizer with the given
         path appended to this visualizer's path.
         """
-        return Visualizer(path=self.path + (path,),
-                          lcm=self.core.lcm,
-                          core=self.core)
+        return Visualizer(path=self.path + (path,), lcm=self.core.lcm, core=self.core)
 
     def start_handler(self):
         """
@@ -274,8 +270,7 @@ class CoreVisualizer(object):
         self.tree = LazyTree()
         self.queue = CommandQueue()
         self.publish_immediately = True
-        self.lcm.subscribe(self._response_channel(),
-                           self._handle_response)
+        self.lcm.subscribe(self._response_channel(), self._handle_response)
         self.handler_thread = None
 
     def _request_channel(self):
@@ -291,8 +286,7 @@ class CoreVisualizer(object):
     def start_handler(self):
         if self.handler_thread is not None:
             return
-        self.handler_thread = threading.Thread(
-            target=self._handler_loop)
+        self.handler_thread = threading.Thread(target=self._handler_loop)
         self.handler_thread.daemon = True
         self.handler_thread.start()
 
@@ -307,7 +301,8 @@ class CoreVisualizer(object):
                 self.queue.settransform.add(path)
         else:
             raise ValueError(
-                "Unhandled response from viewer: {}".format(msg.data.decode()))
+                "Unhandled response from viewer: {}".format(msg.data.decode())
+            )
 
     def setgeometry(self, path, geomdata):
         if isinstance(geomdata, BaseGeometry):
@@ -362,25 +357,27 @@ class CoreVisualizer(object):
             delete.append({"path": path})
         for path in self.queue.setgeometry:
             geoms = self.tree.getdescendant(path).geometries or []
-            setgeometry.append({
-                "path": path,
-                "geometries": [geom.serialize() for geom in geoms]
-            })
+            setgeometry.append(
+                {"path": path, "geometries": [geom.serialize() for geom in geoms]}
+            )
         for path in self.queue.settransform:
-            settransform.append({
-                "path": path,
-                "transform": serialize_transform(
-                    self.tree.getdescendant(path).transform)
-            })
+            settransform.append(
+                {
+                    "path": path,
+                    "transform": serialize_transform(
+                        self.tree.getdescendant(path).transform
+                    ),
+                }
+            )
         return {
             "utime": int(time.time() * 1e6),
             "delete": delete,
             "setgeometry": setgeometry,
-            "settransform": settransform
+            "settransform": settransform,
         }
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # We can provide an initial path if we want
     vis = Visualizer(path="/root/folder1")
 
@@ -389,10 +386,15 @@ if __name__ == '__main__':
     vis.start_handler()
 
     vis["boxes"].setgeometry(
-        [GeometryData(Box([1, 1, 1]),
-         color=np.random.rand(4),
-         transform=transformations.translation_matrix([x, -2, 0]))
-         for x in range(10)])
+        [
+            GeometryData(
+                Box([1, 1, 1]),
+                color=np.random.rand(4),
+                transform=transformations.translation_matrix([x, -2, 0]),
+            )
+            for x in range(10)
+        ]
+    )
 
     # Index into the visualizer to get a sub-tree. vis.__getitem__ is lazily
     # implemented, so these sub-visualizers come into being as soon as they're
@@ -410,9 +412,12 @@ if __name__ == '__main__':
     sphere_vis.settransform(transformations.translation_matrix([1, 0, 0]))
 
     vis["test"].setgeometry(Triad())
-    vis["test"].settransform(transformations.concatenate_matrices(
-        transformations.rotation_matrix(1.0, [0, 0, 1]),
-        transformations.translation_matrix([-1, 0, 1])))
+    vis["test"].settransform(
+        transformations.concatenate_matrices(
+            transformations.rotation_matrix(1.0, [0, 0, 1]),
+            transformations.translation_matrix([-1, 0, 1]),
+        )
+    )
 
     vis["triad"].setgeometry(Triad())
 
@@ -428,4 +433,4 @@ if __name__ == '__main__':
         vis.settransform(transformations.rotation_matrix(theta, [0, 0, 1]))
         time.sleep(0.01)
 
-    #vis.delete()
+    # vis.delete()

@@ -33,7 +33,6 @@ from director.timercallback import TimerCallback
 
 
 class RobotLinkHighlighter(object):
-
     def __init__(self, robotModel):
         self.robotModel = robotModel
         self.previousColors = {}
@@ -47,8 +46,10 @@ class RobotLinkHighlighter(object):
         if linkName not in self.previousColors:
             self.previousColors[linkName] = currentColor
 
-        alpha = self.robotModel.getProperty('Alpha')
-        newColor = QtGui.QColor(color[0] * 255, color[1] * 255, color[2] * 255, alpha * 255)
+        alpha = self.robotModel.getProperty("Alpha")
+        newColor = QtGui.QColor(
+            color[0] * 255, color[1] * 255, color[2] * 255, alpha * 255
+        )
 
         self.robotModel.model.setLinkColor(linkName, newColor)
 
@@ -58,7 +59,7 @@ class RobotLinkHighlighter(object):
         if color is None:
             return
 
-        color.setAlpha(self.robotModel.getProperty('Alpha') * 255)
+        color.setAlpha(self.robotModel.getProperty("Alpha") * 255)
         self.robotModel.model.setLinkColor(linkName, color)
 
 
@@ -69,7 +70,7 @@ class ControllerRateLabel(object):
 
     def __init__(self, atlasDriver, statusBar):
         self.atlasDriver = atlasDriver
-        self.label = QtGui.QLabel('')
+        self.label = QtGui.QLabel("")
         statusBar.addPermanentWidget(self.label)
 
         self.timer = TimerCallback(targetFps=1)
@@ -78,12 +79,11 @@ class ControllerRateLabel(object):
 
     def showRate(self):
         rate = self.atlasDriver.getControllerRate()
-        rate = 'unknown' if rate is None else '%d hz' % rate
-        self.label.text = 'Controller rate: %s' % rate
+        rate = "unknown" if rate is None else "%d hz" % rate
+        self.label.text = "Controller rate: %s" % rate
 
 
 class ImageOverlayManager(object):
-
     def __init__(self, monoCamerasConfig, robotName):
         self.viewName = monoCamerasConfig[0]
         self.desiredWidth = 400
@@ -102,7 +102,9 @@ class ImageOverlayManager(object):
         self.show()
 
     def _updateAspectRatio(self):
-        imageExtent = cameraview.imageManager.images[self.robotName][self.viewName].GetExtent()
+        imageExtent = cameraview.imageManager.images[self.robotName][
+            self.viewName
+        ].GetExtent()
         if imageExtent[1] != -1 and imageExtent[3] != -1:
             self.imageSize = [imageExtent[1] + 1, imageExtent[3] + 1]
             imageAspectRatio = self.imageSize[0] / self.imageSize[1]
@@ -115,7 +117,6 @@ class ImageOverlayManager(object):
         imageView = cameraview.views[self.viewName]
         self.imageView = imageView
         self._prevParent = imageView.view.parent()
-
 
         self._updateAspectRatio()
 
@@ -140,10 +141,9 @@ class ImageOverlayManager(object):
 
 
 class ToggleImageViewHandler(object):
-
     def __init__(self, manager):
-        self.action = app.getToolsMenuActions()['ActionToggleImageView']
-        self.action.connect('triggered()', self.toggle)
+        self.action = app.getToolsMenuActions()["ActionToggleImageView"]
+        self.action.connect("triggered()", self.toggle)
         self.manager = manager
 
     def toggle(self):
@@ -154,7 +154,6 @@ class ToggleImageViewHandler(object):
 
 
 class RobotGridUpdater(object):
-
     def __init__(self, gridFrame, robotModel, jointController):
         self.gridFrame = gridFrame
         self.robotModel = robotModel
@@ -197,7 +196,9 @@ class RobotSelector(QtGui.QWidget):
         super(RobotSelector, self).__init__()
         self.objectName = "RobotSelector"
         self.robotNames = robotNames
-        self.associatedWidgets = {}  # associated objects are stored here. Keys are robot names
+        self.associatedWidgets = (
+            {}
+        )  # associated objects are stored here. Keys are robot names
 
         self.robotSelectLabel = QtGui.QLabel("Controlling:")
 
@@ -210,7 +211,9 @@ class RobotSelector(QtGui.QWidget):
         self.horizLayout.addWidget(self.robotSelectLabel)
         self.horizLayout.addWidget(self.robotSelectCombo)
 
-        self.robotSelectCombo.connect("currentIndexChanged(QString)", self.showAssociatedComponents)
+        self.robotSelectCombo.connect(
+            "currentIndexChanged(QString)", self.showAssociatedComponents
+        )
 
     def addRobot(self, robotName):
         self.robotNames.append(robotName)
@@ -227,7 +230,9 @@ class RobotSelector(QtGui.QWidget):
         :param type: The type of the object - one of the keys in self.associatedWidgets
         :return:
         """
-        if (robotName in self.robotNames) and (object not in self.associatedWidgets[robotName][type]):
+        if (robotName in self.robotNames) and (
+            object not in self.associatedWidgets[robotName][type]
+        ):
             self.associatedWidgets[robotName][type].append(object)
 
     def associateWidgetWithRobot(self, widget, robotName):
@@ -314,12 +319,13 @@ class RobotSelector(QtGui.QWidget):
                     app.getViewManager().hideView(view, False)
 
             for model in self.associatedWidgets[robot]["models"]:
-                model.setProperty('Visible', robot == robotName)
+                model.setProperty("Visible", robot == robotName)
 
             for viewBehavior in self.associatedWidgets[robot]["viewbehaviors"]:
                 # Setting the enabled flag to false will cause the event filter not to filter any events, allowing them
                 # to pass to the event filter which is enabled, i.e. the one for the currently selected robot
                 viewBehavior.robotViewBehaviors.setEnabled(robot == robotName)
+
 
 drcargs.args()
 app.startup(globals())
@@ -336,7 +342,6 @@ showPolyData = segmentation.showPolyData
 updatePolyData = segmentation.updatePolyData
 
 
-
 selector = RobotSelector()
 # To hide the selector if there is only one robot we actually need to hide the action that is created by the
 # toolbar's addwidget
@@ -345,7 +350,10 @@ selectorAction = app.getMainWindow().toolBar().addWidget(selector)
 # If this is a single robot configuration, we expect modelName as a top level key. Otherwise it will be a second
 # level one.
 robotSystems = []
-for _, robotConfig in drcargs.DirectorConfig.getDefaultInstance().robotConfigs.iteritems():
+for (
+    _,
+    robotConfig,
+) in drcargs.DirectorConfig.getDefaultInstance().robotConfigs.iteritems():
     robotSystems.append(robotsystem.create(view, robotName=robotConfig["robotName"]))
 
 # If there is only one robot, the selector should not be shown
@@ -362,7 +370,9 @@ setupScene = True  # The scene setup is done only once, unset this flag once it 
 
 for robotSystem in robotSystems:
     selector.addRobot(robotSystem.robotName)
-    selector.associateViewBehaviorWithRobot(robotSystem.viewBehaviors, robotSystem.robotName)
+    selector.associateViewBehaviorWithRobot(
+        robotSystem.viewBehaviors, robotSystem.robotName
+    )
     directorConfig = drcargs.getRobotConfig(robotSystem.robotName)
 
     useRobotState = True
@@ -388,73 +398,80 @@ for robotSystem in robotSystems:
     useLimitJointsSentToPlanner = False
     useFeetlessRobot = False
 
-
     poseCollection = PythonQt.dd.ddSignalMap()
     costCollection = PythonQt.dd.ddSignalMap()
 
-    if 'userConfig' in directorConfig:
-        if 'fixedBaseArm' in directorConfig['userConfig']:
+    if "userConfig" in directorConfig:
+        if "fixedBaseArm" in directorConfig["userConfig"]:
             robotSystem.ikPlanner.fixedBaseArm = True
 
-    if 'disableComponents' in directorConfig:
-        for component in directorConfig['disableComponents']:
+    if "disableComponents" in directorConfig:
+        for component in directorConfig["disableComponents"]:
             print "Disabling", component
             locals()[component] = False
 
-    if 'enableComponents' in directorConfig:
-        for component in directorConfig['enableComponents']:
+    if "enableComponents" in directorConfig:
+        for component in directorConfig["enableComponents"]:
             print "Enabling", component
             locals()[component] = True
-
 
     if usePerception:
         segmentationpanel.init()
         cameraview.init(robotName=robotSystem.robotName)
 
-        cameraview.cameraViews[robotSystem.robotName].rayCallback = segmentation.extractPointsAlongClickRay
+        cameraview.cameraViews[
+            robotSystem.robotName
+        ].rayCallback = segmentation.extractPointsAlongClickRay
 
     if setupScene:
-        sceneRoot = om.getOrCreateContainer('scene')
+        sceneRoot = om.getOrCreateContainer("scene")
         grid = vis.showGrid(view, color=[0, 0, 0], alpha=0.1, parent=sceneRoot)
-        grid.setProperty('Surface Mode', 'Surface with edges')
+        grid.setProperty("Surface Mode", "Surface with edges")
 
         app.setBackgroundColor([0.3, 0.3, 0.35], [0.95, 0.95, 1])
 
         viewOptions = vis.ViewOptionsItem(view)
         om.addToObjectModel(viewOptions, parentObj=sceneRoot)
 
-        viewBackgroundLightHandler = viewcolors.ViewBackgroundLightHandler(viewOptions, grid,
-                                                                           app.getToolsMenuActions()[
-                                                                               'ActionToggleBackgroundLight'])
+        viewBackgroundLightHandler = viewcolors.ViewBackgroundLightHandler(
+            viewOptions, grid, app.getToolsMenuActions()["ActionToggleBackgroundLight"]
+        )
 
-        viewFramesHandler = viewframes.ViewFramesSizeHandler(app.getToolsMenuActions()['ActionToggleFramesSize'])
+        viewFramesHandler = viewframes.ViewFramesSizeHandler(
+            app.getToolsMenuActions()["ActionToggleFramesSize"]
+        )
 
         if not useLightColorScheme:
             viewBackgroundLightHandler.action.trigger()
         setupScene = False
 
-        gridUpdater = RobotGridUpdater(grid.getChildFrame(), robotSystem.robotStateModel,
-                                       robotSystem.robotStateJointController)
+        gridUpdater = RobotGridUpdater(
+            grid.getChildFrame(),
+            robotSystem.robotStateModel,
+            robotSystem.robotStateJointController,
+        )
 
     # reset time button and connections
-    button = QtGui.QPushButton('Reset time')
+    button = QtGui.QPushButton("Reset time")
     button.setObjectName("resettime")
 
     # Connect reset time button to all sources. Assumes that the source name ends with "source"
     for name, attr in robotSystem:
         if str.lower(name).endswith("source"):
-            button.connect('clicked()', attr.resetTime)
+            button.connect("clicked()", attr.resetTime)
 
-    button.connect('clicked()', cameraview.cameraViews[robotSystem.robotName].resetTime)
+    button.connect("clicked()", cameraview.cameraViews[robotSystem.robotName].resetTime)
     app.getMainWindow().statusBar().addPermanentWidget(button)
     app.getRobotSelector().associateWidgetWithRobot(button, robotSystem.robotName)
 
     useControllerRate = False
     if useControllerRate:
-        controllerRateLabel = ControllerRateLabel(robotSystem.atlasDriver, app.getMainWindow().statusBar())
+        controllerRateLabel = ControllerRateLabel(
+            robotSystem.atlasDriver, app.getMainWindow().statusBar()
+        )
 
     if useSkybox:
-        skyboxDataDir = os.path.expanduser('~/Downloads/skybox')
+        skyboxDataDir = os.path.expanduser("~/Downloads/skybox")
         imageMap = skybox.getSkyboxImages(skyboxDataDir)
         skyboxObjs = skybox.createSkybox(imageMap, view)
         skybox.connectSkyboxCamera(view)
@@ -466,14 +483,24 @@ for robotSystem in robotSystems:
         for filename in drcargs.args().data_files:
             actionhandlers.onOpenFile(filename)
 
-    cameras = [camera['name'] for camera in directorConfig['sensors']['camera']['color']]
+    cameras = [
+        camera["name"] for camera in directorConfig["sensors"]["camera"]["color"]
+    ]
     imageOverlayManager = ImageOverlayManager(cameras, robotSystem.robotName)
-    imageWidget = cameraview.ImageWidget(cameraview.imageManager, cameras, view, visible=False, robotName=robotSystem.robotName)
+    imageWidget = cameraview.ImageWidget(
+        cameraview.imageManager,
+        cameras,
+        view,
+        visible=False,
+        robotName=robotSystem.robotName,
+    )
     imageViewHandler = ToggleImageViewHandler(imageWidget)
 
     screengrabberpanel.init(view, imageWidget, robotSystem.robotName)
     framevisualization.init(view, robotSystem)
-    affordancePanel = affordancepanel.init(view, robotSystem.affordanceManager, robotSystem.robotStateJointController)
+    affordancePanel = affordancepanel.init(
+        view, robotSystem.affordanceManager, robotSystem.robotStateJointController
+    )
     cameraBooksmarksPanel = camerabookmarks.init(view)
 
     cameraControlPanel = cameracontrolpanel.CameraControlPanel(view)
@@ -482,28 +509,33 @@ for robotSystem in robotSystems:
     app.setCameraTerrainModeEnabled(view, True)
     app.resetCamera(viewDirection=[-1, 0, 0], view=view)
 
-
     def drawCenterOfMass(model):
         stanceFrame = robotSystem.footstepsDriver.getFeetMidPoint(model)
         com = list(model.model.getCenterOfMass())
         com[2] = stanceFrame.GetPosition()[2]
         d = DebugData()
         d.addSphere(com, radius=0.015)
-        obj = vis.updatePolyData(d.getPolyData(), 'COM %s' % model.getProperty('Name'), color=[1, 0, 0], visible=False,
-                                 parent=model)
-
+        obj = vis.updatePolyData(
+            d.getPolyData(),
+            "COM %s" % model.getProperty("Name"),
+            color=[1, 0, 0],
+            visible=False,
+            parent=model,
+        )
 
     def initCenterOfMassVisualization():
-        for model in [robotSystem.robotStateModel, robotSystem.teleopRobotModel,
-                      robotSystem.robotSystem.playbackRobotModel]:
+        for model in [
+            robotSystem.robotStateModel,
+            robotSystem.teleopRobotModel,
+            robotSystem.robotSystem.playbackRobotModel,
+        ]:
             model.connectModelChanged(drawCenterOfMass)
             drawCenterOfMass(model)
-
 
     if useFeetlessRobot:
         robotSystem.ikPlanner.robotNoFeet = True
 
-print("===== director setup complete, calling scripts for further setup =====")
+print ("===== director setup complete, calling scripts for further setup =====")
 
 for scriptArgs in drcargs.args().scripts:
     execfile(scriptArgs[0])

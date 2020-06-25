@@ -2,8 +2,9 @@ from director.timercallback import TimerCallback
 import numpy as np
 import time
 
+
 class AnimatePropertyValue(object):
-    '''
+    """
     This class is used to ramp a scalar or vector property from its current value to a
     target value using linear inteprolation.  For example:
 
@@ -12,7 +13,7 @@ class AnimatePropertyValue(object):
     # fade the Alpha property to 0.0
     AnimatePropertyValue(obj, 'Alpha', 0.0).start()
 
-    '''
+    """
 
     def __init__(self, obj, propertyName, targetValue, animationTime=1.0):
 
@@ -31,11 +32,11 @@ class AnimatePropertyValue(object):
 
     def tick(self):
         elapsed = time.time() - self.startTime
-        p = elapsed/self.animationTime
+        p = elapsed / self.animationTime
         if p > 1.0:
             p = 1.0
 
-        newValue = self.startValue + (self.targetValue - self.startValue)*p
+        newValue = self.startValue + (self.targetValue - self.startValue) * p
         self.obj.setProperty(self.propertyName, newValue)
 
         if p == 1.0:

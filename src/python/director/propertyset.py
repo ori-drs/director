@@ -11,39 +11,57 @@ def cleanPropertyName(s):
     """
     Generate a valid python property name by replacing all non-alphanumeric characters with underscores and adding an initial underscore if the first character is a digit
     """
-    return re.sub(r'\W|^(?=\d)','_',s).lower()  # \W matches non-alphanumeric, ^(?=\d) matches the first position if followed by a digit
+    return re.sub(
+        r"\W|^(?=\d)", "_", s
+    ).lower()  # \W matches non-alphanumeric, ^(?=\d) matches the first position if followed by a digit
 
 
 class PropertyAttributes(FieldContainer):
-
     def __init__(self, **kwargs):
 
         self._add_fields(
-          decimals = 5,
-          minimum = -1e4,
-          maximum = 1e4,
-          singleStep = 1,
-          hidden = False,
-          enumNames = None,
-          readOnly = False,
-          )
+            decimals=5,
+            minimum=-1e4,
+            maximum=1e4,
+            singleStep=1,
+            hidden=False,
+            enumNames=None,
+            readOnly=False,
+        )
 
         self._set_fields(**kwargs)
 
+
 from PythonQt import QtGui
+
 
 def fromQColor(propertyName, propertyValue):
     if isinstance(propertyValue, QtGui.QColor):
-        return [propertyValue.red()/255.0, propertyValue.green()/255.0, propertyValue.blue()/255.0]
+        return [
+            propertyValue.red() / 255.0,
+            propertyValue.green() / 255.0,
+            propertyValue.blue() / 255.0,
+        ]
     else:
         return propertyValue
 
+
 def toQProperty(propertyName, propertyValue):
-    if 'color' in propertyName.lower() and isinstance(propertyValue, (list, tuple)) and len(propertyValue) == 3:
-        return QtGui.QColor(propertyValue[0]*255.0, propertyValue[1]*255.0, propertyValue[2]*255.0)
+    if (
+        "color" in propertyName.lower()
+        and isinstance(propertyValue, (list, tuple))
+        and len(propertyValue) == 3
+    ):
+        return QtGui.QColor(
+            propertyValue[0] * 255.0, propertyValue[1] * 255.0, propertyValue[2] * 255.0
+        )
     elif isinstance(propertyValue, np.float):
         return float(propertyValue)
-    elif isinstance(propertyValue, (list, tuple, np.ndarray)) and len(propertyValue) and isinstance(propertyValue[0], np.float):
+    elif (
+        isinstance(propertyValue, (list, tuple, np.ndarray))
+        and len(propertyValue)
+        and isinstance(propertyValue[0], np.float)
+    ):
         return [float(x) for x in propertyValue]
     else:
         return propertyValue
@@ -51,9 +69,9 @@ def toQProperty(propertyName, propertyValue):
 
 class PropertySet(object):
 
-    PROPERTY_CHANGED_SIGNAL = 'PROPERTY_CHANGED_SIGNAL'
-    PROPERTY_ADDED_SIGNAL = 'PROPERTY_ADDED_SIGNAL'
-    PROPERTY_ATTRIBUTE_CHANGED_SIGNAL = 'PROPERTY_ATTRIBUTE_CHANGED_SIGNAL'
+    PROPERTY_CHANGED_SIGNAL = "PROPERTY_CHANGED_SIGNAL"
+    PROPERTY_ADDED_SIGNAL = "PROPERTY_ADDED_SIGNAL"
+    PROPERTY_ATTRIBUTE_CHANGED_SIGNAL = "PROPERTY_ATTRIBUTE_CHANGED_SIGNAL"
 
     def __getstate__(self):
         d = dict(_properties=self._properties, _attributes=self._attributes)
@@ -61,16 +79,19 @@ class PropertySet(object):
 
     def __setstate__(self, state):
         self.__init__()
-        attrs = state['_attributes']
-        for propName, propValue in state['_properties'].iteritems():
+        attrs = state["_attributes"]
+        for propName, propValue in state["_properties"].iteritems():
             self.addProperty(propName, propValue, attributes=attrs.get(propName))
-
 
     def __init__(self):
 
-        self.callbacks = callbacks.CallbackRegistry([self.PROPERTY_CHANGED_SIGNAL,
-                                                     self.PROPERTY_ADDED_SIGNAL,
-                                                     self.PROPERTY_ATTRIBUTE_CHANGED_SIGNAL])
+        self.callbacks = callbacks.CallbackRegistry(
+            [
+                self.PROPERTY_CHANGED_SIGNAL,
+                self.PROPERTY_ADDED_SIGNAL,
+                self.PROPERTY_ATTRIBUTE_CHANGED_SIGNAL,
+            ]
+        )
 
         self._properties = OrderedDict()
         self._attributes = {}
@@ -83,7 +104,9 @@ class PropertySet(object):
         return propertyName in self._properties
 
     def assertProperty(self, propertyName):
-        assert self.hasProperty(propertyName), "Missing property: {:s}".format(propertyName)
+        assert self.hasProperty(propertyName), "Missing property: {:s}".format(
+            propertyName
+        )
 
     def connectPropertyChanged(self, func):
         return self.callbacks.connect(self.PROPERTY_CHANGED_SIGNAL, func)
@@ -120,8 +143,15 @@ class PropertySet(object):
 
     def addProperty(self, propertyName, propertyValue, attributes=None):
         alternateName = cleanPropertyName(propertyName)
-        if propertyName not in self._properties and alternateName in self._alternateNames:
-            raise ValueError('Adding this property would conflict with a different existing property with alternate name {:s}'.format(alternateName))
+        if (
+            propertyName not in self._properties
+            and alternateName in self._alternateNames
+        ):
+            raise ValueError(
+                "Adding this property would conflict with a different existing property with alternate name {:s}".format(
+                    alternateName
+                )
+            )
 
         propertyValue = fromQColor(propertyName, propertyValue)
 
@@ -144,7 +174,7 @@ class PropertySet(object):
         self.assertProperty(propertyName)
         propertyValue = fromQColor(propertyName, propertyValue)
 
-        names = self.getPropertyAttribute(propertyName, 'enumNames')
+        names = self.getPropertyAttribute(propertyName, "enumNames")
         if names and type(propertyValue) != int:
             propertyValue = names.index(propertyValue)
 
@@ -160,16 +190,25 @@ class PropertySet(object):
     def setPropertyAttribute(self, propertyName, propertyAttribute, value):
         self.assertProperty(propertyName)
         attributes = self._attributes[propertyName]
-        assert hasattr(attributes, propertyAttribute), "Missing attribute: {:s}".format(propertyAttribute)
+        assert hasattr(attributes, propertyAttribute), "Missing attribute: {:s}".format(
+            propertyAttribute
+        )
         if getattr(attributes, propertyAttribute) != value:
             setattr(attributes, propertyAttribute, value)
-            self.callbacks.process(self.PROPERTY_ATTRIBUTE_CHANGED_SIGNAL, self, propertyName, propertyAttribute)
+            self.callbacks.process(
+                self.PROPERTY_ATTRIBUTE_CHANGED_SIGNAL,
+                self,
+                propertyName,
+                propertyAttribute,
+            )
 
     def __getattribute__(self, name):
         try:
-            alternateNames = object.__getattribute__(self, '_alternateNames')
+            alternateNames = object.__getattribute__(self, "_alternateNames")
             if name in alternateNames:
-                return object.__getattribute__(self, 'getProperty')(alternateNames[name])
+                return object.__getattribute__(self, "getProperty")(
+                    alternateNames[name]
+                )
             else:
                 raise AttributeError()
         except AttributeError:
@@ -177,9 +216,8 @@ class PropertySet(object):
 
 
 class PropertyPanelHelper(object):
-
     @staticmethod
-    def addPropertiesToPanel(properties, panel, propertyNamesToAdd = None):
+    def addPropertiesToPanel(properties, panel, propertyNamesToAdd=None):
 
         for propertyName in properties.propertyNames():
             value = properties.getProperty(propertyName)
@@ -187,13 +225,14 @@ class PropertyPanelHelper(object):
 
             if value is not None and not attributes.hidden:
                 addThisProperty = True
-                if (propertyNamesToAdd is not None):
-                    if (propertyName not in propertyNamesToAdd):
+                if propertyNamesToAdd is not None:
+                    if propertyName not in propertyNamesToAdd:
                         addThisProperty = False
 
                 if addThisProperty:
-                    PropertyPanelHelper._addProperty(panel, propertyName, attributes, value)
-
+                    PropertyPanelHelper._addProperty(
+                        panel, propertyName, attributes, value
+                    )
 
     @staticmethod
     def onPropertyValueChanged(panel, properties, propertyName):
@@ -208,7 +247,9 @@ class PropertyPanelHelper(object):
                 for i, subValue in enumerate(propertyValue):
                     panel.getSubProperty(prop, i).setValue(subValue)
 
-                groupName = PropertyPanelHelper.getPropertyGroupName(propertyName, propertyValue)
+                groupName = PropertyPanelHelper.getPropertyGroupName(
+                    propertyName, propertyValue
+                )
                 prop.setPropertyName(groupName)
 
             else:
@@ -223,7 +264,7 @@ class PropertyPanelHelper(object):
 
             propertyIndex = propertiesPanel.getSubPropertyIndex(prop)
             propertyName = prop.propertyName()
-            propertyName = propertyName[:propertyName.index('[')]
+            propertyName = propertyName[: propertyName.index("[")]
 
             propertyValue = propertySet.getProperty(propertyName)
             propertyValue = list(propertyValue)
@@ -231,7 +272,9 @@ class PropertyPanelHelper(object):
 
             propertySet.setProperty(propertyName, propertyValue)
 
-            groupName = PropertyPanelHelper.getPropertyGroupName(propertyName, propertyValue)
+            groupName = PropertyPanelHelper.getPropertyGroupName(
+                propertyName, propertyValue
+            )
             propertiesPanel.getParentProperty(prop).setPropertyName(groupName)
 
         else:
@@ -241,21 +284,22 @@ class PropertyPanelHelper(object):
             propertyValue = fromQColor(propertyName, propertyValue)
             propertySet.setProperty(propertyName, propertyValue)
 
-
     @staticmethod
     def _setPropertyAttributes(prop, attributes):
 
-        prop.setAttribute('decimals', attributes.decimals)
-        prop.setAttribute('minimum', attributes.minimum)
-        prop.setAttribute('maximum', attributes.maximum)
-        prop.setAttribute('singleStep', attributes.singleStep)
+        prop.setAttribute("decimals", attributes.decimals)
+        prop.setAttribute("minimum", attributes.minimum)
+        prop.setAttribute("maximum", attributes.maximum)
+        prop.setAttribute("singleStep", attributes.singleStep)
         if attributes.enumNames:
-            prop.setAttribute('enumNames', attributes.enumNames)
+            prop.setAttribute("enumNames", attributes.enumNames)
 
     @staticmethod
     def getPropertyGroupName(name, value):
-        return '%s [%s]' % (name, ', '.join(['%.2f' % v if isinstance(v, float) else str(v) for v in value]))
-
+        return "%s [%s]" % (
+            name,
+            ", ".join(["%.2f" % v if isinstance(v, float) else str(v) for v in value]),
+        )
 
     @staticmethod
     def _addProperty(panel, name, attributes, value):
@@ -281,27 +325,40 @@ class PropertyPanelHelper(object):
 
 
 class PropertyPanelConnector(object):
-
     def __init__(self, propertySet, propertiesPanel, propertyNamesToAdd=None):
         self.propertySet = propertySet
         self.propertyNamesToAdd = propertyNamesToAdd
         self.propertiesPanel = propertiesPanel
         self.connections = []
-        self.connections.append(self.propertySet.connectPropertyAdded(self._onPropertyAdded))
-        self.connections.append(self.propertySet.connectPropertyChanged(self._onPropertyChanged))
-        self.connections.append(self.propertySet.connectPropertyAttributeChanged(self._onPropertyAttributeChanged))
-        self.propertiesPanel.connect('propertyValueChanged(QtVariantProperty*)', self._onPanelPropertyChanged)
+        self.connections.append(
+            self.propertySet.connectPropertyAdded(self._onPropertyAdded)
+        )
+        self.connections.append(
+            self.propertySet.connectPropertyChanged(self._onPropertyChanged)
+        )
+        self.connections.append(
+            self.propertySet.connectPropertyAttributeChanged(
+                self._onPropertyAttributeChanged
+            )
+        )
+        self.propertiesPanel.connect(
+            "propertyValueChanged(QtVariantProperty*)", self._onPanelPropertyChanged
+        )
 
         self.timer = TimerCallback()
         self.timer.callback = self._rebuildNow
 
         self._blockSignals = True
-        PropertyPanelHelper.addPropertiesToPanel(self.propertySet, self.propertiesPanel, self.propertyNamesToAdd)
+        PropertyPanelHelper.addPropertiesToPanel(
+            self.propertySet, self.propertiesPanel, self.propertyNamesToAdd
+        )
         self._blockSignals = False
 
     def cleanup(self):
         self.timer.callback = None
-        self.propertiesPanel.disconnect('propertyValueChanged(QtVariantProperty*)', self._onPanelPropertyChanged)
+        self.propertiesPanel.disconnect(
+            "propertyValueChanged(QtVariantProperty*)", self._onPanelPropertyChanged
+        )
         for connection in self.connections:
             self.propertySet.callbacks.disconnect(connection)
 
@@ -323,9 +380,13 @@ class PropertyPanelConnector(object):
 
     def _onPropertyChanged(self, propertySet, propertyName):
         self._blockSignals = True
-        PropertyPanelHelper.onPropertyValueChanged(self.propertiesPanel, propertySet, propertyName)
+        PropertyPanelHelper.onPropertyValueChanged(
+            self.propertiesPanel, propertySet, propertyName
+        )
         self._blockSignals = False
 
     def _onPanelPropertyChanged(self, panelProperty):
         if not self._blockSignals:
-            PropertyPanelHelper.setPropertyFromPanel(panelProperty, self.propertiesPanel, self.propertySet)
+            PropertyPanelHelper.setPropertyFromPanel(
+                panelProperty, self.propertiesPanel, self.propertySet
+            )

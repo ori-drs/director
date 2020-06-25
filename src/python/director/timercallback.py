@@ -2,13 +2,13 @@ import time
 from PythonQt import QtCore
 import traceback
 
-class TimerCallback(object):
 
+class TimerCallback(object):
     def __init__(self, targetFps=30, callback=None):
-        '''
+        """
         Construct TimerCallback.  The targetFps defines frames per second, the
         frequency for the ticks() callback method.
-        '''
+        """
         self.targetFps = targetFps
         self.timer = QtCore.QTimer()
         self.enableScheduledTimer()
@@ -18,11 +18,11 @@ class TimerCallback(object):
         self.callback = callback
 
     def start(self):
-        '''
+        """
         Start the timer.
-        '''
+        """
         if not self.timer.isActive():
-            self.timer.connect('timeout()', self._timerEvent)
+            self.timer.connect("timeout()", self._timerEvent)
 
         self.startTime = time.time()
         self.lastTickTime = self.startTime
@@ -33,25 +33,25 @@ class TimerCallback(object):
             self.timer.start(int(1000.0 / self.targetFps))
 
     def stop(self):
-        '''
+        """
         Stop the timer.
-        '''
+        """
         self.timer.stop()
-        self.timer.disconnect('timeout()', self._timerEvent)
+        self.timer.disconnect("timeout()", self._timerEvent)
         self.singleShotTimer.stop()
-        self.singleShotTimer.disconnect('timeout()', self._singleShotTimerEvent)
+        self.singleShotTimer.disconnect("timeout()", self._singleShotTimerEvent)
 
     def tick(self):
-        '''
+        """
         Timer event callback method.  Subclasses can override this method.
-        '''
+        """
         if self.callback:
             return self.callback()
 
     def isActive(self):
-        '''
+        """
         Return whether or not the timer is active.
-        '''
+        """
         return self.timer.isActive()
 
     def enableScheduledTimer(self):
@@ -64,27 +64,27 @@ class TimerCallback(object):
 
     def singleShot(self, timeoutInSeconds):
         if not self.singleShotTimer.isActive():
-            self.singleShotTimer.connect('timeout()', self._singleShotTimerEvent)
+            self.singleShotTimer.connect("timeout()", self._singleShotTimerEvent)
         self.singleShotTimer.start(int(timeoutInSeconds * 1000))
 
     def _singleShotTimerEvent(self):
         self.tick()
-        self.singleShotTimer.disconnect('timeout()', self._singleShotTimerEvent)
+        self.singleShotTimer.disconnect("timeout()", self._singleShotTimerEvent)
 
     def _schedule(self, elapsedTimeInSeconds):
-        '''
+        """
         This method is given an elapsed time since the start of the last
         call to ticks().  It schedules a timer event to achieve the targetFps.
-        '''
+        """
         fpsDelayMilliseconds = int(1000.0 / self.targetFps)
-        elapsedMilliseconds = int(elapsedTimeInSeconds*1000.0)
+        elapsedMilliseconds = int(elapsedTimeInSeconds * 1000.0)
         waitMilliseconds = fpsDelayMilliseconds - elapsedMilliseconds
         self.timer.start(waitMilliseconds if waitMilliseconds > 0 else 1)
 
     def _timerEvent(self):
-        '''
+        """
         Internal timer callback method.  Calls tick() and measures elapsed time.
-        '''
+        """
         startTime = time.time()
         self.elapsed = startTime - self.lastTickTime
 
@@ -100,4 +100,3 @@ class TimerCallback(object):
                 self._schedule(time.time() - startTime)
         else:
             self.stop()
-

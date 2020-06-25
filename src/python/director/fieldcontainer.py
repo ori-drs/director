@@ -1,13 +1,15 @@
 import vtk
 import numpy as np
 
+
 def _max_length(strings):
-    if not strings: return 0
+    if not strings:
+        return 0
     return max(len(s) for s in strings)
 
 
 def _fields_repr(self, indent=4):
-    indent_str = ' '*indent
+    indent_str = " " * indent
     field_names = list(self._fields)
     field_names.sort()
     fill_length = _max_length(field_names) + 1
@@ -16,13 +18,18 @@ def _fields_repr(self, indent=4):
     for field in field_names:
         value = getattr(self, field)
         value_repr = _repr(value, indent + 4)
-        s += "%s%s%s= %s,\n" % (indent_str, field, ' '*(fill_length-len(field)), value_repr)
+        s += "%s%s%s= %s,\n" % (
+            indent_str,
+            field,
+            " " * (fill_length - len(field)),
+            value_repr,
+        )
     s += "%s)" % indent_str
     return s
 
 
 def _dict_repr(self, indent=4):
-    indent_str = ' '*indent
+    indent_str = " " * indent
     field_names = self.keys()
     field_names.sort()
     fill_length = _max_length(field_names) + 3
@@ -31,21 +38,34 @@ def _dict_repr(self, indent=4):
     for field in field_names:
         value = self[field]
         value_repr = _repr(value, indent + 4)
-        s += "%s'%s'%s: %s,\n" % (indent_str, field, ' '*(fill_length-len(field)-2), value_repr)
+        s += "%s'%s'%s: %s,\n" % (
+            indent_str,
+            field,
+            " " * (fill_length - len(field) - 2),
+            value_repr,
+        )
     s += "%s}" % indent_str
     return s
 
 
 def _list_repr(self, indent=4):
-    indent_str = ' '*indent
-    return "[\n" + indent_str + (",\n" + indent_str).join(
-              [_repr(item, indent + 4) for item in self]) + "\n" + indent_str + "]"
+    indent_str = " " * indent
+    return (
+        "[\n"
+        + indent_str
+        + (",\n" + indent_str).join([_repr(item, indent + 4) for item in self])
+        + "\n"
+        + indent_str
+        + "]"
+    )
 
 
 def _transform_repr(mat, indent=4):
-    mat = np.array([[mat.GetMatrix().GetElement(r, c) for c in xrange(4)] for r in xrange(4)])
-    indent_str = ' '*indent
-    return '\n' + indent_str + repr(mat)
+    mat = np.array(
+        [[mat.GetMatrix().GetElement(r, c) for c in xrange(4)] for r in xrange(4)]
+    )
+    indent_str = " " * indent
+    return "\n" + indent_str + repr(mat)
 
 
 def _repr(self, indent=4):
@@ -73,15 +93,15 @@ class FieldContainer(object):
             yield name, getattr(self, name)
 
     def _add_fields(self, **fields):
-        if not hasattr(self, '_fields'):
-            object.__setattr__(self, '_fields', fields.keys())
+        if not hasattr(self, "_fields"):
+            object.__setattr__(self, "_fields", fields.keys())
         else:
-            object.__setattr__(self, '_fields', list(set(self._fields + fields.keys())))
+            object.__setattr__(self, "_fields", list(set(self._fields + fields.keys())))
         for name, value in fields.iteritems():
             object.__setattr__(self, name, value)
 
     def _set_fields(self, **fields):
-        if not hasattr(self, '_fields'):
+        if not hasattr(self, "_fields"):
             self._add_fields(**fields)
         else:
             for name, value in fields.iteritems():
@@ -103,11 +123,15 @@ class FieldContainer(object):
         if hasattr(self, name):
             object.__setattr__(self, name, value)
         else:
-            raise AttributeError("'%s' object has no attribute '%s'" % (type(self).__name__, name))
+            raise AttributeError(
+                "'%s' object has no attribute '%s'" % (type(self).__name__, name)
+            )
 
     def __delattr__(self, name):
         if hasattr(self, name):
             del self._fields[self._fields.index(name)]
             object.__delattr__(self, name)
         else:
-            raise AttributeError("'%s' object has no attribute '%s'" % (type(self).__name__, name))
+            raise AttributeError(
+                "'%s' object has no attribute '%s'" % (type(self).__name__, name)
+            )

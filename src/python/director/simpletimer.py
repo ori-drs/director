@@ -2,7 +2,6 @@ import time
 
 
 class SimpleTimer(object):
-
     def __init__(self):
         self.reset()
 
@@ -17,23 +16,23 @@ class SimpleTimer(object):
 
 
 class FPSCounter(object):
-
     def __init__(self):
         self.averageComputer = MovingAverageComputer()
         self.printToConsole = False
 
     def tick(self):
-        newAverage =  self.averageComputer.timer.elapsed() > self.averageComputer.timeWindow
+        newAverage = (
+            self.averageComputer.timer.elapsed() > self.averageComputer.timeWindow
+        )
         self.averageComputer.update(1)
         if newAverage and self.printToConsole:
-            print('fps:', self.getAverageFPS())
+            print("fps:", self.getAverageFPS())
 
     def getAverageFPS(self):
         return self.averageComputer.getAverage()
 
 
 class AverageComputer(object):
-
     def __init__(self):
         self.timer = SimpleTimer()
         self.quantity = 0.0
@@ -50,7 +49,6 @@ class AverageComputer(object):
 
 
 class MovingAverageComputer(object):
-
     def __init__(self):
         self.timer = SimpleTimer()
         self.alpha = 0.9
@@ -76,7 +74,9 @@ class MovingAverageComputer(object):
             averageThisWindow = self.quantityThisWindow / elapsedTime
 
             # update moving average
-            self.average = self.alpha * averageThisWindow + (1.0 - self.alpha) * self.average
+            self.average = (
+                self.alpha * averageThisWindow + (1.0 - self.alpha) * self.average
+            )
 
             # reset
             self.timer.reset()

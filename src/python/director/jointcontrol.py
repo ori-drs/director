@@ -10,8 +10,14 @@ import numpy as np
 
 
 class JointController(object):
-
-    def __init__(self, models, poseCollection=None, jointNames=None, robotName="", pushToModel=True):
+    def __init__(
+        self,
+        models,
+        poseCollection=None,
+        jointNames=None,
+        robotName="",
+        pushToModel=True,
+    ):
         self.robotState = robotstate.getRobotState(robotName)
         self.robotName = robotName
         self.jointNames = jointNames or self.robotState.getDrakePoseJointNames()
@@ -20,12 +26,12 @@ class JointController(object):
         self.poses = {}
         self.poseCollection = poseCollection
         self.currentPoseName = None
-        self.setPose('q_zero', np.zeros(self.numberOfJoints), pushToModel)
+        self.setPose("q_zero", np.zeros(self.numberOfJoints), pushToModel)
 
     def setJointPosition(self, jointId, position):
-        '''
+        """
         Set joint position in degrees.
-        '''
+        """
         assert jointId >= 0 and jointId < len(self.q)
         self.q[jointId] = math.radians(position % 360.0)
         self.push()
@@ -38,14 +44,14 @@ class JointController(object):
         if poseData is not None:
             self.addPose(poseName, poseData)
         if poseName not in self.poses:
-            raise Exception('Pose %r has not been defined.' % poseName)
+            raise Exception("Pose %r has not been defined." % poseName)
         self.q = self.poses[poseName]
         self.currentPoseName = poseName
         if pushToModel:
             self.push()
 
     def setZeroPose(self):
-        self.setPose('q_zero')
+        self.setPose("q_zero")
 
     def getPose(self, poseName):
         return self.poses.get(poseName)
@@ -59,21 +65,23 @@ class JointController(object):
     def loadPoseFromFile(self, filename):
         ext = os.path.splitext(filename)[1].lower()
 
-        if ext == '.mat':
+        if ext == ".mat":
             import scipy.io
+
             matData = scipy.io.loadmat(filename)
-            pose = np.array(matData['xstar'][:self.numberOfJoints].flatten(), dtype=float)
-        elif ext == '.csv':
-            pose = np.loadtxt(filename, delimiter=',', dtype=float).flatten()
+            pose = np.array(
+                matData["xstar"][: self.numberOfJoints].flatten(), dtype=float
+            )
+        elif ext == ".csv":
+            pose = np.loadtxt(filename, delimiter=",", dtype=float).flatten()
         else:
-            raise Exception('Unsupported pose file format: %s' % filename)
+            raise Exception("Unsupported pose file format: %s" % filename)
 
         assert pose.shape[0] == self.numberOfJoints
         return pose
 
 
 class JointControlTestRamp(TimerCallback):
-
     def __init__(self, jointController):
         TimerCallback.__init__(self)
         self.controller = jointController
@@ -90,5 +98,7 @@ class JointControlTestRamp(TimerCallback):
             self.stop()
             return
 
-        jointPosition = math.sin( (self.testTimer.elapsed() / self.testTime) * math.pi) * math.pi
+        jointPosition = (
+            math.sin((self.testTimer.elapsed() / self.testTime) * math.pi) * math.pi
+        )
         self.controller.setJointPosition(self.jointId, math.degrees(jointPosition))

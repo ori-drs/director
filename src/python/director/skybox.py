@@ -17,7 +17,7 @@ def createTexturedPlane():
 
 
 def getSkyboxSides():
-    return ['top', 'bottom', 'front', 'back', 'left', 'right']
+    return ["top", "bottom", "front", "back", "left", "right"]
 
 
 def createSkyboxPlane(side):
@@ -27,39 +27,39 @@ def createSkyboxPlane(side):
     t = vtk.vtkTransform()
     t.PostMultiply()
 
-    if side == 'top':
-        t.Translate(0,0,0.5)
+    if side == "top":
+        t.Translate(0, 0, 0.5)
         t.RotateZ(180)
 
-    elif side == 'bottom':
+    elif side == "bottom":
         t.RotateX(180)
         t.RotateY(180)
         t.RotateZ(-270)
-        t.Translate(0,0,-0.5)
+        t.Translate(0, 0, -0.5)
 
-    elif side == 'front':
+    elif side == "front":
         t.RotateY(90)
         t.RotateX(90)
         t.RotateZ(180)
-        t.Translate(0.5,0.0,0.0)
+        t.Translate(0.5, 0.0, 0.0)
 
-    elif side == 'back':
+    elif side == "back":
         t.RotateY(90)
         t.RotateX(90)
         t.RotateZ(0)
-        t.Translate(-0.5,0.0,0.0)
+        t.Translate(-0.5, 0.0, 0.0)
 
-    elif side == 'left':
+    elif side == "left":
         t.RotateY(90)
         t.RotateX(90)
         t.RotateZ(-90)
-        t.Translate(0.0,0.5,0.0)
+        t.Translate(0.0, 0.5, 0.0)
 
-    elif side == 'right':
+    elif side == "right":
         t.RotateY(90)
         t.RotateX(90)
         t.RotateZ(90)
-        t.Translate(0.0,-0.5,0.0)
+        t.Translate(0.0, -0.5, 0.0)
 
     pd = filterUtils.transformPolyData(pd, t)
     return pd
@@ -88,7 +88,7 @@ def createSkybox(imageMap, view):
 
     for side, imageFilename in imageMap.iteritems():
         texture = createTexture(imageFilename)
-        obj = vis.PolyDataItem('skybox %s' % side, planes[side], view=None)
+        obj = vis.PolyDataItem("skybox %s" % side, planes[side], view=None)
         obj.actor.SetTexture(texture)
         obj.actor.GetProperty().LightingOff()
         view.backgroundRenderer().AddActor(obj.actor)
@@ -98,13 +98,14 @@ def createSkybox(imageMap, view):
 
 
 def getSkyboxImages(baseDir):
-    imageMap =  dict(
-        top    = baseDir + '/topmars1.jpg',
-        bottom = baseDir + '/botmars1.jpg',
-        front  = baseDir + '/frontmars1.jpg',
-        back   = baseDir + '/backmars1.jpg',
-        left   = baseDir + '/leftmars1.jpg',
-        right  = baseDir + '/rightmars1.jpg')
+    imageMap = dict(
+        top=baseDir + "/topmars1.jpg",
+        bottom=baseDir + "/botmars1.jpg",
+        front=baseDir + "/frontmars1.jpg",
+        back=baseDir + "/backmars1.jpg",
+        left=baseDir + "/leftmars1.jpg",
+        right=baseDir + "/rightmars1.jpg",
+    )
 
     return imageMap
 
@@ -115,17 +116,17 @@ def createTextureGround(imageFilename, view):
     texture = createTexture(imageFilename)
     texture.RepeatOn()
 
-    tcoords = vnp.getNumpyFromVtk(pd, 'Texture Coordinates')
+    tcoords = vnp.getNumpyFromVtk(pd, "Texture Coordinates")
     tcoords *= 60
 
     t = vtk.vtkTransform()
     t.PostMultiply()
-    t.Scale(200,200,200)
-    t.Translate(0,0,-0.005)
+    t.Scale(200, 200, 200)
+    t.Translate(0, 0, -0.005)
 
     pd = filterUtils.transformPolyData(pd, t)
 
-    obj = vis.showPolyData(pd, 'ground', view=view, alpha=1.0, parent='skybox')
+    obj = vis.showPolyData(pd, "ground", view=view, alpha=1.0, parent="skybox")
     obj.actor.SetTexture(texture)
     obj.actor.GetProperty().LightingOff()
 
@@ -146,12 +147,10 @@ def connectSkyboxCamera(view, debug=False):
             c.SetFocalPoint(c2.GetFocalPoint())
 
         else:
-            c.SetPosition(0,0,0)
+            c.SetPosition(0, 0, 0)
             c.SetFocalPoint(viewDirection)
 
         c.SetViewUp(c2.GetViewUp())
         c.SetViewAngle(c2.GetViewAngle())
 
-
-    view.renderWindow().AddObserver('StartEvent', updateSkyboxCamera)
-
+    view.renderWindow().AddObserver("StartEvent", updateSkyboxCamera)

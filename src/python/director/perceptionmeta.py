@@ -60,7 +60,6 @@ class SourceMeta(object):
 
 
 class CloudSourceMeta(SourceMeta):
-
     @abc.abstractmethod
     def get_point_cloud(self, poly_data, only_new_data=True):
         """
@@ -71,7 +70,7 @@ class CloudSourceMeta(SourceMeta):
         :return:
         """
         pass
-    
+
     @abc.abstractmethod
     def get_sec(self):
         """
@@ -105,7 +104,6 @@ class CloudSourceMeta(SourceMeta):
 
 
 class ImageSourceMeta(SourceMeta):
-
     @staticmethod
     @abc.abstractmethod
     def initialise_from_name(name, robot_name):
@@ -165,7 +163,6 @@ class ImageSourceMeta(SourceMeta):
 
 
 class PointCloudSourceMeta(CloudSourceMeta):
-
     @abc.abstractmethod
     def set_num_pointclouds(self, num_clouds):
         """
@@ -176,7 +173,6 @@ class PointCloudSourceMeta(CloudSourceMeta):
 
 
 class DepthImageSourceMeta(CloudSourceMeta):
-
     @abc.abstractmethod
     def set_decimate(self, decimate):
         """
@@ -208,7 +204,6 @@ class DepthImageSourceMeta(CloudSourceMeta):
 
 
 class RosGridMapMeta(SourceMeta):
-
     @abc.abstractmethod
     def get_mesh(self, poly_data, only_new_data=True):
         """
@@ -261,7 +256,6 @@ class RosGridMapMeta(SourceMeta):
 
 
 class MarkerSourceMeta(SourceMeta):
-
     @abc.abstractmethod
     def get_mesh(self, poly_data):
         """
@@ -283,7 +277,6 @@ class MarkerSourceMeta(SourceMeta):
 
 
 class MarkerArraySourceMeta(SourceMeta):
-
     @abc.abstractmethod
     def get_mesh(self, poly_data, index=None):
         """

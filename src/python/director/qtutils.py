@@ -8,14 +8,17 @@ def addWidgetsToDict(widgets, d):
             d[str(widget.objectName)] = widget
         addWidgetsToDict(widget.children(), d)
 
+
 class WidgetDict(object):
     def __init__(self, widgets):
         addWidgetsToDict(widgets, self.__dict__)
+
 
 def clearLayout(widget):
     children = widget.findChildren(QtGui.QWidget)
     for child in children:
         child.delete()
+
 
 def loadUi(filename):
 
@@ -26,6 +29,7 @@ def loadUi(filename):
     widget = loader.load(uifile)
     ui = WidgetDict(widget.children())
     return widget, ui
+
 
 # @ref https://stackoverflow.com/a/35000974/7829525
 class BlockSignals(object):
@@ -51,8 +55,10 @@ class BlockSignals(object):
 
     @see QObject.blockSignals(...)
     """
+
     def __init__(self, *args):
         self.objects = args
+
     def enable(self, value):
         """
         Block signals for all widgets.
@@ -60,7 +66,9 @@ class BlockSignals(object):
         """
         for obj in self.objects:
             obj.blockSignals(value)
+
     def __enter__(self, *args, **kwargs):
         self.enable(True)
+
     def __exit__(self, *args, **kwargs):
         self.enable(False)

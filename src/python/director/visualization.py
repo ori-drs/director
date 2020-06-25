@@ -19,12 +19,12 @@ class PolyDataItem(om.ObjectModelItem):
 
     defaultScalarRangeMap = {
         # 'intensity' : (400, 4000),
-        'spindle_angle' : (0, 360),
-        'azimuth' : (-2.5, 2.5),
-        'scan_delta' : (0.0, 0.3),
-        'point distance to plane' : (-0.2, 0.2),
-        'normal angle to plane' : (0.0, 10.0),
-        }
+        "spindle_angle": (0, 360),
+        "azimuth": (-2.5, 2.5),
+        "scan_delta": (0.0, 0.3),
+        "point distance to plane": (-0.2, 0.2),
+        "normal angle to plane": (0.0, 10.0),
+    }
 
     def __init__(self, name, polyData, view):
 
@@ -42,21 +42,44 @@ class PolyDataItem(om.ObjectModelItem):
 
         self.rangeMap = dict(PolyDataItem.defaultScalarRangeMap)
 
-        self.addProperty('Color By', 0, attributes=om.PropertyAttributes(enumNames=['Solid Color']))
-        self.addProperty('Visible', True)
-        self.addProperty('Alpha', 1.0,
-                         attributes=om.PropertyAttributes(decimals=2, minimum=0, maximum=1.0, singleStep=0.1, hidden=False))
-        self.addProperty('Point Size', self.actor.GetProperty().GetPointSize(),
-                         attributes=om.PropertyAttributes(decimals=0, minimum=1, maximum=20, singleStep=1, hidden=False))
+        self.addProperty(
+            "Color By", 0, attributes=om.PropertyAttributes(enumNames=["Solid Color"])
+        )
+        self.addProperty("Visible", True)
+        self.addProperty(
+            "Alpha",
+            1.0,
+            attributes=om.PropertyAttributes(
+                decimals=2, minimum=0, maximum=1.0, singleStep=0.1, hidden=False
+            ),
+        )
+        self.addProperty(
+            "Point Size",
+            self.actor.GetProperty().GetPointSize(),
+            attributes=om.PropertyAttributes(
+                decimals=0, minimum=1, maximum=20, singleStep=1, hidden=False
+            ),
+        )
 
-        self.addProperty('Line Width', self.actor.GetProperty().GetLineWidth(),
-                         attributes=om.PropertyAttributes(decimals=0, minimum=1, maximum=20, singleStep=1, hidden=False))
+        self.addProperty(
+            "Line Width",
+            self.actor.GetProperty().GetLineWidth(),
+            attributes=om.PropertyAttributes(
+                decimals=0, minimum=1, maximum=20, singleStep=1, hidden=False
+            ),
+        )
 
-        self.addProperty('Surface Mode', 0,
-                         attributes=om.PropertyAttributes(enumNames=['Surface', 'Wireframe', 'Surface with edges', 'Points'], hidden=True))
+        self.addProperty(
+            "Surface Mode",
+            0,
+            attributes=om.PropertyAttributes(
+                enumNames=["Surface", "Wireframe", "Surface with edges", "Points"],
+                hidden=True,
+            ),
+        )
 
-        self.addProperty('Color', [1.0, 1.0, 1.0])
-        self.addProperty('Show Scalar Bar', False)
+        self.addProperty("Color", [1.0, 1.0, 1.0])
+        self.addProperty("Show Scalar Bar", False)
 
         self._updateSurfaceProperty()
         self._updateColorByProperty()
@@ -80,7 +103,7 @@ class PolyDataItem(om.ObjectModelItem):
         self._updateColorByProperty()
         self._updateColorBy(retainColorMap=True)
 
-        if self.getProperty('Visible'):
+        if self.getProperty("Visible"):
             self._renderAllViews()
 
     def setRangeMap(self, key, value):
@@ -89,15 +112,18 @@ class PolyDataItem(om.ObjectModelItem):
 
     def getArrayNames(self):
         pointData = self.polyData.GetPointData()
-        return [pointData.GetArrayName(i) for i in xrange(pointData.GetNumberOfArrays())]
+        return [
+            pointData.GetArrayName(i) for i in xrange(pointData.GetNumberOfArrays())
+        ]
 
     def setSolidColor(self, color):
-        self.setProperty('Color', [float(c) for c in color])
+        self.setProperty("Color", [float(c) for c in color])
         self.colorBy(None)
 
-
     def _isPointCloud(self):
-        return self.polyData.GetNumberOfPoints() and (self.polyData.GetNumberOfCells() == self.polyData.GetNumberOfVerts())
+        return self.polyData.GetNumberOfPoints() and (
+            self.polyData.GetNumberOfCells() == self.polyData.GetNumberOfVerts()
+        )
 
     def colorBy(self, arrayName, scalarRange=None, lut=None):
 
@@ -117,17 +143,17 @@ class PolyDataItem(om.ObjectModelItem):
         if not lut:
             lut = self._getDefaultColorMap(array, scalarRange)
 
-        #self.mapper.SetColorModeToMapScalars()
+        # self.mapper.SetColorModeToMapScalars()
         self.mapper.ScalarVisibilityOn()
         self.mapper.SetUseLookupTableScalarRange(True)
         self.mapper.SetLookupTable(lut)
         self.mapper.SetInterpolateScalarsBeforeMapping(not self._isPointCloud())
 
-        if self.getProperty('Visible'):
+        if self.getProperty("Visible"):
             self._renderAllViews()
 
     def getChildFrame(self):
-        frameName = self.getProperty('Name') + ' frame'
+        frameName = self.getProperty("Name") + " frame"
         return self.findChild(frameName)
 
     def addToView(self, view):
@@ -143,65 +169,75 @@ class PolyDataItem(om.ObjectModelItem):
     def _onPropertyChanged(self, propertySet, propertyName):
         om.ObjectModelItem._onPropertyChanged(self, propertySet, propertyName)
 
-        if propertyName == 'Point Size':
+        if propertyName == "Point Size":
             self.actor.GetProperty().SetPointSize(self.getProperty(propertyName))
-        elif propertyName == 'Line Width':
+        elif propertyName == "Line Width":
             self.actor.GetProperty().SetLineWidth(self.getProperty(propertyName))
-        elif propertyName == 'Alpha':
+        elif propertyName == "Alpha":
             self.actor.GetProperty().SetOpacity(self.getProperty(propertyName))
             if self.shadowActor:
-                self.shadowActor.GetProperty().SetOpacity(self.getProperty(propertyName))
-        elif propertyName == 'Visible':
+                self.shadowActor.GetProperty().SetOpacity(
+                    self.getProperty(propertyName)
+                )
+        elif propertyName == "Visible":
             self.actor.SetVisibility(self.getProperty(propertyName))
             if self.shadowActor:
                 self.shadowActor.SetVisibility(self.getProperty(propertyName))
 
-        elif propertyName == 'Surface Mode':
+        elif propertyName == "Surface Mode":
             mode = self.properties.getPropertyEnumValue(propertyName)
-            prop =  self.actor.GetProperty()
-            if mode == 'Surface':
+            prop = self.actor.GetProperty()
+            if mode == "Surface":
                 prop.SetRepresentationToSurface()
                 prop.EdgeVisibilityOff()
-            if mode == 'Wireframe':
+            if mode == "Wireframe":
                 prop.SetRepresentationToWireframe()
-            elif mode == 'Surface with edges':
+            elif mode == "Surface with edges":
                 prop.SetRepresentationToSurface()
                 prop.EdgeVisibilityOn()
-            elif mode == 'Points':
+            elif mode == "Points":
                 prop.SetRepresentationToPoints()
 
-        elif propertyName == 'Color':
+        elif propertyName == "Color":
             color = self.getProperty(propertyName)
             self.actor.GetProperty().SetColor(color)
 
-        elif propertyName == 'Color By':
+        elif propertyName == "Color By":
             self._updateColorBy()
 
-        elif propertyName == 'Show Scalar Bar':
+        elif propertyName == "Show Scalar Bar":
             self._updateScalarBar()
 
         self._renderAllViews()
 
     def setScalarRange(self, rangeMin, rangeMax):
-        arrayName = self.getPropertyEnumValue('Color By')
-        if arrayName != 'Solid Color':
+        arrayName = self.getPropertyEnumValue("Color By")
+        if arrayName != "Solid Color":
             lut = self.mapper.GetLookupTable()
             self.colorBy(arrayName, scalarRange=(rangeMin, rangeMax))
 
     def _updateSurfaceProperty(self):
-        enableSurfaceMode = self.polyData.GetNumberOfPolys() or self.polyData.GetNumberOfStrips()
-        self.properties.setPropertyAttribute('Surface Mode', 'hidden', not enableSurfaceMode)
+        enableSurfaceMode = (
+            self.polyData.GetNumberOfPolys() or self.polyData.GetNumberOfStrips()
+        )
+        self.properties.setPropertyAttribute(
+            "Surface Mode", "hidden", not enableSurfaceMode
+        )
 
         enableLineWidth = enableSurfaceMode or self.polyData.GetNumberOfLines()
-        self.properties.setPropertyAttribute('Line Width', 'hidden', not enableLineWidth)
+        self.properties.setPropertyAttribute(
+            "Line Width", "hidden", not enableLineWidth
+        )
 
         enablePointSize = enableSurfaceMode or not enableLineWidth
-        self.properties.setPropertyAttribute('Point Size', 'hidden', not enablePointSize)
+        self.properties.setPropertyAttribute(
+            "Point Size", "hidden", not enablePointSize
+        )
 
     def _updateColorBy(self, retainColorMap=False):
 
-        arrayName = self.getPropertyEnumValue('Color By')
-        if arrayName == 'Solid Color':
+        arrayName = self.getPropertyEnumValue("Color By")
+        if arrayName == "Solid Color":
             self.colorBy(None)
         else:
             lut = self.mapper.GetLookupTable() if retainColorMap else None
@@ -210,15 +246,15 @@ class PolyDataItem(om.ObjectModelItem):
         self._updateScalarBar()
 
     def _updateColorByProperty(self):
-        enumNames = ['Solid Color'] + self.getArrayNames()
-        currentValue = self.properties.getProperty('Color By')
+        enumNames = ["Solid Color"] + self.getArrayNames()
+        currentValue = self.properties.getProperty("Color By")
         if currentValue >= len(enumNames):
-            self.setProperty('Color By', 0)
-        self.properties.setPropertyAttribute('Color By', 'enumNames', enumNames)
+            self.setProperty("Color By", 0)
+        self.properties.setPropertyAttribute("Color By", "enumNames", enumNames)
 
     def _updateScalarBar(self):
-        barEnabled = self.getProperty('Show Scalar Bar')
-        colorBy = self.getProperty('Color By')
+        barEnabled = self.getProperty("Show Scalar Bar")
+        colorBy = self.getProperty("Color By")
         if barEnabled and colorBy != 0:
             self._showScalarBar()
         else:
@@ -232,13 +268,13 @@ class PolyDataItem(om.ObjectModelItem):
             self._renderAllViews()
 
     def _showScalarBar(self):
-        title = self.properties.getPropertyEnumValue('Color By')
+        title = self.properties.getPropertyEnumValue("Color By")
         view = self.views[0]
         lut = self.mapper.GetLookupTable()
         self.scalarBarWidget = createScalarBarWidget(view, lut, title)
         self._renderAllViews()
 
-    def _setScalarBarTextColor(self, color=(0,0,0)):
+    def _setScalarBarTextColor(self, color=(0, 0, 0)):
         act = self.scalarBarWidget.GetScalarBarActor()
         act.GetTitleTextProperty().SetColor(color)
         act.GetLabelTextProperty().SetColor(color)
@@ -253,7 +289,7 @@ class PolyDataItem(om.ObjectModelItem):
         f.DiscretizeOn()
         f.SetColorSpaceToDiverging()
         f.SetNumberOfValues(256)
-        f.AddRGBPoint(scalarRange[0],  0.23, 0.299, 0.754)
+        f.AddRGBPoint(scalarRange[0], 0.23, 0.299, 0.754)
         f.AddRGBPoint(scalarRange[1], 0.706, 0.016, 0.15)
         f.Build()
         return f
@@ -265,9 +301,7 @@ class PolyDataItem(om.ObjectModelItem):
         blueToRed = (0.667, 0)
         redtoBlue = (0, 0.667)
 
-        hueMap = {
-            'Axes' : redtoBlue
-        }
+        hueMap = {"Axes": redtoBlue}
 
         scalarRange = scalarRange or self.rangeMap.get(name, array.GetRange())
         hueRange = hueRange or hueMap.get(name, blueToRed)
@@ -279,17 +313,14 @@ class PolyDataItem(om.ObjectModelItem):
         lut.Build()
 
         return lut
-        #return self.getCoolToWarmColorMap(scalarRange)
+        # return self.getCoolToWarmColorMap(scalarRange)
 
     def shadowOn(self):
 
         if self.shadowActor:
             return
 
-        mat =  [[1, 0, -1,  0],
-                [0, 1, -1,  0],
-                [0, 0,  0,  0],
-                [0, 0,  0,  1]]
+        mat = [[1, 0, -1, 0], [0, 1, -1, 0], [0, 0, 0, 0], [0, 0, 0, 1]]
 
         shadowT = transformUtils.getTransformFromNumpy(mat)
 
@@ -332,8 +363,8 @@ class PolyDataItem(om.ObjectModelItem):
             renderer.RemoveActor(self.actor)
         view.render()
 
-class PolyDataItemList(PolyDataItem):
 
+class PolyDataItemList(PolyDataItem):
     def __init__(self, name, defaultColor):
         PolyDataItem.__init__(self, name, vtk.vtkPolyData(), view=None)
         self.name = name
@@ -345,12 +376,11 @@ class PolyDataItemList(PolyDataItem):
             om.removeFromObjectModel(item)
 
         for i in range(0, size):
-            name = self.name if i==0 else (self.name + str(i))
+            name = self.name if i == 0 else (self.name + str(i))
             item = PolyDataItem(name, vtk.vtkPolyData(), view=None)
             for view in self.views:
                 item.addToView(view)
             om.addToObjectModel(item, self)
-
 
     def setPolyData(self, polyDataList):
         items = self._getPolyDataItems()
@@ -360,9 +390,15 @@ class PolyDataItemList(PolyDataItem):
             for i in range(0, len(items)):
                 items[i].setPolyData(polyDataList[i])
                 # set color
-                colorList = items[i].properties.getPropertyAttribute('Color By', 'enumNames')
-                index = colorList.index(self.defaultColor) if self.defaultColor in colorList else 0
-                items[i].properties.setProperty('Color By', index)
+                colorList = items[i].properties.getPropertyAttribute(
+                    "Color By", "enumNames"
+                )
+                index = (
+                    colorList.index(self.defaultColor)
+                    if self.defaultColor in colorList
+                    else 0
+                )
+                items[i].properties.setProperty("Color By", index)
 
         else:
             for i in range(0, len(items)):
@@ -389,10 +425,8 @@ class PolyDataItemList(PolyDataItem):
                 child.setProperty(propertyName, property)
 
 
-
 class TextItem(om.ObjectModelItem):
-
-    def __init__(self, name, text='', view=None):
+    def __init__(self, name, text="", view=None):
 
         om.ObjectModelItem.__init__(self, name)
 
@@ -400,19 +434,26 @@ class TextItem(om.ObjectModelItem):
         self.actor = vtk.vtkTextActor()
         prop = self.actor.GetTextProperty()
         prop.SetFontSize(18)
-        self.actor.SetPosition(10,10)
+        self.actor.SetPosition(10, 10)
         self.actor.SetInput(text)
 
-        self.addProperty('Visible', True)
-        self.addProperty('Text', text)
-        self.addProperty('Position', [10, 10], attributes=om.PropertyAttributes(minimum=0, maximum=3000, singleStep=1))
-        self.addProperty('Font Size', 18, attributes=om.PropertyAttributes(minimum=6, maximum=128, singleStep=1))
-        self.addProperty('Bold', False)
-        self.addProperty('Italic', False)
+        self.addProperty("Visible", True)
+        self.addProperty("Text", text)
+        self.addProperty(
+            "Position",
+            [10, 10],
+            attributes=om.PropertyAttributes(minimum=0, maximum=3000, singleStep=1),
+        )
+        self.addProperty(
+            "Font Size",
+            18,
+            attributes=om.PropertyAttributes(minimum=6, maximum=128, singleStep=1),
+        )
+        self.addProperty("Bold", False)
+        self.addProperty("Italic", False)
 
         if view:
             self.addToView(view)
-
 
     def addToView(self, view):
         if view in self.views:
@@ -444,24 +485,23 @@ class TextItem(om.ObjectModelItem):
 
         om.ObjectModelItem._onPropertyChanged(self, propertySet, propertyName)
 
-        if propertyName == 'Visible':
+        if propertyName == "Visible":
             self.actor.SetVisibility(self.getProperty(propertyName))
             self._renderAllViews()
-        elif propertyName == 'Text':
+        elif propertyName == "Text":
             view = app.getCurrentRenderView()
             self.actor.SetInput(self.getProperty(propertyName))
-        elif propertyName == 'Position':
+        elif propertyName == "Position":
             pos = self.getProperty(propertyName)
             self.actor.SetPosition(pos[0], pos[1])
-        elif propertyName == 'Font Size':
+        elif propertyName == "Font Size":
             self.actor.GetTextProperty().SetFontSize(self.getProperty(propertyName))
-        elif propertyName == 'Bold Size':
+        elif propertyName == "Bold Size":
             self.actor.GetTextProperty().SetBold(self.getProperty(propertyName))
-        elif propertyName == 'Italic':
+        elif propertyName == "Italic":
             self.actor.GetTextProperty().SetItalic(self.getProperty(propertyName))
 
-
-        if self.getProperty('Visible'):
+        if self.getProperty("Visible"):
             self._renderAllViews()
 
 
@@ -469,7 +509,7 @@ def updateText(text, name, **kwargs):
 
     obj = om.findObjectByName(name)
     obj = obj or showText(text, name, **kwargs)
-    obj.setProperty('Text', text)
+    obj.setProperty("Text", text)
     return obj
 
 
@@ -479,8 +519,8 @@ def showText(text, name, fontSize=18, position=(10, 10), parent=None, view=None)
     assert view
 
     item = TextItem(name, text, view=view)
-    item.setProperty('Font Size', fontSize)
-    item.setProperty('Position', list(position))
+    item.setProperty("Font Size", fontSize)
+    item.setProperty("Position", list(position))
 
     if isinstance(parent, str):
         parentObj = om.getOrCreateContainer(parent)
@@ -509,7 +549,6 @@ def createAxesPolyData(scale, useTube, tubeWidth=0.002):
 
 
 class FrameItem(PolyDataItem):
-
     def __init__(self, name, transform, view):
 
         PolyDataItem.__init__(self, name, vtk.vtkPolyData(), view)
@@ -527,27 +566,40 @@ class FrameItem(PolyDataItem):
         self.traceData = None
         self._frameSync = None
 
-        self.addProperty('Scale', 1.0, attributes=om.PropertyAttributes(decimals=2, minimum=0.01, maximum=100, singleStep=0.1, hidden=False))
-        self.addProperty('Edit', False)
-        self.addProperty('Trace', False)
-        self.addProperty('Tube', False)
-        self.addProperty('Tube Width', 0.002, attributes=om.PropertyAttributes(decimals=3, minimum=0.001, maximum=10, singleStep=0.01, hidden=True))
+        self.addProperty(
+            "Scale",
+            1.0,
+            attributes=om.PropertyAttributes(
+                decimals=2, minimum=0.01, maximum=100, singleStep=0.1, hidden=False
+            ),
+        )
+        self.addProperty("Edit", False)
+        self.addProperty("Trace", False)
+        self.addProperty("Tube", False)
+        self.addProperty(
+            "Tube Width",
+            0.002,
+            attributes=om.PropertyAttributes(
+                decimals=3, minimum=0.001, maximum=10, singleStep=0.01, hidden=True
+            ),
+        )
 
-        self.properties.setPropertyIndex('Edit', 0)
-        self.properties.setPropertyIndex('Trace', 1)
-        self.properties.setPropertyIndex('Tube', 2)
+        self.properties.setPropertyIndex("Edit", 0)
+        self.properties.setPropertyIndex("Trace", 1)
+        self.properties.setPropertyIndex("Tube", 2)
 
-        self.callbacks.addSignal('FrameModified')
+        self.callbacks.addSignal("FrameModified")
         self.onTransformModifiedCallback = None
-        self.observerTag = self.transform.AddObserver('ModifiedEvent', self.onTransformModified)
+        self.observerTag = self.transform.AddObserver(
+            "ModifiedEvent", self.onTransformModified
+        )
 
         self._updateAxesGeometry()
-        self.setProperty('Color By', 'Axes')
-        self.setProperty('Icon', om.Icons.Axes)
-
+        self.setProperty("Color By", "Axes")
+        self.setProperty("Icon", om.Icons.Axes)
 
     def connectFrameModified(self, func):
-        return self.callbacks.connect('FrameModified', func)
+        return self.callbacks.connect("FrameModified", func)
 
     def disconnectFrameModified(self, callbackId):
         self.callbacks.disconnect(callbackId)
@@ -556,7 +608,7 @@ class FrameItem(PolyDataItem):
         if not self._blockSignals:
             if self.onTransformModifiedCallback:
                 self.onTransformModifiedCallback(self)
-            self.callbacks.process('FrameModified', self)
+            self.callbacks.process("FrameModified", self)
 
     def addToView(self, view):
         PolyDataItem.addToView(self, view)
@@ -567,7 +619,7 @@ class FrameItem(PolyDataItem):
         self._blockSignals = False
         self.transform.Modified()
         parent = self.parent()
-        if (parent and parent.getProperty('Visible')) or self.getProperty('Visible'):
+        if (parent and parent.getProperty("Visible")) or self.getProperty("Visible"):
             self._renderAllViews()
 
     def getFrameSync(self):
@@ -577,25 +629,29 @@ class FrameItem(PolyDataItem):
         return self._frameSync
 
     def _updateAxesGeometry(self):
-        scale = self.getProperty('Scale')
+        scale = self.getProperty("Scale")
         self.rep.SetWorldSize(scale)
-        self.setPolyData(createAxesPolyData(scale, self.getProperty('Tube'), self.getProperty('Tube Width')))
+        self.setPolyData(
+            createAxesPolyData(
+                scale, self.getProperty("Tube"), self.getProperty("Tube Width")
+            )
+        )
 
     def _onPropertyChanged(self, propertySet, propertyName):
         PolyDataItem._onPropertyChanged(self, propertySet, propertyName)
 
-        if propertyName == 'Scale':
+        if propertyName == "Scale":
             scale = self.getProperty(propertyName)
             self.rep.SetWorldSize(scale)
             self._updateAxesGeometry()
-        elif propertyName == 'Visible':
+        elif propertyName == "Visible":
             pass
             if self.widget.GetInteractor():
                 # Need to add this to show or hide the editing handles for modifying the frame along with the frame
                 # display. Without it the editing handles will remain visible when the lines representing the frame
                 # are not
                 self.widget.SetEnabled(self.getProperty(propertyName))
-        elif propertyName == 'Edit':
+        elif propertyName == "Edit":
             view = app.getCurrentRenderView()
             if view not in self.views:
                 view = self.views[0]
@@ -605,17 +661,19 @@ class FrameItem(PolyDataItem):
             isEditing = self.getProperty(propertyName)
             if isEditing:
                 frameupdater.registerFrame(self)
-        elif propertyName == 'Trace':
+        elif propertyName == "Trace":
             trace = self.getProperty(propertyName)
             if trace and not self.traceData:
                 self.traceData = FrameTraceVisualizer(self)
             elif not trace and self.traceData:
                 om.removeFromObjectModel(self.traceData.getTraceData())
                 self.traceData = None
-        elif propertyName == 'Tube':
-            self.properties.setPropertyAttribute('Tube Width', 'hidden', not self.getProperty(propertyName))
+        elif propertyName == "Tube":
+            self.properties.setPropertyAttribute(
+                "Tube Width", "hidden", not self.getProperty(propertyName)
+            )
             self._updateAxesGeometry()
-        elif propertyName == 'Tube Width':
+        elif propertyName == "Tube Width":
             self._updateAxesGeometry()
 
     def onRemoveFromObjectModel(self):
@@ -631,10 +689,9 @@ class FrameItem(PolyDataItem):
 
 
 class FrameTraceVisualizer(object):
-
     def __init__(self, frame):
         self.frame = frame
-        self.traceName = '%s trace' % frame.getProperty('Name')
+        self.traceName = "%s trace" % frame.getProperty("Name")
         self.lastPosition = np.array(frame.transform.GetPosition())
         self.lineCell = vtk.vtkLine()
         frame.connectFrameModified(self.onFrameModified)
@@ -659,8 +716,8 @@ class FrameTraceVisualizer(object):
         numberOfPoints = pd.GetNumberOfPoints()
         line = self.lineCell
         ids = line.GetPointIds()
-        ids.SetId(0, numberOfPoints-2)
-        ids.SetId(1, numberOfPoints-1)
+        ids.SetId(0, numberOfPoints - 2)
+        ids.SetId(1, numberOfPoints - 1)
         pd.GetLines().InsertNextCell(line.GetPointIds())
 
         pd.Modified()
@@ -673,7 +730,6 @@ class FrameTraceVisualizer(object):
 
 
 class FrameSync(object):
-
     class FrameData(object):
         def __init__(self, **kwargs):
             self.__dict__.update(kwargs)
@@ -698,7 +754,8 @@ class FrameSync(object):
             ref=weakref.ref(frame),
             baseTransform=self._computeBaseTransform(frame),
             callbackId=callbackId,
-            ignoreIncoming=ignoreIncoming)
+            ignoreIncoming=ignoreIncoming,
+        )
 
     def removeFrame(self, frame):
 
@@ -719,8 +776,12 @@ class FrameSync(object):
             elif frameData.ref() is frame:
                 continue
             else:
-                currentDelta = transformUtils.copyFrame(frameData.baseTransform.GetLinearInverse())
-                currentDelta.Concatenate(transformUtils.copyFrame(frameData.ref().transform))
+                currentDelta = transformUtils.copyFrame(
+                    frameData.baseTransform.GetLinearInverse()
+                )
+                currentDelta.Concatenate(
+                    transformUtils.copyFrame(frameData.ref().transform)
+                )
                 break
 
         t = transformUtils.copyFrame(frame.transform)
@@ -762,10 +823,12 @@ class FrameSync(object):
         modifiedFrameId = self._findFrameId(frame)
         assert modifiedFrameId is not None
 
-        #print self, 'onFrameModified:', self.frames[modifiedFrameId].ref().getProperty('Name')
+        # print self, 'onFrameModified:', self.frames[modifiedFrameId].ref().getProperty('Name')
 
         if self.frames[modifiedFrameId].ignoreIncoming:
-            self.frames[modifiedFrameId].baseTransform = self._computeBaseTransform(frame)
+            self.frames[modifiedFrameId].baseTransform = self._computeBaseTransform(
+                frame
+            )
             return
 
         self._blockCallbacks = True
@@ -775,78 +838,100 @@ class FrameSync(object):
                 self._removeFrameId(frameId)
             elif frameId != modifiedFrameId:
 
-                #print '  ', self, 'moving:', self.frames[frameId].ref().getProperty('Name')
+                # print '  ', self, 'moving:', self.frames[frameId].ref().getProperty('Name')
                 self._moveFrame(frameId, modifiedFrameId)
 
         self._blockCallbacks = False
 
 
 class ViewOptionsItem(om.ObjectModelItem):
-
     def __init__(self, view):
-        om.ObjectModelItem.__init__(self, 'view options')
+        om.ObjectModelItem.__init__(self, "view options")
 
         self.view = view
-        self.addProperty('Camera projection', 0, attributes=om.PropertyAttributes(enumNames=['Perspective', 'Parallel']))
-        self.addProperty('View angle', view.camera().GetViewAngle(), attributes=om.PropertyAttributes(minimum=2, maximum=180))
-        self.addProperty('Key light intensity', view.lightKit().GetKeyLightIntensity(), attributes=om.PropertyAttributes(minimum=0, maximum=5, singleStep=0.1, decimals=2))
-        self.addProperty('Light kit', True)
-        self.addProperty('Eye dome lighting', False)
-        self.addProperty('Orientation widget', True)
-        self.addProperty('Interactive render', True)
-        self.addProperty('Gradient background', True)
-        self.addProperty('Background color', view.backgroundRenderer().GetBackground())
-        self.addProperty('Background color 2', view.backgroundRenderer().GetBackground2())
+        self.addProperty(
+            "Camera projection",
+            0,
+            attributes=om.PropertyAttributes(enumNames=["Perspective", "Parallel"]),
+        )
+        self.addProperty(
+            "View angle",
+            view.camera().GetViewAngle(),
+            attributes=om.PropertyAttributes(minimum=2, maximum=180),
+        )
+        self.addProperty(
+            "Key light intensity",
+            view.lightKit().GetKeyLightIntensity(),
+            attributes=om.PropertyAttributes(
+                minimum=0, maximum=5, singleStep=0.1, decimals=2
+            ),
+        )
+        self.addProperty("Light kit", True)
+        self.addProperty("Eye dome lighting", False)
+        self.addProperty("Orientation widget", True)
+        self.addProperty("Interactive render", True)
+        self.addProperty("Gradient background", True)
+        self.addProperty("Background color", view.backgroundRenderer().GetBackground())
+        self.addProperty(
+            "Background color 2", view.backgroundRenderer().GetBackground2()
+        )
 
     def _onPropertyChanged(self, propertySet, propertyName):
 
         om.ObjectModelItem._onPropertyChanged(self, propertySet, propertyName)
 
-        if propertyName in ('Gradient background', 'Background color', 'Background color 2'):
-            colors = [self.getProperty('Background color'), self.getProperty('Background color 2')]
+        if propertyName in (
+            "Gradient background",
+            "Background color",
+            "Background color 2",
+        ):
+            colors = [
+                self.getProperty("Background color"),
+                self.getProperty("Background color 2"),
+            ]
 
-            if not self.getProperty('Gradient background'):
+            if not self.getProperty("Gradient background"):
                 colors[1] = colors[0]
 
             self.view.renderer().SetBackground(colors[0])
             self.view.renderer().SetBackground2(colors[1])
 
-        elif propertyName == 'Camera projection':
+        elif propertyName == "Camera projection":
 
-            if self.getPropertyEnumValue(propertyName) == 'Perspective':
+            if self.getPropertyEnumValue(propertyName) == "Perspective":
                 self.view.camera().ParallelProjectionOff()
             else:
                 self.view.camera().ParallelProjectionOn()
 
-        elif propertyName == 'Orientation widget':
+        elif propertyName == "Orientation widget":
 
             if self.getProperty(propertyName):
                 self.view.orientationMarkerWidget().On()
             else:
                 self.view.orientationMarkerWidget().Off()
 
-        elif propertyName == 'View angle':
+        elif propertyName == "View angle":
 
             angle = self.getProperty(propertyName)
             self.view.camera().SetViewAngle(angle)
 
-        elif propertyName == 'Key light intensity':
+        elif propertyName == "Key light intensity":
 
             intensity = self.getProperty(propertyName)
             self.view.lightKit().SetKeyLightIntensity(intensity)
 
-        elif propertyName == 'Light kit':
+        elif propertyName == "Light kit":
 
             self.view.setLightKitEnabled(self.getProperty(propertyName))
 
-        elif propertyName == 'Eye dome lighting':
+        elif propertyName == "Eye dome lighting":
 
             if self.getProperty(propertyName):
                 enableEyeDomeLighting(self.view)
             else:
                 disableEyeDomeLighting(self.view)
 
-        elif propertyName == 'Interactive render':
+        elif propertyName == "Interactive render":
             if self.getProperty(propertyName):
                 self.view.renderWindow().GetInteractor().EnableRenderOn()
             else:
@@ -857,8 +942,11 @@ class ViewOptionsItem(om.ObjectModelItem):
 
 def getVisibleActors(view):
     actors = view.renderer().GetActors()
-    return [actors.GetItemAsObject(i) for i in range(actors.GetNumberOfItems())
-                if actor.GetVisibility()]
+    return [
+        actors.GetItemAsObject(i)
+        for i in range(actors.GetNumberOfItems())
+        if actor.GetVisibility()
+    ]
 
 
 def computeViewBoundsNoGrid(view, gridObj):
@@ -878,7 +966,17 @@ def computeViewBoundsSoloGrid(view, gridObj):
         return computeViewBoundsNoGrid(view, gridObj)
 
 
-def showGrid(view, cellSize=0.5, numberOfCells=25, name='grid', parent='sensors', color=[1,1,1], alpha=0.05, gridTransform=None, viewBoundsFunction=None):
+def showGrid(
+    view,
+    cellSize=0.5,
+    numberOfCells=25,
+    name="grid",
+    parent="sensors",
+    color=[1, 1, 1],
+    alpha=0.05,
+    gridTransform=None,
+    viewBoundsFunction=None,
+):
 
     grid = vtk.vtkGridSource()
     grid.SetScale(cellSize)
@@ -886,27 +984,44 @@ def showGrid(view, cellSize=0.5, numberOfCells=25, name='grid', parent='sensors'
     grid.SetSurfaceEnabled(True)
     grid.Update()
 
-    gridObj = showPolyData(grid.GetOutput(), name, view=view, alpha=alpha, color=color, visible=True, parent=parent)
+    gridObj = showPolyData(
+        grid.GetOutput(),
+        name,
+        view=view,
+        alpha=alpha,
+        color=color,
+        visible=True,
+        parent=parent,
+    )
     gridObj.gridSource = grid
     gridObj.actor.GetProperty().LightingOff()
     gridObj.actor.SetPickable(False)
 
     gridTransform = gridTransform or vtk.vtkTransform()
     gridObj.actor.SetUserTransform(gridTransform)
-    showFrame(gridTransform, name + ' frame', scale=0.2, visible=False, parent=gridObj, view=view)
+    showFrame(
+        gridTransform,
+        name + " frame",
+        scale=0.2,
+        visible=False,
+        parent=gridObj,
+        view=view,
+    )
 
-    gridObj.setProperty('Surface Mode', 'Wireframe')
+    gridObj.setProperty("Surface Mode", "Wireframe")
 
     viewBoundsFunction = viewBoundsFunction or computeViewBoundsNoGrid
+
     def onViewBoundsRequest():
-        if view not in gridObj.views or not gridObj.getProperty('Visible'):
+        if view not in gridObj.views or not gridObj.getProperty("Visible"):
             return
         bounds = viewBoundsFunction(view, gridObj)
         if vtk.vtkMath.AreBoundsInitialized(bounds):
             view.addCustomBounds(bounds)
         else:
             view.addCustomBounds([-1, 1, -1, 1, -1, 1])
-    view.connect('computeBoundsRequest(ddQVTKWidgetView*)', onViewBoundsRequest)
+
+    view.connect("computeBoundsRequest(ddQVTKWidgetView*)", onViewBoundsRequest)
 
     return gridObj
 
@@ -945,7 +1060,7 @@ def updateFrame(frame, name, **kwargs):
     return obj
 
 
-def showFrame(frame, name, view=None, parent='segmentation', scale=0.35, visible=True):
+def showFrame(frame, name, view=None, parent="segmentation", scale=0.35, visible=True):
 
     view = view or app.getCurrentRenderView()
     assert view
@@ -957,12 +1072,23 @@ def showFrame(frame, name, view=None, parent='segmentation', scale=0.35, visible
 
     item = FrameItem(name, frame, view)
     om.addToObjectModel(item, parentObj)
-    item.setProperty('Visible', visible)
-    item.setProperty('Scale', scale)
+    item.setProperty("Visible", visible)
+    item.setProperty("Scale", scale)
     return item
 
 
-def showPolyData(polyData, name, color=None, colorByName=None, colorByRange=None, alpha=1.0, visible=True, view=None, parent='segmentation', cls=None):
+def showPolyData(
+    polyData,
+    name,
+    color=None,
+    colorByName=None,
+    colorByRange=None,
+    alpha=1.0,
+    visible=True,
+    view=None,
+    parent="segmentation",
+    cls=None,
+):
 
     view = view or app.getCurrentRenderView()
     assert view
@@ -976,38 +1102,40 @@ def showPolyData(polyData, name, color=None, colorByName=None, colorByRange=None
         parentObj = parent
 
     om.addToObjectModel(item, parentObj)
-    item.setProperty('Visible', visible)
-    item.setProperty('Alpha', alpha)
+    item.setProperty("Visible", visible)
+    item.setProperty("Alpha", alpha)
 
     if colorByName and colorByName not in item.getArrayNames():
-        print 'showPolyData(colorByName=%s): array not found' % colorByName
+        print "showPolyData(colorByName=%s): array not found" % colorByName
         colorByName = None
 
     if colorByName:
-        item.setProperty('Color By', colorByName)
+        item.setProperty("Color By", colorByName)
         item.colorBy(colorByName, colorByRange)
 
     else:
         color = [1.0, 1.0, 1.0] if color is None else color
-        item.setProperty('Color', [float(c) for c in color])
+        item.setProperty("Color", [float(c) for c in color])
         item.colorBy(None)
 
     return item
 
 
 def addChildFrame(obj, initialTransform=None):
-    '''
+    """
     Adds a child frame to the given PolyDataItem.  If initialTransform is given,
     the object's polydata is transformed using the inverse of initialTransform
     and then a child frame is assigned to the object to maintain its original
     position.
-    '''
+    """
 
     if obj.getChildFrame():
         return
 
     if initialTransform:
-        pd = filterUtils.transformPolyData(obj.polyData, initialTransform.GetLinearInverse())
+        pd = filterUtils.transformPolyData(
+            obj.polyData, initialTransform.GetLinearInverse()
+        )
         obj.setPolyData(pd)
 
     t = obj.actor.GetUserTransform()
@@ -1016,48 +1144,75 @@ def addChildFrame(obj, initialTransform=None):
         t = vtk.vtkTransform()
         t.PostMultiply()
 
-    frame = showFrame(t, obj.getProperty('Name') + ' frame', parent=obj, scale=0.2, visible=False)
+    frame = showFrame(
+        t, obj.getProperty("Name") + " frame", parent=obj, scale=0.2, visible=False
+    )
     obj.actor.SetUserTransform(t)
 
     return frame
 
 
 def getRandomColor():
-    '''
+    """
     Return a random color as a list of RGB values between 0.0 and 1.0.
-    '''
+    """
     return colorsys.hsv_to_rgb(np.random.rand(), 1.0, 0.9)
 
 
 def showClusterObjects(clusters, parent):
 
-    colors =  [ QtCore.Qt.red,
-                QtCore.Qt.blue,
-                QtCore.Qt.yellow,
-                QtCore.Qt.green,
-                QtCore.Qt.magenta,
-                QtCore.Qt.cyan,
-                QtCore.Qt.darkCyan,
-                QtCore.Qt.darkGreen,
-                QtCore.Qt.darkMagenta ]
+    colors = [
+        QtCore.Qt.red,
+        QtCore.Qt.blue,
+        QtCore.Qt.yellow,
+        QtCore.Qt.green,
+        QtCore.Qt.magenta,
+        QtCore.Qt.cyan,
+        QtCore.Qt.darkCyan,
+        QtCore.Qt.darkGreen,
+        QtCore.Qt.darkMagenta,
+    ]
 
     colors = [QtGui.QColor(c) for c in colors]
-    colors = [(c.red()/255.0, c.green()/255.0, c.blue()/255.0) for c in colors]
+    colors = [(c.red() / 255.0, c.green() / 255.0, c.blue() / 255.0) for c in colors]
 
     objects = []
 
     for i, cluster in enumerate(clusters):
-        name = 'object %d' % i
+        name = "object %d" % i
         color = colors[i % len(colors)]
-        clusterObj = showPolyData(cluster.mesh, name, color=color, parent=parent, alpha=1.0)
-        clusterFrame = showFrame(cluster.frame, name + ' frame', scale=0.2, visible=False, parent=clusterObj)
-        clusterBox = showPolyData(cluster.box, name + ' box', color=color, parent=clusterObj, alpha=0.6, visible=False)
-        clusterPoints = showPolyData(cluster.points, name + ' points', color=color, parent=clusterObj, visible=False, alpha=1.0)
-        if hasattr(cluster,'oriented_frame'):
-            orientedFrame = showFrame(cluster.oriented_frame, name + ' oriented frame', scale=0.2, visible=False, parent=clusterObj)
+        clusterObj = showPolyData(
+            cluster.mesh, name, color=color, parent=parent, alpha=1.0
+        )
+        clusterFrame = showFrame(
+            cluster.frame, name + " frame", scale=0.2, visible=False, parent=clusterObj
+        )
+        clusterBox = showPolyData(
+            cluster.box,
+            name + " box",
+            color=color,
+            parent=clusterObj,
+            alpha=0.6,
+            visible=False,
+        )
+        clusterPoints = showPolyData(
+            cluster.points,
+            name + " points",
+            color=color,
+            parent=clusterObj,
+            visible=False,
+            alpha=1.0,
+        )
+        if hasattr(cluster, "oriented_frame"):
+            orientedFrame = showFrame(
+                cluster.oriented_frame,
+                name + " oriented frame",
+                scale=0.2,
+                visible=False,
+                parent=clusterObj,
+            )
 
-
-        clusterPoints.setProperty('Point Size', 7)
+        clusterPoints.setProperty("Point Size", 7)
         clusterPoints.colorBy(None)
         clusterObj.data = cluster
         objects.append(clusterObj)
@@ -1069,6 +1224,7 @@ def showClusterObjects(clusters, parent):
 
 
 captionWidget = None
+
 
 def hideCaptionWidget():
     global captionWidget
@@ -1109,10 +1265,10 @@ def showCaptionWidget(position, text, view=None):
 
     c2 = rep.GetPosition2Coordinate()
     c2.SetCoordinateSystemToDisplay()
-    c2.SetValue(12*len(text),30)
+    c2.SetValue(12 * len(text), 30)
 
     # disable border
-    #rep.SetShowBorder(0)
+    # rep.SetShowBorder(0)
 
     a.SetThreeDimensionalLeader(0)
     a.SetLeaderGlyphSize(0.005)
@@ -1122,16 +1278,20 @@ def showCaptionWidget(position, text, view=None):
 
 
 def getRayFromDisplayPoint(view, displayPoint):
-    '''
+    """
     Given a view and an XY display point, returns two XYZ world points which
     are the display point at the near/far clipping planes of the view.
-    '''
-    worldPt1 = [0,0,0,0]
-    worldPt2 = [0,0,0,0]
+    """
+    worldPt1 = [0, 0, 0, 0]
+    worldPt2 = [0, 0, 0, 0]
     renderer = view.renderer()
 
-    vtk.vtkInteractorObserver.ComputeDisplayToWorld(renderer, displayPoint[0], displayPoint[1], 0, worldPt1)
-    vtk.vtkInteractorObserver.ComputeDisplayToWorld(renderer, displayPoint[0], displayPoint[1], 1, worldPt2)
+    vtk.vtkInteractorObserver.ComputeDisplayToWorld(
+        renderer, displayPoint[0], displayPoint[1], 0, worldPt1
+    )
+    vtk.vtkInteractorObserver.ComputeDisplayToWorld(
+        renderer, displayPoint[0], displayPoint[1], 1, worldPt2
+    )
 
     worldPt1 = np.array(worldPt1[:3])
     worldPt2 = np.array(worldPt2[:3])
@@ -1162,7 +1322,7 @@ def pickImage(displayPoint, view, obj=None):
 def pickProp(displayPoint, view):
 
     for tolerance in (0.0, 0.005, 0.01):
-        pickType = 'render' if tolerance == 0.0 else 'cells'
+        pickType = "render" if tolerance == 0.0 else "cells"
         pickData = pickPoint(displayPoint, view, pickType=pickType, tolerance=tolerance)
         pickedPoint = pickData.pickedPoint
         pickedProp = pickData.pickedProp
@@ -1173,7 +1333,7 @@ def pickProp(displayPoint, view):
     return None, None, None
 
 
-def pickPoint(displayPoint, view, obj=None, pickType='points', tolerance=0.01):
+def pickPoint(displayPoint, view, obj=None, pickType="points", tolerance=0.01):
     """
 
     :param displayPoint:
@@ -1189,7 +1349,7 @@ def pickPoint(displayPoint, view, obj=None, pickType='points', tolerance=0.01):
         pickedCellId - is None unless pickType="cells"
     """
 
-    assert pickType in ('points', 'cells', 'render')
+    assert pickType in ("points", "cells", "render")
 
     view = view or app.getCurrentRenderView()
     assert view
@@ -1198,13 +1358,11 @@ def pickPoint(displayPoint, view, obj=None, pickType='points', tolerance=0.01):
         obj = om.findObjectByName(obj)
         assert obj
 
-
-    if pickType == 'render':
+    if pickType == "render":
         picker = vtk.vtkPropPicker()
     else:
-        picker = vtk.vtkPointPicker() if pickType == 'points' else vtk.vtkCellPicker()
+        picker = vtk.vtkPointPicker() if pickType == "points" else vtk.vtkCellPicker()
         picker.SetTolerance(tolerance)
-
 
     if obj is not None:
         if isinstance(obj, list):
@@ -1218,8 +1376,11 @@ def pickPoint(displayPoint, view, obj=None, pickType='points', tolerance=0.01):
     picker.Pick(displayPoint[0], displayPoint[1], 0, view.renderer())
     pickedProp = picker.GetViewProp()
     pickedPoint = np.array(picker.GetPickPosition())
-    pickedDataset = pickedProp.GetMapper().GetInput() if isinstance(pickedProp, vtk.vtkActor) else None
-
+    pickedDataset = (
+        pickedProp.GetMapper().GetInput()
+        if isinstance(pickedProp, vtk.vtkActor)
+        else None
+    )
 
     if pickType == "cells":
         pickedCellId = picker.GetCellId()
@@ -1228,26 +1389,25 @@ def pickPoint(displayPoint, view, obj=None, pickType='points', tolerance=0.01):
 
     # populate pickedNormal if possible
     pickedNormal = None
-    if pickType == 'cells':
-      pickedNormal = np.array(picker.GetPickNormal())
-    elif pickType == 'points' and pickedDataset:
-      pointId = picker.GetPointId()
-      normals = pickedDataset.GetPointData().GetNormals()
-      if normals:
-          pickedNormal = np.array(normals.GetTuple3(pointId))
+    if pickType == "cells":
+        pickedNormal = np.array(picker.GetPickNormal())
+    elif pickType == "points" and pickedDataset:
+        pointId = picker.GetPointId()
+        normals = pickedDataset.GetPointData().GetNormals()
+        if normals:
+            pickedNormal = np.array(normals.GetTuple3(pointId))
 
-    #if pickedDataset and pickType == 'cells':
+    # if pickedDataset and pickType == 'cells':
     #    print 'point id:', pickedDataset.GetCell(picker.GetCellId()).GetPointIds().GetId(picker.GetSubId())
-    #if pickType == 'points':
+    # if pickType == 'points':
     #    print 'point id:', picker.GetPointId()
-
 
     fields = FieldContainer(
         pickedPoint=pickedPoint,
         pickedProp=pickedProp,
         pickedDataset=pickedDataset,
         pickedNormal=pickedNormal,
-        pickedCellId=pickedCellId
+        pickedCellId=pickedCellId,
     )
     return fields
 
@@ -1261,6 +1421,7 @@ def getObjectByDataSet(polyData):
     for obj in om.getObjects():
         if obj.hasDataSet(polyData):
             return obj
+
 
 def getObjectByProp(prop):
     if not prop:
@@ -1295,13 +1456,13 @@ def enableEyeDomeLighting(view):
     overlay = vtk.vtkOverlayPass()
     lights = vtk.vtkLightsPass()
 
-    passes=vtk.vtkRenderPassCollection()
+    passes = vtk.vtkRenderPassCollection()
     passes.AddItem(lights)
     passes.AddItem(opaque)
-    #passes.AddItem(peeling)
+    # passes.AddItem(peeling)
     passes.AddItem(translucent)
-    #passes.AddItem(volume)
-    #passes.AddItem(overlay)
+    # passes.AddItem(volume)
+    # passes.AddItem(overlay)
     seq.SetPasses(passes)
 
     edlPass = vtk.vtkEDLShading()
@@ -1317,11 +1478,11 @@ def disableEyeDomeLighting(view):
 
 
 def showImage(filename):
-    '''
+    """
     Returns a QLabel displaying the image contents of given filename.
     Make sure to assign the label, it will destruct when it goes out
     of scope.
-    '''
+    """
     image = QtGui.QImage(filename)
     assert not image.isNull()
     imageLabel = QtGui.QLabel()

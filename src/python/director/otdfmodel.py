@@ -12,26 +12,25 @@ import director.objectmodel as om
 
 
 def getElementNodes(node):
-      elementNodes = []
-      if node.nodeType == xml.dom.Node.ELEMENT_NODE:
-          elementNodes.append(node)
-      for child in node.childNodes:
-          elementNodes += getElementNodes(child)
-      return elementNodes
+    elementNodes = []
+    if node.nodeType == xml.dom.Node.ELEMENT_NODE:
+        elementNodes.append(node)
+    for child in node.childNodes:
+        elementNodes += getElementNodes(child)
+    return elementNodes
 
 
 class OtdfParser(object):
-
     def __init__(self):
-        self.otdfFilename = ''
-        self.otdfString = ''
+        self.otdfFilename = ""
+        self.otdfString = ""
         self.xmlDoc = None
         self.paramDict = OrderedDict()
 
     def setOtdfFilename(self, filename):
         self.otdfFilename = filename
         assert os.path.isfile(filename)
-        otdfString = open(filename, 'r').read()
+        otdfString = open(filename, "r").read()
         self.setOtdfString(otdfString)
 
     def setOtdfString(self, otdfString):
@@ -42,16 +41,15 @@ class OtdfParser(object):
     def parseParams(self):
         assert self.xmlDoc is not None
         self.paramDict = OrderedDict()
-        paramElements = self.xmlDoc.getElementsByTagName('param')
+        paramElements = self.xmlDoc.getElementsByTagName("param")
         for param in paramElements:
-            name = param.getAttribute('name')
-            valueDefault = param.getAttribute('default_value')
-            valueMin = param.getAttribute('min')
-            valueMax = param.getAttribute('max')
-            valueIncrement = param.getAttribute('inc')
-            #print 'param:', name, '=', valueDefault
+            name = param.getAttribute("name")
+            valueDefault = param.getAttribute("default_value")
+            valueMin = param.getAttribute("min")
+            valueMax = param.getAttribute("max")
+            valueIncrement = param.getAttribute("inc")
+            # print 'param:', name, '=', valueDefault
             self.paramDict[name] = (valueDefault, valueMin, valueMax, valueIncrement)
-
 
     def getParamValue(self, paramName):
         valueDefault, valueMin, valueMax, valueIncrement = self.paramDict[paramName]
@@ -59,28 +57,26 @@ class OtdfParser(object):
 
     def parseAttributeExpression(self, matchObj):
         expression = matchObj.group(1)
-        #print '\nexpression:', expression
+        # print '\nexpression:', expression
         paramNames = reversed(sorted(self.paramDict.keys(), key=len))
         for paramName in paramNames:
             if paramName in expression:
                 paramValue = self.getParamValue(paramName)
-                #print '  subbing param:', paramName, '=', paramValue
+                # print '  subbing param:', paramName, '=', paramValue
                 expression = expression.replace(paramName, str(float(paramValue)))
 
-        #print 'after subs:', expression
+        # print 'after subs:', expression
         try:
             evaluated = NumericStringParser.NumericStringParser().eval(expression)
         except:
-            print 'parser error:', expression
-            return '0.0'
-        #print 'evaluated:', evaluated
+            print "parser error:", expression
+            return "0.0"
+        # print 'evaluated:', evaluated
         return str(evaluated)
 
-
     def processAttribute(self, attrValue):
-        result = re.sub('\$\{(.*?)\}', self.parseAttributeExpression, attrValue)
+        result = re.sub("\$\{(.*?)\}", self.parseAttributeExpression, attrValue)
         return result
-
 
     def getUrdfFromOtdf(self):
 
@@ -88,32 +84,31 @@ class OtdfParser(object):
 
         elementNodes = getElementNodes(xmlDoc)
 
-        assert elementNodes[0].tagName == 'object'
-        elementNodes[0].tagName = 'robot'
+        assert elementNodes[0].tagName == "object"
+        elementNodes[0].tagName = "robot"
 
         for elementNode in elementNodes:
-            #print 'element node:', elementNode.nodeName
+            # print 'element node:', elementNode.nodeName
             for attrName, attrValue in elementNode.attributes.items():
-                #print '  ', attrName, '=', attrValue
+                # print '  ', attrName, '=', attrValue
                 attrValue = self.processAttribute(attrValue)
                 elementNode.setAttribute(attrName, attrValue)
 
         return xmlDoc.toxml()
 
-
     def getUpdatedOtdf(self):
 
         xmlDoc = xml.dom.minidom.parseString(self.otdfString)
 
-        paramElements = xmlDoc.getElementsByTagName('param')
+        paramElements = xmlDoc.getElementsByTagName("param")
         for param in paramElements:
-            paramValue = self.getParamValue(param.getAttribute('name'))
-            param.setAttribute('default_value', str(float(paramValue)))
+            paramValue = self.getParamValue(param.getAttribute("name"))
+            param.setAttribute("default_value", str(float(paramValue)))
 
         return xmlDoc.toxml()
 
-class OtdfModelItem(roboturdf.RobotModelItem):
 
+class OtdfModelItem(roboturdf.RobotModelItem):
     def __init__(self, filename):
         self.parser = OtdfParser()
         self.parser.setOtdfFilename(filename)
@@ -121,9 +116,9 @@ class OtdfModelItem(roboturdf.RobotModelItem):
         assert model is not None
         roboturdf.RobotModelItem.__init__(self, model)
 
-        self.setProperty('Name', os.path.basename(filename))
-        self.setProperty('Color Mode', 0)
-        self.setPropertyAttribute('Color Mode', 'hidden', True)
+        self.setProperty("Name", os.path.basename(filename))
+        self.setProperty("Color Mode", 0)
+        self.setPropertyAttribute("Color Mode", "hidden", True)
         # add otdf properties
 
         basePropertyKeys = self.properties._properties.keys()
@@ -131,7 +126,17 @@ class OtdfModelItem(roboturdf.RobotModelItem):
         for paramName, paramData in self.parser.paramDict.iteritems():
             otdfPropertyKeys.append(paramName)
             valueDefault, valueMin, valueMax, valueIncrement = paramData
-            self.addProperty(paramName, float(valueDefault), om.PropertyAttributes(decimals=4, minimum=valueMin, maximum=valueMax, singleStep=valueIncrement, hidden=False))
+            self.addProperty(
+                paramName,
+                float(valueDefault),
+                om.PropertyAttributes(
+                    decimals=4,
+                    minimum=valueMin,
+                    maximum=valueMax,
+                    singleStep=valueIncrement,
+                    hidden=False,
+                ),
+            )
 
         orderedProperties = OrderedDict()
         for name in otdfPropertyKeys + basePropertyKeys:
@@ -142,16 +147,23 @@ class OtdfModelItem(roboturdf.RobotModelItem):
 
     def createDefaultModel(self):
         urdfString = self.parser.getUrdfFromOtdf()
-        #print urdfString
+        # print urdfString
         return roboturdf.loadRobotModelFromString(urdfString)
 
     def _onPropertyChanged(self, propertySet, propertyName):
         roboturdf.RobotModelItem._onPropertyChanged(self, propertySet, propertyName)
 
         if propertyName in self.parser.paramDict:
-            valueDefault, valueMin, valueMax, valueIncrement = self.parser.paramDict[propertyName]
+            valueDefault, valueMin, valueMax, valueIncrement = self.parser.paramDict[
+                propertyName
+            ]
             newValue = self.getProperty(propertyName)
-            self.parser.paramDict[propertyName] = (newValue, valueMin, valueMax, valueIncrement)
+            self.parser.paramDict[propertyName] = (
+                newValue,
+                valueMin,
+                valueMax,
+                valueIncrement,
+            )
 
             newModel = self.createDefaultModel()
             self.setModel(newModel)
@@ -160,10 +172,12 @@ class OtdfModelItem(roboturdf.RobotModelItem):
 
     def updateModelPosition(self):
         baseJoint = []
-        jointNames = ['x', 'y', 'z', 'roll', 'pitch', 'yaw']
+        jointNames = ["x", "y", "z", "roll", "pitch", "yaw"]
         for param in jointNames:
-            baseJoint.append(self.getProperty(param) if self.hasProperty(param) else 0.0)
-        self.model.setJointPositions(baseJoint, ['base_' + name for name in jointNames])
+            baseJoint.append(
+                self.getProperty(param) if self.hasProperty(param) else 0.0
+            )
+        self.model.setJointPositions(baseJoint, ["base_" + name for name in jointNames])
 
 
 def openOtdf(filename, view):

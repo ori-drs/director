@@ -1,11 +1,12 @@
 from weakref import ref
 import new
 
-'''
+"""
 CallbackRegistry is a class taken from matplotlib.cbook.
 
 http://sourceforge.net/p/matplotlib/code/HEAD/tree/trunk/matplotlib/lib/matplotlib/cbook.py
-'''
+"""
+
 
 class CallbackRegistry:
     """
@@ -49,7 +50,7 @@ class CallbackRegistry:
     """
 
     def __init__(self, signals):
-        '*signals* is a sequence of valid signals'
+        "*signals* is a sequence of valid signals"
         self.signals = set()
         self.callbacks = dict()
         for s in signals:
@@ -57,11 +58,11 @@ class CallbackRegistry:
         self._cid = 0
 
     def _check_signal(self, s):
-        'make sure *s* is a valid signal or raise a ValueError'
+        "make sure *s* is a valid signal or raise a ValueError"
         if s not in self.signals:
             signals = list(self.signals)
             signals.sort()
-            raise ValueError('Unknown signal "%s"; valid signals are %s'%(s, signals))
+            raise ValueError('Unknown signal "%s"; valid signals are %s' % (s, signals))
 
     def addSignal(self, sig):
         if sig not in self.signals:
@@ -126,7 +127,7 @@ class CallbackRegistry:
 
 
 class BoundMethodProxy(object):
-    '''
+    """
     Our own proxy object which enables weak references to bound and unbound
     methods and arbitrary callables. Pulls information about the function,
     class, and instance out of a bound method. Stores a weak reference to the
@@ -137,7 +138,8 @@ class BoundMethodProxy(object):
     @license: The BSD License
 
     Minor bugfixes by Michael Droettboom
-    '''
+    """
+
     def __init__(self, cb):
         try:
             try:
@@ -152,13 +154,13 @@ class BoundMethodProxy(object):
             self.klass = None
 
     def __call__(self, *args, **kwargs):
-        '''
+        """
         Proxy for a call to the weak referenced object. Take
         arbitrary params to pass to the callable.
 
         Raises `ReferenceError`: When the weak reference refers to
         a dead object
-        '''
+        """
         if self.inst is not None and self.inst() is None:
             raise ReferenceError
         elif self.inst is not None:
@@ -171,10 +173,10 @@ class BoundMethodProxy(object):
         return mtd(*args, **kwargs)
 
     def __eq__(self, other):
-        '''
+        """
         Compare the held function and instance with that held by
         another proxy.
-        '''
+        """
         try:
             if self.inst is None:
                 return self.func == other.func and other.inst is None
@@ -184,7 +186,7 @@ class BoundMethodProxy(object):
             return False
 
     def __ne__(self, other):
-        '''
+        """
         Inverse of __eq__.
-        '''
+        """
         return not self.__eq__(other)
