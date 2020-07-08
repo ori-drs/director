@@ -1,0 +1,24 @@
+# This name appears in the actions list 
+name: Linting
+
+# Controls when the action will run. Triggers the workflow only when there is a pull request
+on: [pull_request]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "black-check"
+  black-check:
+    # The type of runner that the job will run on - this is github's linux server
+    runs-on: ubuntu-latest
+    # A job can have multiple steps
+    steps:
+    # We use one of github's actions to checkout the code into the docker instance that is created by the black-action repository
+    - uses: actions/checkout@v1
+    # Then, we run the black formatter
+    - name: Run Black
+      # From the repository in ori-drs, which contains a dockerfile
+      uses: ori-drs/black-action@master
+      # The dockerfile is run and receives arguments into the entrypoint.sh file. Here we pass the arguments we need to the formatter
+      with:
+        # We only check the python/director directory, and exclude some directories there.
+        args: --check src/python/director --exclude "thirdparty|tasks"
