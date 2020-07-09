@@ -5,8 +5,8 @@ from director import transformUtils
 from director import filterUtils
 from director.timercallback import TimerCallback
 
-class AffordanceGraspUpdater(object):
 
+class AffordanceGraspUpdater(object):
     def __init__(self, robotModel, ikPlanner, extraModels=None):
         self.robotModel = robotModel
         self.ikPlanner = ikPlanner
@@ -24,25 +24,27 @@ class AffordanceGraspUpdater(object):
         linkNames = []
         for handModel in self.ikPlanner.handModels:
             linkNames.append(handModel.handLinkName)
-        #linkNames = [self.ikPlanner.getHandLink('left') , self.ikPlanner.getHandLink('right')]
+        # linkNames = [self.ikPlanner.getHandLink('left') , self.ikPlanner.getHandLink('right')]
 
         for linkName in linkNames:
             self.updateLinkFrame(model, linkName, create=False)
 
     def getAffordanceFrame(self, affordanceName):
-        frame = om.findObjectByName(affordanceName + ' frame')
+        frame = om.findObjectByName(affordanceName + " frame")
         assert frame
         return frame
 
     def updateLinkFrame(self, robotModel, linkName, create=True):
 
-        linkFrameName = '%s frame' % linkName
+        linkFrameName = "%s frame" % linkName
 
         if not create and not om.findObjectByName(linkFrameName):
             return
 
         t = robotModel.getLinkFrame(linkName)
-        return vis.updateFrame(t, linkFrameName, scale=0.2, visible=False, parent=self.robotModel)
+        return vis.updateFrame(
+            t, linkFrameName, scale=0.2, visible=False, parent=self.robotModel
+        )
 
     def hasAffordance(self, affordanceName):
         return affordanceName in self.frameSyncs
@@ -54,7 +56,7 @@ class AffordanceGraspUpdater(object):
 
         affordanceFrame = self.getAffordanceFrame(affordanceName)
 
-        #linkName = 'l_hand' if side == 'left' else 'r_hand'
+        # linkName = 'l_hand' if side == 'left' else 'r_hand'
         linkName = self.ikPlanner.getHandLink(side)
         linkFrame = self.updateLinkFrame(self.robotModel, linkName)
 
@@ -73,12 +75,11 @@ class AffordanceGraspUpdater(object):
             pass
 
         if not self.frameSyncs:
-            om.removeFromObjectModel(om.findObjectByName('l_hand frame'))
-            om.removeFromObjectModel(om.findObjectByName('r_hand frame'))
+            om.removeFromObjectModel(om.findObjectByName("l_hand frame"))
+            om.removeFromObjectModel(om.findObjectByName("r_hand frame"))
 
 
 class AffordanceInCameraUpdater(object):
-
     def __init__(self, affordanceManager, imageView):
         self.affordanceManager = affordanceManager
         self.prependImageName = False
@@ -92,7 +93,7 @@ class AffordanceInCameraUpdater(object):
 
     def getOverlayRenderer(self, imageView):
 
-        if not hasattr(imageView, 'overlayRenderer'):
+        if not hasattr(imageView, "overlayRenderer"):
             renWin = imageView.view.renderWindow()
             renWin.SetNumberOfLayers(2)
             ren = vtk.vtkRenderer()
@@ -115,28 +116,37 @@ class AffordanceInCameraUpdater(object):
 
     def getFolderName(self):
         if self.prependImageName:
-            return self.imageView.imageName + ' camera overlay'
+            return self.imageView.imageName + " camera overlay"
         else:
-            return 'camera overlay'
-
+            return "camera overlay"
 
     def setupObjectInCamera(self, obj):
         imageView = self.imageView
-        obj = vis.updatePolyData(vtk.vtkPolyData(), self.getTransformedName(obj), view=imageView.view, color=obj.getProperty('Color'), parent=self.getFolderName(), visible=obj.getProperty('Visible'))
+        obj = vis.updatePolyData(
+            vtk.vtkPolyData(),
+            self.getTransformedName(obj),
+            view=imageView.view,
+            color=obj.getProperty("Color"),
+            parent=self.getFolderName(),
+            visible=obj.getProperty("Visible"),
+        )
         self.addActorToImageOverlay(obj, imageView)
         return obj
 
     def getTransformedName(self, obj):
         if self.prependImageName:
-            return 'overlay ' + self.imageView.imageName + ' ' + obj.getProperty('Name')
+            return "overlay " + self.imageView.imageName + " " + obj.getProperty("Name")
         else:
-            return 'overlay ' + obj.getProperty('Name')
-
+            return "overlay " + obj.getProperty("Name")
 
     def getFootsteps(self):
-        plan = om.findObjectByName('footstep plan')
+        plan = om.findObjectByName("footstep plan")
         if plan:
-            return [child for child in plan.children() if child.getProperty('Name').startswith('step ')]
+            return [
+                child
+                for child in plan.children()
+                if child.getProperty("Name").startswith("step ")
+            ]
         else:
             return []
 
@@ -184,10 +194,12 @@ class AffordanceInCameraUpdater(object):
 
         imageView = self.imageView
 
-        objToLocalT = transformUtils.copyFrame(obj.actor.GetUserTransform() or vtk.vtkTransform())
+        objToLocalT = transformUtils.copyFrame(
+            obj.actor.GetUserTransform() or vtk.vtkTransform()
+        )
 
         localToCameraT = vtk.vtkTransform()
-        self.imageQueue.getTransform('local', imageView.imageName, localToCameraT)
+        self.imageQueue.getTransform("local", imageView.imageName, localToCameraT)
 
         t = vtk.vtkTransform()
         t.PostMultiply()
@@ -196,7 +208,7 @@ class AffordanceInCameraUpdater(object):
 
         pd = filterUtils.transformPolyData(obj.polyData, t)
 
-        '''
+        """
         normals = pd.GetPointData().GetNormals()
         cameraToImageT = vtk.vtkTransform()
         imageQueue.getCameraProjectionTransform(imageView.imageName, cameraToImageT)
@@ -205,7 +217,7 @@ class AffordanceInCameraUpdater(object):
         pts[:,0] /= pts[:,2]
         pts[:,1] /= pts[:,2]
         pd.GetPointData().SetNormals(normals)
-        '''
+        """
 
         self.imageQueue.projectPoints(imageView.imageName, pd)
 

@@ -1,10 +1,10 @@
-''' Routines and Fitting algorithms
+""" Routines and Fitting algorithms
    Fitting: means where ALL other non-object points
    have been removed, determining the transform frame
    of the object
 
    Segment: means seperating clusters from a single cloud
-'''
+"""
 
 
 from director.filterUtils import *
@@ -19,9 +19,8 @@ from shallowCopy import shallowCopy
 from debugpolydata import DebugData
 
 
-
 class SegmentationContext(object):
-    '''
+    """
        Maintains an abstraction between the fitting scene and a robot
        Assumes point cloud is world aligned, with z up
        Provides access to (1) ground height,
@@ -34,7 +33,7 @@ class SegmentationContext(object):
        (c) Populated programmatically. e.g:
            - for unit testing
            - where ground plane from feet cannot be used
-    '''
+    """
 
     def __init__(self, groundHeightProvider, viewProvider, providerName):
         self.groundHeightProviders = {providerName: groundHeightProvider}
@@ -43,16 +42,22 @@ class SegmentationContext(object):
     def getGroundHeight(self, providerName=None):
         if not providerName:
             if len(self.groundHeightProviders.keys()) > 1:
-                raise ValueError("No providername was given to getGroundHeight but there is more than one possible provider.")
+                raise ValueError(
+                    "No providername was given to getGroundHeight but there is more than one possible provider."
+                )
             else:
-                return self.groundHeightProviders[self.groundHeightProviders.keys()[0]].getGroundHeight()
+                return self.groundHeightProviders[
+                    self.groundHeightProviders.keys()[0]
+                ].getGroundHeight()
         else:
             return self.groundHeightProviders[providerName].getGroundHeight()
 
     def getViewFrame(self, providerName=None):
         if not providerName:
             if len(self.viewProviders.keys()) > 1:
-                raise ValueError("No providername was given to getViewFrame but there is more than one possible provider.")
+                raise ValueError(
+                    "No providername was given to getViewFrame but there is more than one possible provider."
+                )
             else:
                 return self.viewProviders[self.viewProviders.keys()[0]].getViewFrame()
         else:
@@ -61,7 +66,9 @@ class SegmentationContext(object):
     def getViewOrigin(self, providerName=None):
         if not providerName:
             if len(self.viewProviders.keys()) > 1:
-                raise ValueError("No providername was given to getViewOrigin but there is more than one possible provider.")
+                raise ValueError(
+                    "No providername was given to getViewOrigin but there is more than one possible provider."
+                )
             else:
                 return self.viewProviders[self.viewProviders.keys()[0]].getViewOrigin()
         else:
@@ -71,9 +78,12 @@ class SegmentationContext(object):
         if not providerName:
             if len(self.viewProviders.keys()) > 1:
                 raise ValueError(
-                    "No providername was given to getViewDirection but there is more than one possible provider.")
+                    "No providername was given to getViewDirection but there is more than one possible provider."
+                )
             else:
-                return self.viewProviders[self.viewProviders.keys()[0]].getViewDirection()
+                return self.viewProviders[
+                    self.viewProviders.keys()[0]
+                ].getViewDirection()
         else:
             return self.viewProviders[providerName].getViewDirection()
 
@@ -81,53 +91,69 @@ class SegmentationContext(object):
         self.groundHeightProviders[providerName] = groundHeightProvider
         self.viewProviders[providerName] = viewProvider
 
-    '''
+    """
     These static methods are provided for convenience to initialize
     a globalally accessible instance of the SegmentationContext.
-    '''
+    """
 
     _globalSegmentationContext = None
 
     @staticmethod
     def installGlobalInstance(inst):
         if SegmentationContext._globalSegmentationContext is not None:
-            raise Exception('Error, a global segmentation context instance is already installed.')
+            raise Exception(
+                "Error, a global segmentation context instance is already installed."
+            )
 
         SegmentationContext._globalSegmentationContext = inst
 
     @staticmethod
     def getGlobalInstance():
         if SegmentationContext._globalSegmentationContext is None:
-            raise Exception('Error, the global segmentation context instance has not been initialized.')
+            raise Exception(
+                "Error, the global segmentation context instance has not been initialized."
+            )
         return SegmentationContext._globalSegmentationContext
 
     @staticmethod
     def initContext(groundHeightProvider, viewProvider, providerName):
         if SegmentationContext._globalSegmentationContext:
-            SegmentationContext._globalSegmentationContext.addProvider(groundHeightProvider, viewProvider,
-                                                                       providerName)
+            SegmentationContext._globalSegmentationContext.addProvider(
+                groundHeightProvider, viewProvider, providerName
+            )
         else:
-            SegmentationContext.installGlobalInstance(SegmentationContext(groundHeightProvider, viewProvider,
-                                                                          providerName))
+            SegmentationContext.installGlobalInstance(
+                SegmentationContext(groundHeightProvider, viewProvider, providerName)
+            )
 
     @staticmethod
     def initWithRobot(model, robotName=""):
-        SegmentationContext.initContext(RobotModelGroundHeightProvider(model, robotName),
-                                        RobotModelViewProvider(model), robotName)
+        SegmentationContext.initContext(
+            RobotModelGroundHeightProvider(model, robotName),
+            RobotModelViewProvider(model),
+            robotName,
+        )
 
     @staticmethod
     def initWithCamera(camera, userGroundHeight, providerName="defaultCamera"):
-        SegmentationContext.initContext(UserGroundHeightProvider(userGroundHeight), CameraViewProvider(camera),
-                                        providerName)
+        SegmentationContext.initContext(
+            UserGroundHeightProvider(userGroundHeight),
+            CameraViewProvider(camera),
+            providerName,
+        )
 
     @staticmethod
-    def initWithUser(userGroundHeight, userViewFrame, viewAxis=0, providerName="defaultUser"):
-        SegmentationContext.initContext(UserGroundHeightProvider(userGroundHeight),
-                                        UserViewProvider(userViewFrame, viewAxis), providerName)
+    def initWithUser(
+        userGroundHeight, userViewFrame, viewAxis=0, providerName="defaultUser"
+    ):
+        SegmentationContext.initContext(
+            UserGroundHeightProvider(userGroundHeight),
+            UserViewProvider(userViewFrame, viewAxis),
+            providerName,
+        )
 
 
 class RobotModelGroundHeightProvider(object):
-
     def __init__(self, model, robotName=""):
         self.model = model
         self.robotName = robotName
@@ -137,7 +163,6 @@ class RobotModelGroundHeightProvider(object):
 
 
 class RobotModelViewProvider(object):
-
     def __init__(self, model):
         self.model = model
 
@@ -150,20 +175,20 @@ class RobotModelViewProvider(object):
 
     def getViewDirection(self):
         headFrame = self.model.getLinkFrame(self.model.getHeadLink())
-        viewDirection = [1,0,0]
+        viewDirection = [1, 0, 0]
         headFrame.TransformVector(viewDirection, viewDirection)
         return np.array(viewDirection)
 
-class UserGroundHeightProvider(object):
 
+class UserGroundHeightProvider(object):
     def __init__(self, groundHeight):
         self.groundHeight = groundHeight
 
     def getGroundHeight(self):
         return self.groundHeight
 
-class UserViewProvider(object):
 
+class UserViewProvider(object):
     def __init__(self, viewFrame, viewAxis):
         self.viewFrame = viewFrame
         self.viewAxis = viewAxis
@@ -172,7 +197,7 @@ class UserViewProvider(object):
         return self.viewFrame
 
     def getViewOrigin(self):
-        return np.array( self.viewFrame.GetPosition())
+        return np.array(self.viewFrame.GetPosition())
 
     def getViewDirection(self):
         viewDirection = [0.0, 0.0, 0.0]
@@ -180,13 +205,13 @@ class UserViewProvider(object):
         self.viewFrame.TransformVector(viewDirection, viewDirection)
         return np.array(viewDirection)
 
-class CameraViewProvider(object):
 
+class CameraViewProvider(object):
     def __init__(self, camera):
         self.camera = camera
 
     def getViewFrame(self):
-        return  self.camera.GetViewTransformObject()
+        return self.camera.GetViewTransformObject()
 
     def getViewOrigin(self):
         return np.array(self.camera.GetViewPosition())
@@ -195,11 +220,10 @@ class CameraViewProvider(object):
         return np.array(self.camera.GetViewDirection())
 
 
-
 def getDebugFolder():
-    obj = om.findObjectByName('debug')
+    obj = om.findObjectByName("debug")
     if obj is None:
-        obj = om.getOrCreateContainer('debug', om.getOrCreateContainer('segmentation'))
+        obj = om.getOrCreateContainer("debug", om.getOrCreateContainer("segmentation"))
         om.collapse(obj)
     return obj
 
@@ -222,34 +246,36 @@ def projectPointToPlane(point, origin, normal):
     return projectedPoint
 
 
-def intersectLineWithPlane(line_point, line_ray, plane_point, plane_normal ):
-    '''
+def intersectLineWithPlane(line_point, line_ray, plane_point, plane_normal):
+    """
     Find the intersection between a line and a plane
     http://www.scratchapixel.com/lessons/3d-basic-lessons/lesson-7-intersecting-simple-shapes/ray-plane-and-ray-disk-intersection/
-    '''
+    """
 
     line_point = np.asarray(line_point)
     line_ray = np.asarray(line_ray)
     plane_point = np.asarray(plane_point)
     plane_normal = np.asarray(plane_normal)
 
-    denom = np.dot( plane_normal , line_ray )
+    denom = np.dot(plane_normal, line_ray)
 
     # TODO: implement this check
-    #if (denom > 1E-6):
+    # if (denom > 1E-6):
     #    # ray is very close to parallel to plane
     #    return None
 
     p0l0 = plane_point - line_point
     t = np.dot(p0l0, plane_normal) / denom
 
-    intersection_point = line_point + t*line_ray
+    intersection_point = line_point + t * line_ray
     return intersection_point
 
 
-def labelPointDistanceAlongAxis(polyData, axis, origin=None, resultArrayName='distance_along_axis'):
+def labelPointDistanceAlongAxis(
+    polyData, axis, origin=None, resultArrayName="distance_along_axis"
+):
 
-    points = vtkNumpy.getNumpyFromVtk(polyData, 'Points')
+    points = vtkNumpy.getNumpyFromVtk(polyData, "Points")
     if origin is not None:
         points = points - origin
     distanceValues = np.dot(points, axis)
@@ -260,10 +286,12 @@ def labelPointDistanceAlongAxis(polyData, axis, origin=None, resultArrayName='di
     return newData
 
 
-def applyEuclideanClustering(dataObj, clusterTolerance=0.05, minClusterSize=100, maxClusterSize=1e6):
+def applyEuclideanClustering(
+    dataObj, clusterTolerance=0.05, minClusterSize=100, maxClusterSize=1e6
+):
 
     f = vtk.vtkPCLEuclideanClusterExtraction()
-    f.SetInputData(dataObj) #regression: vtk6->5. was SetInput
+    f.SetInputData(dataObj)  # regression: vtk6->5. was SetInput
     f.SetClusterTolerance(clusterTolerance)
     f.SetMinClusterSize(int(minClusterSize))
     f.SetMaxClusterSize(int(maxClusterSize))
@@ -272,32 +300,31 @@ def applyEuclideanClustering(dataObj, clusterTolerance=0.05, minClusterSize=100,
 
 
 def extractClusters(polyData, clusterInXY=False, **kwargs):
-    ''' Segment a single point cloud into smaller clusters
+    """ Segment a single point cloud into smaller clusters
         using Euclidean Clustering
-     '''
+     """
 
     if not polyData.GetNumberOfPoints():
         return []
 
-    if (clusterInXY == True):
-        ''' If Points are seperated in X&Y, then cluster outside this '''
+    if clusterInXY == True:
+        """ If Points are seperated in X&Y, then cluster outside this """
         polyDataXY = vtk.vtkPolyData()
         polyDataXY.DeepCopy(polyData)
-        points=vtkNumpy.getNumpyFromVtk(polyDataXY , 'Points') # shared memory
-        points[:,2] = 0.0
-        #showPolyData(polyDataXY, 'polyDataXY', visible=False, parent=getDebugFolder())
+        points = vtkNumpy.getNumpyFromVtk(polyDataXY, "Points")  # shared memory
+        points[:, 2] = 0.0
+        # showPolyData(polyDataXY, 'polyDataXY', visible=False, parent=getDebugFolder())
         polyDataXY = applyEuclideanClustering(polyDataXY, **kwargs)
-        clusterLabels = vtkNumpy.getNumpyFromVtk(polyDataXY, 'cluster_labels')
-        vtkNumpy.addNumpyToVtk(polyData, clusterLabels, 'cluster_labels')
+        clusterLabels = vtkNumpy.getNumpyFromVtk(polyDataXY, "cluster_labels")
+        vtkNumpy.addNumpyToVtk(polyData, clusterLabels, "cluster_labels")
 
     else:
         polyData = applyEuclideanClustering(polyData, **kwargs)
-        clusterLabels = vtkNumpy.getNumpyFromVtk(polyData, 'cluster_labels')
-
+        clusterLabels = vtkNumpy.getNumpyFromVtk(polyData, "cluster_labels")
 
     clusters = []
     for i in xrange(1, clusterLabels.max() + 1):
-        cluster = thresholdPoints(polyData, 'cluster_labels', [i, i])
+        cluster = thresholdPoints(polyData, "cluster_labels", [i, i])
         clusters.append(cluster)
     return clusters
 
@@ -306,7 +333,7 @@ def applyVoxelGrid(polyData, leafSize=0.01):
 
     v = vtk.vtkPCLVoxelGrid()
     v.SetLeafSize(leafSize, leafSize, leafSize)
-    v.SetInputData(polyData) #regression: vtk6->5. was SetInput
+    v.SetInputData(polyData)  # regression: vtk6->5. was SetInput
     v.Update()
     return shallowCopy(v.GetOutput())
 
@@ -314,7 +341,7 @@ def applyVoxelGrid(polyData, leafSize=0.01):
 def labelOutliers(dataObj, searchRadius=0.03, neighborsInSearchRadius=10):
 
     f = vtk.vtkPCLRadiusOutlierRemoval()
-    f.SetInputData(dataObj) #regression: vtk6->5. was SetInput
+    f.SetInputData(dataObj)  # regression: vtk6->5. was SetInput
     f.SetSearchRadius(searchRadius)
     f.SetNeighborsInSearchRadius(int(neighborsInSearchRadius))
     f.Update()
@@ -322,35 +349,43 @@ def labelOutliers(dataObj, searchRadius=0.03, neighborsInSearchRadius=10):
 
 
 def sparsifyStereoCloud(polyData):
-    ''' Take in a typical Stereo Camera Point Cloud
+    """ Take in a typical Stereo Camera Point Cloud
     Filter it down to about the density of a lidar point cloud
     and remove outliers
-    '''
+    """
 
     # >>> strips color out <<<
     polyData = applyVoxelGrid(polyData, leafSize=0.01)
 
     # remove outliers
     polyData = labelOutliers(polyData)
-    vis.showPolyData(polyData, 'is_outlier', colorByName='is_outlier', visible=False, parent=getDebugFolder())
-    polyData = thresholdPoints(polyData, 'is_outlier', [0.0, 0.0])
+    vis.showPolyData(
+        polyData,
+        "is_outlier",
+        colorByName="is_outlier",
+        visible=False,
+        parent=getDebugFolder(),
+    )
+    polyData = thresholdPoints(polyData, "is_outlier", [0.0, 0.0])
     return polyData
 
-def fitDrillBarrel ( drillPoints, forwardDirection, plane_origin, plane_normal):
-    ''' Given a point cloud which ONLY contains points from a barrell drill, standing upright
+
+def fitDrillBarrel(drillPoints, forwardDirection, plane_origin, plane_normal):
+    """ Given a point cloud which ONLY contains points from a barrell drill, standing upright
         and the equations of a table its resting on, and the general direction of the robot
         Fit a barrell drill
-     '''
+     """
 
     if not drillPoints.GetNumberOfPoints():
         return
 
-    vis.updatePolyData(drillPoints, 'drill cluster', parent=getDebugFolder(), visible=False)
-    drillBarrelPoints = thresholdPoints(drillPoints, 'dist_to_plane', [0.177, 0.30])
+    vis.updatePolyData(
+        drillPoints, "drill cluster", parent=getDebugFolder(), visible=False
+    )
+    drillBarrelPoints = thresholdPoints(drillPoints, "dist_to_plane", [0.177, 0.30])
 
     if not drillBarrelPoints.GetNumberOfPoints():
         return
-
 
     # fit line to drill barrel points
     linePoint, lineDirection, _ = applyLineFit(drillBarrelPoints, distanceThreshold=0.5)
@@ -358,28 +393,33 @@ def fitDrillBarrel ( drillPoints, forwardDirection, plane_origin, plane_normal):
     if np.dot(lineDirection, forwardDirection) < 0:
         lineDirection = -lineDirection
 
-    vis.updatePolyData(drillBarrelPoints, 'drill barrel points', parent=getDebugFolder(), visible=False)
+    vis.updatePolyData(
+        drillBarrelPoints, "drill barrel points", parent=getDebugFolder(), visible=False
+    )
 
+    pts = vtkNumpy.getNumpyFromVtk(drillBarrelPoints, "Points")
 
-    pts = vtkNumpy.getNumpyFromVtk(drillBarrelPoints, 'Points')
+    dists = np.dot(pts - linePoint, lineDirection)
 
-    dists = np.dot(pts-linePoint, lineDirection)
-
-    p1 = linePoint + lineDirection*np.min(dists)
-    p2 = linePoint + lineDirection*np.max(dists)
+    p1 = linePoint + lineDirection * np.min(dists)
+    p2 = linePoint + lineDirection * np.max(dists)
 
     p1 = projectPointToPlane(p1, plane_origin, plane_normal)
     p2 = projectPointToPlane(p2, plane_origin, plane_normal)
-
 
     d = DebugData()
     d.addSphere(p1, radius=0.01)
     d.addSphere(p2, radius=0.01)
     d.addLine(p1, p2)
-    vis.updatePolyData(d.getPolyData(), 'drill debug points', color=[0,1,0], parent=getDebugFolder(), visible=False)
+    vis.updatePolyData(
+        d.getPolyData(),
+        "drill debug points",
+        color=[0, 1, 0],
+        parent=getDebugFolder(),
+        visible=False,
+    )
 
-
-    drillToBasePoint = np.array([-0.07,  0.0  , -0.12])
+    drillToBasePoint = np.array([-0.07, 0.0, -0.12])
 
     zaxis = plane_normal
     xaxis = lineDirection

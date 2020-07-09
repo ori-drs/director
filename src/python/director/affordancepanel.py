@@ -12,7 +12,6 @@ import PythonQt
 from PythonQt import QtCore, QtGui, QtUiTools
 
 
-
 def addWidgetsToDict(widgets, d):
 
     for widget in widgets:
@@ -22,13 +21,11 @@ def addWidgetsToDict(widgets, d):
 
 
 class WidgetDict(object):
-
     def __init__(self, widgets):
         addWidgetsToDict(widgets, self.__dict__)
 
 
 class AffordancePanel(object):
-
     def __init__(self, view, affordanceManager, jointController=None):
 
         self.view = view
@@ -36,7 +33,7 @@ class AffordancePanel(object):
         self.jointController = jointController
 
         loader = QtUiTools.QUiLoader()
-        uifile = QtCore.QFile(':/ui/ddAffordancePanel.ui')
+        uifile = QtCore.QFile(":/ui/ddAffordancePanel.ui")
         assert uifile.open(uifile.ReadOnly)
 
         self.widget = loader.load(uifile)
@@ -44,20 +41,23 @@ class AffordancePanel(object):
 
         self.ui.affordanceListWidget.hide()
 
-        self.ui.spawnBoxButton.connect('clicked()', self.onSpawnBox)
-        self.ui.spawnSphereButton.connect('clicked()', self.onSpawnSphere)
-        self.ui.spawnCylinderButton.connect('clicked()', self.onSpawnCylinder)
-        self.ui.spawnCapsuleButton.connect('clicked()', self.onSpawnCapsule)
-        self.ui.spawnRingButton.connect('clicked()', self.onSpawnRing)
-        self.ui.spawnMeshButton.connect('clicked()', self.onSpawnMesh)
+        self.ui.spawnBoxButton.connect("clicked()", self.onSpawnBox)
+        self.ui.spawnSphereButton.connect("clicked()", self.onSpawnSphere)
+        self.ui.spawnCylinderButton.connect("clicked()", self.onSpawnCylinder)
+        self.ui.spawnCapsuleButton.connect("clicked()", self.onSpawnCapsule)
+        self.ui.spawnRingButton.connect("clicked()", self.onSpawnRing)
+        self.ui.spawnMeshButton.connect("clicked()", self.onSpawnMesh)
 
         self.eventFilter = PythonQt.dd.ddPythonEventFilter()
         self.ui.scrollArea.installEventFilter(self.eventFilter)
         self.eventFilter.addFilteredEventType(QtCore.QEvent.Resize)
-        self.eventFilter.connect('handleEvent(QObject*, QEvent*)', self.onEvent)
+        self.eventFilter.connect("handleEvent(QObject*, QEvent*)", self.onEvent)
 
     def onEvent(self, obj, event):
-        minSize = self.ui.scrollArea.widget().minimumSizeHint.width() + self.ui.scrollArea.verticalScrollBar().width
+        minSize = (
+            self.ui.scrollArea.widget().minimumSizeHint.width()
+            + self.ui.scrollArea.verticalScrollBar().width
+        )
         self.ui.scrollArea.setMinimumWidth(minSize)
 
     def getSpawnFrame(self):
@@ -76,38 +76,60 @@ class AffordancePanel(object):
 
     def onSpawnBox(self):
         pose = transformUtils.poseFromTransform(self.getSpawnFrame())
-        desc = dict(classname='BoxAffordanceItem', Name='box', uuid=newUUID(), pose=pose)
+        desc = dict(
+            classname="BoxAffordanceItem", Name="box", uuid=newUUID(), pose=pose
+        )
         return self.affordanceManager.newAffordanceFromDescription(desc)
 
     def onSpawnSphere(self):
         pose = transformUtils.poseFromTransform(self.getSpawnFrame())
-        desc = dict(classname='SphereAffordanceItem', Name='sphere', uuid=newUUID(), pose=pose)
+        desc = dict(
+            classname="SphereAffordanceItem", Name="sphere", uuid=newUUID(), pose=pose
+        )
         return self.affordanceManager.newAffordanceFromDescription(desc)
 
     def onSpawnCylinder(self):
         pose = transformUtils.poseFromTransform(self.getSpawnFrame())
-        desc = dict(classname='CylinderAffordanceItem', Name='cylinder', uuid=newUUID(), pose=pose)
+        desc = dict(
+            classname="CylinderAffordanceItem",
+            Name="cylinder",
+            uuid=newUUID(),
+            pose=pose,
+        )
         return self.affordanceManager.newAffordanceFromDescription(desc)
 
     def onSpawnCapsule(self):
         pose = transformUtils.poseFromTransform(self.getSpawnFrame())
-        desc = dict(classname='CapsuleAffordanceItem', Name='capsule', uuid=newUUID(), pose=pose)
+        desc = dict(
+            classname="CapsuleAffordanceItem", Name="capsule", uuid=newUUID(), pose=pose
+        )
         return self.affordanceManager.newAffordanceFromDescription(desc)
 
     def onSpawnRing(self):
         pose = transformUtils.poseFromTransform(self.getSpawnFrame())
-        desc = dict(classname='CapsuleRingAffordanceItem', Name='ring', uuid=newUUID(), pose=pose)
+        desc = dict(
+            classname="CapsuleRingAffordanceItem",
+            Name="ring",
+            uuid=newUUID(),
+            pose=pose,
+        )
         return self.affordanceManager.newAffordanceFromDescription(desc)
 
     def onSpawnMesh(self):
 
         d = DebugData()
-        d.addArrow((0,0,0), (0,0,0.3))
+        d.addArrow((0, 0, 0), (0, 0, 0.3))
         pd = d.getPolyData()
         meshId = affordanceitems.MeshAffordanceItem.getMeshManager().add(pd)
 
         pose = transformUtils.poseFromTransform(self.getSpawnFrame())
-        desc = dict(classname='MeshAffordanceItem', Name='mesh', Filename=meshId, uuid=newUUID(), pose=pose)
+        desc = dict(
+            classname="MeshAffordanceItem",
+            Name="mesh",
+            Filename=meshId,
+            uuid=newUUID(),
+            pose=pose,
+        )
         return self.affordanceManager.newAffordanceFromDescription(desc)
 
 

@@ -8,14 +8,18 @@ from director import vtkAll as vtk
 from director.thirdparty import numpyjsoncoder
 import traceback
 
-class AffordanceObjectModelManager(object):
 
+class AffordanceObjectModelManager(object):
     def __init__(self, view):
-        self.collection = objectcollection.ObjectCollection(channel='AFFORDANCE_COLLECTION_COMMAND')
+        self.collection = objectcollection.ObjectCollection(
+            channel="AFFORDANCE_COLLECTION_COMMAND"
+        )
         self.collection.connectDescriptionUpdated(self._onDescriptionUpdated)
         self.collection.connectDescriptionRemoved(self._onDescriptionRemoved)
         self.view = view
-        self.notifyFrequency = 30 # throttle lcm messages per second sent for affordance updates
+        self.notifyFrequency = (
+            30  # throttle lcm messages per second sent for affordance updates
+        )
         self._ignoreChanges = False
 
         self._pendingUpdates = set()
@@ -28,24 +32,27 @@ class AffordanceObjectModelManager(object):
         self.affordanceUpdater = affordanceUpdater
 
     def getAffordances(self):
-        return [obj for obj in om.getObjects() if isinstance(obj, affordanceitems.AffordanceItem)]
-
+        return [
+            obj
+            for obj in om.getObjects()
+            if isinstance(obj, affordanceitems.AffordanceItem)
+        ]
 
     def getCollisionAffordances(self):
         affs = []
         for aff in self.getAffordances():
-            if aff.getProperty('Collision Enabled'):
+            if aff.getProperty("Collision Enabled"):
                 affs.append(aff)
         return affs
 
     def getAffordanceId(self, aff):
-        return aff.getProperty('uuid')
+        return aff.getProperty("uuid")
 
     def newAffordanceFromDescription(self, desc):
-        if 'uuid' not in desc:
-            desc['uuid'] = newUUID()
+        if "uuid" not in desc:
+            desc["uuid"] = newUUID()
         self.collection.updateDescription(desc)
-        return self.getAffordanceById(desc['uuid'])
+        return self.getAffordanceById(desc["uuid"])
 
     def getAffordanceById(self, affordanceId):
         for aff in self.getAffordances():
@@ -63,14 +70,16 @@ class AffordanceObjectModelManager(object):
             self.notifyAffordanceUpdate(aff)
 
     def removeAffordance(self, aff):
-        self.collection.removeDescription(aff.getProperty('uuid'), notify=False)
+        self.collection.removeDescription(aff.getProperty("uuid"), notify=False)
 
     def notifyAffordanceUpdate(self, aff):
 
         if not isinstance(aff, affordanceitems.AffordanceItem):
             return
 
-        shouldNotify = not self._pendingUpdates and not self.timer.singleShotTimer.isActive()
+        shouldNotify = (
+            not self._pendingUpdates and not self.timer.singleShotTimer.isActive()
+        )
         self._pendingUpdates.add(aff)
         if shouldNotify:
             self._notifyPendingUpdates()
@@ -78,11 +87,13 @@ class AffordanceObjectModelManager(object):
     def _notifyPendingUpdates(self):
 
         if self._pendingUpdates:
-            self.timer.singleShot(1.0/self.notifyFrequency)
+            self.timer.singleShot(1.0 / self.notifyFrequency)
 
         for aff in self._pendingUpdates:
             try:
-                self.collection.updateDescription(self.getAffordanceDescription(aff), notify=False)
+                self.collection.updateDescription(
+                    self.getAffordanceDescription(aff), notify=False
+                )
             except:
                 print traceback.format_exc()
 
@@ -91,7 +102,9 @@ class AffordanceObjectModelManager(object):
     def _onAffordancePropertyChanged(self, propertySet, propertyName):
         if self._ignoreChanges:
             return
-        self.notifyAffordanceUpdate(self.getAffordanceById(propertySet.getProperty('uuid')))
+        self.notifyAffordanceUpdate(
+            self.getAffordanceById(propertySet.getProperty("uuid"))
+        )
 
     def _onAffordanceFrameChanged(self, frameObj):
         if self._ignoreChanges:
@@ -105,12 +118,12 @@ class AffordanceObjectModelManager(object):
         self.removeAffordance(aff)
 
     def _loadAffordanceFromDescription(self, desc):
-        className = desc['classname']
+        className = desc["classname"]
         cls = getattr(affordanceitems, className)
-        aff = cls(desc['Name'], self.view)
-        om.addToObjectModel(aff, parentObj=om.getOrCreateContainer('affordances'))
+        aff = cls(desc["Name"], self.view)
+        om.addToObjectModel(aff, parentObj=om.getOrCreateContainer("affordances"))
         frame = vis.addChildFrame(aff)
-        frame.setProperty('Deletable', False)
+        frame.setProperty("Deletable", False)
         aff.loadDescription(desc, copyMode=aff.COPY_MODE_ALL)
         self.registerAffordance(aff, notify=False)
 

@@ -18,22 +18,32 @@ def getGlobalAffordanceManager():
 
 def getActions(view, pickedObj, pickedPoint):
 
-    affordanceObj = pickedObj if isinstance(pickedObj, affordanceitems.AffordanceItem) else None
+    affordanceObj = (
+        pickedObj if isinstance(pickedObj, affordanceitems.AffordanceItem) else None
+    )
     affordanceManager = getGlobalAffordanceManager()
 
     def addNewFrame():
         t = transformUtils.copyFrame(affordanceObj.getChildFrame().transform)
         t.PostMultiply()
         t.Translate(np.array(pickedPoint) - np.array(t.GetPosition()))
-        newFrame = vis.showFrame(t, '%s frame %d' % (affordanceObj.getProperty('Name'), len(affordanceObj.children())), scale=0.2, parent=affordanceObj)
-        affordanceObj.getChildFrame().getFrameSync().addFrame(newFrame, ignoreIncoming=True)
+        newFrame = vis.showFrame(
+            t,
+            "%s frame %d"
+            % (affordanceObj.getProperty("Name"), len(affordanceObj.children())),
+            scale=0.2,
+            parent=affordanceObj,
+        )
+        affordanceObj.getChildFrame().getFrameSync().addFrame(
+            newFrame, ignoreIncoming=True
+        )
 
     def copyAffordance():
         desc = dict(affordanceObj.getDescription())
-        del desc['uuid']
-        desc['Name'] = desc['Name'] + ' copy'
+        del desc["uuid"]
+        desc["Name"] = desc["Name"] + " copy"
         aff = affordanceManager.newAffordanceFromDescription(desc)
-        aff.getChildFrame().setProperty('Edit', True)
+        aff.getChildFrame().setProperty("Edit", True)
 
     def onPromoteToAffordance():
         affObj = affordanceitems.MeshAffordanceItem.promotePolyDataItem(pickedObj)
@@ -42,15 +52,14 @@ def getActions(view, pickedObj, pickedPoint):
     actions = []
 
     if affordanceManager and affordanceObj:
-        actions.extend([
-            ('Copy affordance', copyAffordance),
-            ('Add new frame', addNewFrame),
-        ])
+        actions.extend(
+            [("Copy affordance", copyAffordance), ("Add new frame", addNewFrame),]
+        )
 
     if type(pickedObj) == vis.PolyDataItem:
-        actions.extend([
-            ('Promote to Affordance', onPromoteToAffordance),
-        ])
+        actions.extend(
+            [("Promote to Affordance", onPromoteToAffordance),]
+        )
 
     return actions
 

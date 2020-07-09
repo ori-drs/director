@@ -12,40 +12,42 @@ import functools
 import PythonQt
 from PythonQt import QtCore, QtGui
 
-class MainWindowApp(object):
 
+class MainWindowApp(object):
     def __init__(self):
 
         self.mainWindow = QtGui.QMainWindow()
-        self.mainWindow.resize(768 * (16/9.0), 768)
+        self.mainWindow.resize(768 * (16 / 9.0), 768)
 
         self.settings = QtCore.QSettings()
 
-        self.fileMenu = self.mainWindow.menuBar().addMenu('&File')
-        self.editMenu = self.mainWindow.menuBar().addMenu('&Edit')
-        self.viewMenu = self.mainWindow.menuBar().addMenu('&View')
-        self.toolbarMenu = self.viewMenu.addMenu('&Toolbars')
-        self.toolsMenu = self.mainWindow.menuBar().addMenu('&Tools')
-        self.helpMenu = self.mainWindow.menuBar().addMenu('&Help')
+        self.fileMenu = self.mainWindow.menuBar().addMenu("&File")
+        self.editMenu = self.mainWindow.menuBar().addMenu("&Edit")
+        self.viewMenu = self.mainWindow.menuBar().addMenu("&View")
+        self.toolbarMenu = self.viewMenu.addMenu("&Toolbars")
+        self.toolsMenu = self.mainWindow.menuBar().addMenu("&Tools")
+        self.helpMenu = self.mainWindow.menuBar().addMenu("&Help")
         self.viewMenuManager = PythonQt.dd.ddViewMenu(self.viewMenu)
         self.toolbarMenuManager = PythonQt.dd.ddViewMenu(self.toolbarMenu)
 
-        self.quitAction = self.fileMenu.addAction('&Quit')
-        self.quitAction.setShortcut(QtGui.QKeySequence('Ctrl+Q'))
-        self.quitAction.connect('triggered()', self.quit)
+        self.quitAction = self.fileMenu.addAction("&Quit")
+        self.quitAction.setShortcut(QtGui.QKeySequence("Ctrl+Q"))
+        self.quitAction.connect("triggered()", self.quit)
         self.fileMenu.addSeparator()
 
-        self.pythonConsoleAction = self.toolsMenu.addAction('&Python Console')
-        self.pythonConsoleAction.setShortcut(QtGui.QKeySequence('F8'))
-        self.pythonConsoleAction.connect('triggered()', self.showPythonConsole)
+        self.pythonConsoleAction = self.toolsMenu.addAction("&Python Console")
+        self.pythonConsoleAction.setShortcut(QtGui.QKeySequence("F8"))
+        self.pythonConsoleAction.connect("triggered()", self.showPythonConsole)
         self.toolsMenu.addSeparator()
 
-        helpAction = self.helpMenu.addAction('Online Documentation')
-        helpAction.connect('triggered()', self.showOnlineDocumentation)
+        helpAction = self.helpMenu.addAction("Online Documentation")
+        helpAction.connect("triggered()", self.showOnlineDocumentation)
         self.helpMenu.addSeparator()
 
-        helpKeyboardShortcutsAction = self.helpMenu.addAction('Keyboard Shortcuts')
-        helpKeyboardShortcutsAction.connect('triggered()', self.showOnlineKeyboardShortcuts)
+        helpKeyboardShortcutsAction = self.helpMenu.addAction("Keyboard Shortcuts")
+        helpKeyboardShortcutsAction.connect(
+            "triggered()", self.showOnlineKeyboardShortcuts
+        )
         self.helpMenu.addSeparator()
 
     def quit(self):
@@ -69,15 +71,21 @@ class MainWindowApp(object):
         applogic.showPythonConsole()
 
     def showOnlineDocumentation(self):
-        QtGui.QDesktopServices.openUrl(QtCore.QUrl('https://openhumanoids.github.io/director/'))
+        QtGui.QDesktopServices.openUrl(
+            QtCore.QUrl("https://openhumanoids.github.io/director/")
+        )
 
     def showOnlineKeyboardShortcuts(self):
-        QtGui.QDesktopServices.openUrl(QtCore.QUrl('https://openhumanoids.github.io/director/user_guide/keyboard_shortcuts.html#director'))
+        QtGui.QDesktopServices.openUrl(
+            QtCore.QUrl(
+                "https://openhumanoids.github.io/director/user_guide/keyboard_shortcuts.html#director"
+            )
+        )
 
-    def showErrorMessage(self, message, title='Error'):
+    def showErrorMessage(self, message, title="Error"):
         QtGui.QMessageBox.warning(self.mainWindow, title, message)
 
-    def showInfoMessage(self, message, title='Info'):
+    def showInfoMessage(self, message, title="Info"):
         QtGui.QMessageBox.information(self.mainWindow, title, message)
 
     def wrapScrollArea(self, widget):
@@ -85,7 +93,7 @@ class MainWindowApp(object):
         w.setWidget(widget)
         w.setWidgetResizable(True)
         w.setWindowTitle(widget.windowTitle)
-        #w.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        # w.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         return w
 
     def addWidgetToViewMenu(self, widget):
@@ -98,7 +106,7 @@ class MainWindowApp(object):
         dock = QtGui.QDockWidget()
         dock.setWidget(widget)
         dock.setWindowTitle(widget.windowTitle)
-        dock.setObjectName(widget.windowTitle + ' Dock')
+        dock.setObjectName(widget.windowTitle + " Dock")
         dock.setVisible(visible)
         self.mainWindow.addDockWidget(dockArea, dock)
         self.addWidgetToViewMenu(dock)
@@ -119,7 +127,7 @@ class MainWindowApp(object):
         action = toolBar.addAction(icon, text)
 
         if callback:
-            action.connect('triggered()', callback)
+            action.connect("triggered()", callback)
 
         return action
 
@@ -134,33 +142,33 @@ class MainWindowApp(object):
         self.settings.sync()
 
     def _saveCustomWindowState(self):
-        self._saveWindowState('MainWindowCustom')
+        self._saveWindowState("MainWindowCustom")
 
     def restoreDefaultWindowState(self):
-        self._restoreWindowState('MainWindowDefault')
+        self._restoreWindowState("MainWindowDefault")
 
     def initWindowSettings(self):
-        self._saveWindowState('MainWindowDefault')
-        self._restoreWindowState('MainWindowCustom')
-        self.applicationInstance().connect('aboutToQuit()', self._saveCustomWindowState)
+        self._saveWindowState("MainWindowDefault")
+        self._restoreWindowState("MainWindowCustom")
+        self.applicationInstance().connect("aboutToQuit()", self._saveCustomWindowState)
 
 
 class MainWindowAppFactory(object):
-
     def getComponents(self):
 
         components = {
-            'View' : [],
-            'Globals' : [],
-            'GlobalModules' : ['Globals'],
-            'ObjectModel' : [],
-            'ViewOptions' : ['View', 'ObjectModel'],
-            'MainToolBar' : ['View', 'Grid', 'ViewOptions', 'MainWindow'],
-            'ViewBehaviors' : ['View'],
-            'Grid': ['View', 'ObjectModel'],
-            'MainWindow' : ['View', 'ObjectModel'],
-            'AdjustedClippingRange' : ['View'],
-            'ScriptLoader' : ['MainWindow', 'GlobalModules']}
+            "View": [],
+            "Globals": [],
+            "GlobalModules": ["Globals"],
+            "ObjectModel": [],
+            "ViewOptions": ["View", "ObjectModel"],
+            "MainToolBar": ["View", "Grid", "ViewOptions", "MainWindow"],
+            "ViewBehaviors": ["View"],
+            "Grid": ["View", "ObjectModel"],
+            "MainWindow": ["View", "ObjectModel"],
+            "AdjustedClippingRange": ["View"],
+            "ScriptLoader": ["MainWindow", "GlobalModules"],
+        }
 
         disabledComponents = []
 
@@ -176,65 +184,73 @@ class MainWindowAppFactory(object):
     def initObjectModel(self, fields):
         om.init()
         objectModel = om.getDefaultObjectModel()
-        objectModel.getTreeWidget().setWindowTitle('Scene Browser')
-        objectModel.getPropertiesPanel().setWindowTitle('Properties Panel')
+        objectModel.getTreeWidget().setWindowTitle("Scene Browser")
+        objectModel.getPropertiesPanel().setWindowTitle("Properties Panel")
         return FieldContainer(objectModel=objectModel)
 
     def initGrid(self, fields):
-        gridObj = vis.showGrid(fields.view, parent='scene')
-        gridObj.setProperty('Surface Mode', 'Surface with edges')
-        gridObj.setProperty('Color', [0,0,0])
-        gridObj.setProperty('Alpha', 0.1)
+        gridObj = vis.showGrid(fields.view, parent="scene")
+        gridObj.setProperty("Surface Mode", "Surface with edges")
+        gridObj.setProperty("Color", [0, 0, 0])
+        gridObj.setProperty("Alpha", 0.1)
         applogic.resetCamera(viewDirection=[-1, -1, -0.3], view=fields.view)
         return FieldContainer(gridObj=gridObj)
 
     def initViewBehaviors(self, fields):
         from director import viewbehaviors
+
         viewBehaviors = viewbehaviors.ViewBehaviors(fields.view)
         return FieldContainer(viewBehaviors=viewBehaviors)
 
     def initViewOptions(self, fields):
         viewOptions = vis.ViewOptionsItem(fields.view)
-        fields.objectModel.addToObjectModel(viewOptions, parentObj=fields.objectModel.findObjectByName('scene'))
-        viewOptions.setProperty('Background color', [0.3, 0.3, 0.35])
-        #viewOptions.setProperty('Background color 2', [0.5,0.5,0.5])
-        viewOptions.setProperty('Background color 2', [0.95,0.95,1])
+        fields.objectModel.addToObjectModel(
+            viewOptions, parentObj=fields.objectModel.findObjectByName("scene")
+        )
+        viewOptions.setProperty("Background color", [0.3, 0.3, 0.35])
+        # viewOptions.setProperty('Background color 2', [0.5,0.5,0.5])
+        viewOptions.setProperty("Background color 2", [0.95, 0.95, 1])
         return FieldContainer(viewOptions=viewOptions)
 
     def initAdjustedClippingRange(self, fields):
-        '''This setting improves the near plane clipping resolution.
+        """This setting improves the near plane clipping resolution.
         Drake often draws a very large ground plane which is detrimental to
         the near clipping for up close objects.  The trade-off is Z buffer
-        resolution but in practice things look good with this setting.'''
+        resolution but in practice things look good with this setting."""
         fields.view.renderer().SetNearClippingPlaneTolerance(0.0005)
 
     def initMainWindow(self, fields):
 
-        organizationName = 'RobotLocomotion'
-        applicationName = 'DirectorMainWindow'
-        windowTitle = 'Director App'
+        organizationName = "RobotLocomotion"
+        applicationName = "DirectorMainWindow"
+        windowTitle = "Director App"
 
-        if hasattr(fields, 'organizationName'):
+        if hasattr(fields, "organizationName"):
             organizationName = fields.organizationName
-        if hasattr(fields, 'applicationName'):
+        if hasattr(fields, "applicationName"):
             applicationName = fields.applicationName
-        if hasattr(fields, 'windowTitle'):
+        if hasattr(fields, "windowTitle"):
             windowTitle = fields.windowTitle
 
         MainWindowApp.applicationInstance().setOrganizationName(organizationName)
         MainWindowApp.applicationInstance().setApplicationName(applicationName)
 
-
         app = MainWindowApp()
 
         app.mainWindow.setCentralWidget(fields.view)
         app.mainWindow.setWindowTitle(windowTitle)
-        app.mainWindow.setWindowIcon(QtGui.QIcon(':/images/drake_logo.png'))
+        app.mainWindow.setWindowIcon(QtGui.QIcon(":/images/drake_logo.png"))
 
-        sceneBrowserDock = app.addWidgetToDock(fields.objectModel.getTreeWidget(),
-                              QtCore.Qt.LeftDockWidgetArea, visible=True)
-        propertiesDock = app.addWidgetToDock(app.wrapScrollArea(fields.objectModel.getPropertiesPanel()),
-                              QtCore.Qt.LeftDockWidgetArea, visible=True)
+        sceneBrowserDock = app.addWidgetToDock(
+            fields.objectModel.getTreeWidget(),
+            QtCore.Qt.LeftDockWidgetArea,
+            visible=True,
+        )
+        propertiesDock = app.addWidgetToDock(
+            app.wrapScrollArea(fields.objectModel.getPropertiesPanel()),
+            QtCore.Qt.LeftDockWidgetArea,
+            visible=True,
+        )
 
         app.addViewMenuSeparator()
 
@@ -243,34 +259,46 @@ class MainWindowAppFactory(object):
             sceneBrowserDock.setVisible(newState)
             propertiesDock.setVisible(newState)
 
-        applogic.addShortcut(app.mainWindow, 'F1', toggleObjectModelDock)
-        #applogic.addShortcut(app.mainWindow, 'F8', app.showPythonConsole)
+        applogic.addShortcut(app.mainWindow, "F1", toggleObjectModelDock)
+        # applogic.addShortcut(app.mainWindow, 'F8', app.showPythonConsole)
 
         return FieldContainer(
-          app=app,
-          mainWindow=app.mainWindow,
-          sceneBrowserDock=sceneBrowserDock,
-          propertiesDock=propertiesDock,
-          toggleObjectModelDock=toggleObjectModelDock,
-          commandLineArgs=drcargs.args()
-          )
-
+            app=app,
+            mainWindow=app.mainWindow,
+            sceneBrowserDock=sceneBrowserDock,
+            propertiesDock=propertiesDock,
+            toggleObjectModelDock=toggleObjectModelDock,
+            commandLineArgs=drcargs.args(),
+        )
 
     def initMainToolBar(self, fields):
 
         from director import viewcolors
 
         app = fields.app
-        toolBar = app.addToolBar('Main Toolbar')
-        app.addToolBarAction(toolBar, 'Python Console', ':/images/python_logo.png', callback=app.showPythonConsole)
+        toolBar = app.addToolBar("Main Toolbar")
+        app.addToolBarAction(
+            toolBar,
+            "Python Console",
+            ":/images/python_logo.png",
+            callback=app.showPythonConsole,
+        )
         toolBar.addSeparator()
 
-        terrainModeAction = fields.app.addToolBarAction(toolBar, 'Camera Free Rotate', ':/images/camera_mode.png')
+        terrainModeAction = fields.app.addToolBarAction(
+            toolBar, "Camera Free Rotate", ":/images/camera_mode.png"
+        )
 
-        lightAction = fields.app.addToolBarAction(toolBar, 'Background Light', ':/images/light_bulb_icon.png')
+        lightAction = fields.app.addToolBarAction(
+            toolBar, "Background Light", ":/images/light_bulb_icon.png"
+        )
 
-
-        app.addToolBarAction(toolBar, 'Reset Camera', ':/images/reset_camera.png', callback=applogic.resetCamera)
+        app.addToolBarAction(
+            toolBar,
+            "Reset Camera",
+            ":/images/reset_camera.png",
+            callback=applogic.resetCamera,
+        )
 
         def getFreeCameraMode():
             return not applogic.getCameraTerrainModeEnabled(fields.view)
@@ -278,12 +306,18 @@ class MainWindowAppFactory(object):
         def setFreeCameraMode(enabled):
             applogic.setCameraTerrainModeEnabled(fields.view, not enabled)
 
-        terrainToggle = applogic.ActionToggleHelper(terrainModeAction, getFreeCameraMode, setFreeCameraMode)
+        terrainToggle = applogic.ActionToggleHelper(
+            terrainModeAction, getFreeCameraMode, setFreeCameraMode
+        )
 
-        viewBackgroundLightHandler = viewcolors.ViewBackgroundLightHandler(fields.viewOptions, fields.gridObj,
-                                lightAction)
+        viewBackgroundLightHandler = viewcolors.ViewBackgroundLightHandler(
+            fields.viewOptions, fields.gridObj, lightAction
+        )
 
-        return FieldContainer(viewBackgroundLightHandler=viewBackgroundLightHandler, terrainToggle=terrainToggle)
+        return FieldContainer(
+            viewBackgroundLightHandler=viewBackgroundLightHandler,
+            terrainToggle=terrainToggle,
+        )
 
     def initGlobalModules(self, fields):
 
@@ -302,8 +336,8 @@ class MainWindowAppFactory(object):
         import numpy as np
 
         modules = dict(locals())
-        del modules['fields']
-        del modules['self']
+        del modules["fields"]
+        del modules["self"]
         fields.globalsDict.update(modules)
 
     def initGlobals(self, fields):
@@ -320,53 +354,54 @@ class MainWindowAppFactory(object):
             for scriptArgs in fields.commandLineArgs.scripts:
                 filename = scriptArgs[0]
                 globalsDict = fields.globalsDict
-                prevFile = globalsDict.get('__file__')
-                globalsDict['__file__'] = filename
-                globalsDict['_argv'] = scriptArgs
+                prevFile = globalsDict.get("__file__")
+                globalsDict["__file__"] = filename
+                globalsDict["_argv"] = scriptArgs
                 try:
                     execfile(filename, fields.globalsDict)
                 finally:
-                    globalsDict['__file__'] = prevFile
+                    globalsDict["__file__"] = prevFile
+
         fields.app.registerStartupCallback(loadScripts)
 
 
 class MainWindowPanelFactory(object):
-
     def getComponents(self):
 
         components = {
-            'OpenDataHandler' : ['MainWindow'],
-            'ScreenGrabberPanel' : ['MainWindow'],
-            'CameraBookmarksPanel' : ['MainWindow'],
-            'CameraControlPanel' : ['MainWindow'],
-            'MeasurementPanel' : ['MainWindow'],
-            'OutputConsole' : ['MainWindow'],
-            'UndoRedo' : ['MainWindow'],
-            'DrakeVisualizer' : ['MainWindow'],
-            'LCMGLRenderer' : ['MainWindow']}
+            "OpenDataHandler": ["MainWindow"],
+            "ScreenGrabberPanel": ["MainWindow"],
+            "CameraBookmarksPanel": ["MainWindow"],
+            "CameraControlPanel": ["MainWindow"],
+            "MeasurementPanel": ["MainWindow"],
+            "OutputConsole": ["MainWindow"],
+            "UndoRedo": ["MainWindow"],
+            "DrakeVisualizer": ["MainWindow"],
+            "LCMGLRenderer": ["MainWindow"],
+        }
 
         # these components depend on lcm and lcmgl
         # so they are disabled by default
-        disabledComponents = [
-            'DrakeVisualizer',
-            'LCMGLRenderer']
+        disabledComponents = ["DrakeVisualizer", "LCMGLRenderer"]
 
         return components, disabledComponents
 
-
     def initOpenDataHandler(self, fields):
         from director import opendatahandler
+
         openDataHandler = opendatahandler.OpenDataHandler(fields.app)
 
         def loadData():
             for filename in drcargs.args().data_files:
                 openDataHandler.openGeometry(filename)
+
         fields.app.registerStartupCallback(loadData)
 
         return FieldContainer(openDataHandler=openDataHandler)
 
     def initOutputConsole(self, fields):
         from director import outputconsole
+
         outputConsole = outputconsole.OutputConsole()
         outputConsole.addToAppWindow(fields.app, visible=False)
 
@@ -374,84 +409,98 @@ class MainWindowPanelFactory(object):
 
     def initMeasurementPanel(self, fields):
         from director import measurementpanel
+
         measurementPanel = measurementpanel.MeasurementPanel(fields.app, fields.view)
-        measurementDock = fields.app.addWidgetToDock(measurementPanel.widget, QtCore.Qt.RightDockWidgetArea, visible=False)
+        measurementDock = fields.app.addWidgetToDock(
+            measurementPanel.widget, QtCore.Qt.RightDockWidgetArea, visible=False
+        )
 
         return FieldContainer(
-          measurementPanel=measurementPanel,
-          measurementDock=measurementDock
-          )
+            measurementPanel=measurementPanel, measurementDock=measurementDock
+        )
 
     def initScreenGrabberPanel(self, fields):
 
         from director.screengrabberpanel import ScreenGrabberPanel
+
         screenGrabberPanel = ScreenGrabberPanel(fields.view)
-        screenGrabberDock = fields.app.addWidgetToDock(screenGrabberPanel.widget, QtCore.Qt.RightDockWidgetArea, visible=False)
+        screenGrabberDock = fields.app.addWidgetToDock(
+            screenGrabberPanel.widget, QtCore.Qt.RightDockWidgetArea, visible=False
+        )
 
         return FieldContainer(
-          screenGrabberPanel=screenGrabberPanel,
-          screenGrabberDock=screenGrabberDock
-          )
+            screenGrabberPanel=screenGrabberPanel, screenGrabberDock=screenGrabberDock
+        )
 
     def initCameraBookmarksPanel(self, fields):
 
         from director import camerabookmarks
 
         cameraBookmarksPanel = camerabookmarks.CameraBookmarkWidget(fields.view)
-        cameraBookmarksDock = fields.app.addWidgetToDock(cameraBookmarksPanel.widget, QtCore.Qt.RightDockWidgetArea, visible=False)
+        cameraBookmarksDock = fields.app.addWidgetToDock(
+            cameraBookmarksPanel.widget, QtCore.Qt.RightDockWidgetArea, visible=False
+        )
 
         return FieldContainer(
-          cameraBookmarksPanel=cameraBookmarksPanel,
-          cameraBookmarksDock=cameraBookmarksDock
-          )
+            cameraBookmarksPanel=cameraBookmarksPanel,
+            cameraBookmarksDock=cameraBookmarksDock,
+        )
 
     def initCameraControlPanel(self, fields):
 
         from director import cameracontrolpanel
+
         cameraControlPanel = cameracontrolpanel.CameraControlPanel(fields.view)
-        cameraControlDock = fields.app.addWidgetToDock(cameraControlPanel.widget, QtCore.Qt.RightDockWidgetArea, visible=False)
+        cameraControlDock = fields.app.addWidgetToDock(
+            cameraControlPanel.widget, QtCore.Qt.RightDockWidgetArea, visible=False
+        )
 
         return FieldContainer(
-          cameraControlPanel=cameraControlPanel,
-          cameraControlDock=cameraControlDock
-          )
+            cameraControlPanel=cameraControlPanel, cameraControlDock=cameraControlDock
+        )
 
     def initUndoRedo(self, fields):
 
-      undoStack = QtGui.QUndoStack()
-      undoView = QtGui.QUndoView(undoStack)
-      undoView.setEmptyLabel('Start')
-      undoView.setWindowTitle('History')
-      undoDock = fields.app.addWidgetToDock(undoView, QtCore.Qt.LeftDockWidgetArea, visible=False)
+        undoStack = QtGui.QUndoStack()
+        undoView = QtGui.QUndoView(undoStack)
+        undoView.setEmptyLabel("Start")
+        undoView.setWindowTitle("History")
+        undoDock = fields.app.addWidgetToDock(
+            undoView, QtCore.Qt.LeftDockWidgetArea, visible=False
+        )
 
-      undoAction = undoStack.createUndoAction(undoStack)
-      redoAction = undoStack.createRedoAction(undoStack)
-      undoAction.setShortcut(QtGui.QKeySequence('Ctrl+Z'))
-      redoAction.setShortcut(QtGui.QKeySequence('Ctrl+Shift+Z'))
+        undoAction = undoStack.createUndoAction(undoStack)
+        redoAction = undoStack.createRedoAction(undoStack)
+        undoAction.setShortcut(QtGui.QKeySequence("Ctrl+Z"))
+        redoAction.setShortcut(QtGui.QKeySequence("Ctrl+Shift+Z"))
 
-      fields.app.editMenu.addAction(undoAction)
-      fields.app.editMenu.addAction(redoAction)
+        fields.app.editMenu.addAction(undoAction)
+        fields.app.editMenu.addAction(redoAction)
 
-      return FieldContainer(
-        undoDock=undoDock,
-        undoStack=undoStack,
-        undoView=undoView,
-        undoAction=undoAction,
-        redoAction=redoAction
+        return FieldContainer(
+            undoDock=undoDock,
+            undoStack=undoStack,
+            undoView=undoView,
+            undoAction=undoAction,
+            redoAction=redoAction,
         )
 
     def initLCMGLRenderer(self, fields):
 
         from director import lcmgl
+
         if lcmgl.LCMGL_AVAILABLE:
             lcmglManager = lcmgl.LCMGLManager(fields.view)
-            applogic.MenuActionToggleHelper('Tools', 'LCMGL Renderer', lcmglManager.isEnabled, lcmglManager.setEnabled)
+            applogic.MenuActionToggleHelper(
+                "Tools",
+                "LCMGL Renderer",
+                lcmglManager.isEnabled,
+                lcmglManager.setEnabled,
+            )
         else:
             lcmglManager = None
 
-        return FieldContainer(
-          lcmglManager=lcmglManager
-          )
+        return FieldContainer(lcmglManager=lcmglManager)
 
 
 def construct(globalsDict=None):
@@ -471,5 +520,5 @@ def main(globalsDict=None):
     app.app.start()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(globals())

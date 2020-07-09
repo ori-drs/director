@@ -5,10 +5,11 @@ from director import callbacks
 from director.utime import getUtime
 from director.uuidutil import newUUID
 
+
 class ObjectCollection(object):
 
-    DESCRIPTION_UPDATED_SIGNAL = 'DESCRIPTION_UPDATED_SIGNAL'
-    DESCRIPTION_REMOVED_SIGNAL = 'DESCRIPTION_REMOVED_SIGNAL'
+    DESCRIPTION_UPDATED_SIGNAL = "DESCRIPTION_UPDATED_SIGNAL"
+    DESCRIPTION_REMOVED_SIGNAL = "DESCRIPTION_REMOVED_SIGNAL"
 
     def __init__(self, channel):
         self.collection = OrderedDict()
@@ -16,8 +17,9 @@ class ObjectCollection(object):
         self.sentCommands = set()
         self.sentRequest = None
         self.channel = channel
-        self.callbacks = callbacks.CallbackRegistry([self.DESCRIPTION_UPDATED_SIGNAL,
-                                                     self.DESCRIPTION_REMOVED_SIGNAL])
+        self.callbacks = callbacks.CallbackRegistry(
+            [self.DESCRIPTION_UPDATED_SIGNAL, self.DESCRIPTION_REMOVED_SIGNAL]
+        )
         self.sub = None
         self._modified()
 
@@ -34,7 +36,7 @@ class ObjectCollection(object):
         self.callbacks.disconnect(callbackId)
 
     def getDescriptionId(self, desc):
-        return desc['uuid']
+        return desc["uuid"]
 
     def prettyPrintCollection(self):
         print json.dumps(json.loads(numpyjsoncoder.encode(self.collection)), indent=2)
@@ -47,7 +49,9 @@ class ObjectCollection(object):
         self._modified()
 
         if notify:
-            self.callbacks.process(self.DESCRIPTION_UPDATED_SIGNAL, self, self.getDescriptionId(desc))
+            self.callbacks.process(
+                self.DESCRIPTION_UPDATED_SIGNAL, self, self.getDescriptionId(desc)
+            )
 
     def removeDescription(self, descriptionId, publish=True, notify=True):
 

@@ -9,7 +9,7 @@ robotStates = {}
 
 def getRobotState(robotName=""):
     global robotStates
-    dictKey = robotName;
+    dictKey = robotName
     if not robotStates.get(dictKey):
         robotStates[dictKey] = RobotState(robotName)
 
@@ -17,7 +17,6 @@ def getRobotState(robotName=""):
 
 
 class RobotState(object):
-
     def __init__(self, robotName=""):
         self._robotStateToDrakePoseJointMap = None
         self._drakePoseToRobotStateJointMap = None
@@ -29,10 +28,8 @@ class RobotState(object):
     def getRollPitchYawFromRobotState(self, robotState):
         return transformUtils.quaternionToRollPitchYaw(robotState[3:7])
 
-
     def getPositionFromRobotState(self, robotState):
         return robotState[0:4]
-
 
     def getRobotStateToDrakePoseJointMap(self):
 
@@ -42,12 +39,13 @@ class RobotState(object):
 
             self._robotStateToDrakePoseJointMap = dict()
 
-            for robotStateJointIdx, robotStateJointName in enumerate(robotStateJointNames):
+            for robotStateJointIdx, robotStateJointName in enumerate(
+                robotStateJointNames
+            ):
                 drakeJointIdx = drakePoseJointNames.index(robotStateJointName)
                 self._robotStateToDrakePoseJointMap[robotStateJointIdx] = drakeJointIdx
 
         return self._robotStateToDrakePoseJointMap
-
 
     def getDrakePoseToRobotStateJointMap(self):
 
@@ -58,14 +56,13 @@ class RobotState(object):
 
         return self._drakePoseToRobotStateJointMap
 
-
     def convertStateMessageToDrakePose(self, msg, strict=True):
-        '''
+        """
         If strict is true, then the state message must contain a joint_position
         for each named joint in the drake pose joint names.  If strict is false,
         then a default value of 0.0 is used to fill joint positions that are
         not specified in the robot state msg argument.
-        '''
+        """
 
         jointMap = {}
         for name, position in zip(msg.joint_name, msg.joint_position):
@@ -88,14 +85,16 @@ class RobotState(object):
         assert len(pose) == self.getNumPositions()
         return pose
 
-    def convertStateMessageToDrakePoseBasic(self, trans, quat, jointNamesIn, jointPositionsIn, strict=True):
-        '''
+    def convertStateMessageToDrakePoseBasic(
+        self, trans, quat, jointNamesIn, jointPositionsIn, strict=True
+    ):
+        """
         If strict is true, then the state message must contain a joint_position
         for each named joint in the drake pose joint names.  If strict is false,
         then a default value of 0.0 is used to fill joint positions that are
         not specified in the robot state msg argument.
         This version is used for ROS messages
-        '''
+        """
 
         jointMap = {}
         for name, position in zip(jointNamesIn, jointPositionsIn):
@@ -114,14 +113,12 @@ class RobotState(object):
         assert len(pose) == self.getNumPositions()
         return pose
 
-
     def atlasCommandToDrakePose(self, msg):
         jointIndexMap = self.getRobotStateToDrakePoseJointMap()
         drakePose = np.zeros(len(self.getDrakePoseJointNames()))
         for jointIdx, drakeIdx in jointIndexMap.iteritems():
             drakePose[drakeIdx] = msg.position[jointIdx]
         return drakePose.tolist()
-
 
     def robotStateToDrakePose(self, robotState):
 
@@ -147,23 +144,25 @@ class RobotState(object):
 
         return drakePose
 
-
     def matchJoints(self, regex):
         search = re.compile(regex).search
         return [name for name in self.getDrakePoseJointNames() if search(name)]
 
-
     def getDrakePoseJointNames(self):
 
         if not self._drakePoseJointNames:
-            self._drakePoseJointNames = drcargs.getRobotConfig(self.robotName)['drakeJointNames']
+            self._drakePoseJointNames = drcargs.getRobotConfig(self.robotName)[
+                "drakeJointNames"
+            ]
 
         return self._drakePoseJointNames
 
     def getRobotStateJointNames(self):
 
         if not self._robotStateJointNames:
-            self._robotStateJointNames = drcargs.getRobotConfig(self.robotName)['robotStateJointNames']
+            self._robotStateJointNames = drcargs.getRobotConfig(self.robotName)[
+                "robotStateJointNames"
+            ]
 
         return self._robotStateJointNames
 

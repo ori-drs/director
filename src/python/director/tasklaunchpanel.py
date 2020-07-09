@@ -2,12 +2,12 @@ from PythonQt import QtCore, QtGui
 from director import applogic as app
 import functools
 
-class TaskLaunchPanel(object):
 
+class TaskLaunchPanel(object):
     def __init__(self, widgetMap):
 
         self.widget = QtGui.QTabWidget()
-        self.widget.setWindowTitle('Task Panel')
+        self.widget.setWindowTitle("Task Panel")
 
         for name, widget in widgetMap.iteritems():
             self.addTaskPanel(name, widget)
@@ -39,14 +39,19 @@ class TaskLaunchPanel(object):
 def init(widgetMap, robotName=""):
     global panels
 
-    if 'panels' not in globals():
+    if "panels" not in globals():
         panels = {}
 
     import os
+
     panel = TaskLaunchPanel(widgetMap)
-    action = app.addDockAction('ActionTaskLauncher' + robotName, 'Task Launcher',
-                               os.path.join(os.path.dirname(__file__), 'images/task_icon.png'), append=True)
-    action.connect('triggered()', panel.showTaskLaunchPanel)
+    action = app.addDockAction(
+        "ActionTaskLauncher" + robotName,
+        "Task Launcher",
+        os.path.join(os.path.dirname(__file__), "images/task_icon.png"),
+        append=True,
+    )
+    action.connect("triggered()", panel.showTaskLaunchPanel)
     app.getRobotSelector().associateWidgetWithRobot(action, robotName)
 
     panels[robotName] = panel

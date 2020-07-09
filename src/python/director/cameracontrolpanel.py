@@ -10,6 +10,7 @@ from director import pointpicker
 
 import numpy as np
 
+
 def addWidgetsToDict(widgets, d):
 
     for widget in widgets:
@@ -19,7 +20,6 @@ def addWidgetsToDict(widgets, d):
 
 
 class WidgetDict(object):
-
     def __init__(self, widgets):
         addWidgetsToDict(widgets, self.__dict__)
 
@@ -31,7 +31,6 @@ def clearLayout(w):
 
 
 class PolyDataFrameConverter(cameracontrol.TargetFrameConverter):
-
     def __init__(self, obj):
         if obj is not None:
             vis.addChildFrame(obj)
@@ -41,14 +40,13 @@ class PolyDataFrameConverter(cameracontrol.TargetFrameConverter):
 
     @classmethod
     def canConvert(cls, obj):
-        return hasattr(obj, 'getChildFrame')
+        return hasattr(obj, "getChildFrame")
 
 
 class RobotFrameConverter(cameracontrol.TargetFrameConverter):
-
     def __init__(self, robotModel):
         self.robotModel = robotModel
-        self.targetFrame = vis.FrameItem('robot frame', vtk.vtkTransform(), None)
+        self.targetFrame = vis.FrameItem("robot frame", vtk.vtkTransform(), None)
         self.callbackId = robotModel.connectModelChanged(self.onModelChanged)
         self.updateTargetFrame()
 
@@ -56,12 +54,12 @@ class RobotFrameConverter(cameracontrol.TargetFrameConverter):
         q = self.robotModel.model.getJointPositions()
 
         # previous version: broken because getJointPositions is no longer ordered with pos,rpy
-        #pos = q[:3]
-        #rpy = np.degrees(q[3:6])
+        # pos = q[:3]
+        # rpy = np.degrees(q[3:6])
 
-        n= self.robotModel.model.getJointNames()
-        pos = [0,0,0]
-        rpy = [0,0,0]
+        n = self.robotModel.model.getJointNames()
+        pos = [0, 0, 0]
+        rpy = [0, 0, 0]
         pos[0] = q[n.index("base_x")]
         pos[1] = q[n.index("base_y")]
         pos[2] = q[n.index("base_z")]
@@ -77,12 +75,10 @@ class RobotFrameConverter(cameracontrol.TargetFrameConverter):
 
     @classmethod
     def canConvert(cls, obj):
-        return hasattr(obj, 'connectModelChanged')
-
+        return hasattr(obj, "connectModelChanged")
 
 
 class CameraControlPanel(object):
-
     def __init__(self, view):
 
         self.view = view
@@ -90,20 +86,21 @@ class CameraControlPanel(object):
         self.trackerManager.setView(view)
 
         loader = QtUiTools.QUiLoader()
-        uifile = QtCore.QFile(':/ui/ddCameraControlPanel.ui')
+        uifile = QtCore.QFile(":/ui/ddCameraControlPanel.ui")
         assert uifile.open(uifile.ReadOnly)
-
 
         self.widget = loader.load(uifile)
         self.ui = WidgetDict(self.widget.children())
 
-        self.ui.targetNameLabel.setText('None')
+        self.ui.targetNameLabel.setText("None")
 
-        self.ui.setTargetButton.connect('clicked()', self.onSetTarget)
+        self.ui.setTargetButton.connect("clicked()", self.onSetTarget)
 
         for modeName in self.trackerManager.trackers.keys():
             self.ui.trackModeCombo.addItem(modeName)
-        self.ui.trackModeCombo.connect('currentIndexChanged(const QString&)', self.onTrackModeChanged)
+        self.ui.trackModeCombo.connect(
+            "currentIndexChanged(const QString&)", self.onTrackModeChanged
+        )
 
         self.ui.controlFrame.setEnabled(False)
 
@@ -131,20 +128,20 @@ class CameraControlPanel(object):
         self.setTarget(obj)
 
     def onAbortPick(self):
-        self.ui.selectedObjectNameLabel.setText('')
+        self.ui.selectedObjectNameLabel.setText("")
         self.ui.setTargetButton.setVisible(True)
         self.objectPicker.stop()
         self.picking = False
 
     def getSelectedTarget(self):
         obj = om.getActiveObject()
-        return obj if obj and hasattr(obj, 'actor') else None
+        return obj if obj and hasattr(obj, "actor") else None
 
     def getObjectShortName(self, obj):
-        name = obj.getProperty('Name')
+        name = obj.getProperty("Name")
         maxLength = 15
         if len(name) > maxLength:
-            name = name[:maxLength-3] + '...'
+            name = name[: maxLength - 3] + "..."
         return name
 
     def onObjectRemoved(self, objectModel, obj):
@@ -153,7 +150,7 @@ class CameraControlPanel(object):
 
     def onSetTarget(self):
         self.ui.setTargetButton.setVisible(False)
-        self.ui.selectedObjectNameLabel.setText('Click an object in the view...')
+        self.ui.selectedObjectNameLabel.setText("Click an object in the view...")
         self.objectPicker.start()
         self.picking = True
 
@@ -176,13 +173,12 @@ class CameraControlPanel(object):
 
         self.trackerManager.setTarget(converter)
 
-        name = self.getObjectShortName(obj) if obj else 'None'
+        name = self.getObjectShortName(obj) if obj else "None"
         self.ui.targetNameLabel.setText(name)
         self.ui.controlFrame.setEnabled(obj is not None)
 
         if not obj:
             self.ui.trackModeCombo.setCurrentIndex(0)
-
 
     def onTrackModeChanged(self):
         mode = self.ui.trackModeCombo.currentText
@@ -195,11 +191,14 @@ class CameraControlPanel(object):
         actions = self.trackerManager.getModeActions()
 
         for actionName in actions:
+
             def newActionButton(actionName):
                 actionButton = QtGui.QPushButton(actionName)
+
                 def onAction():
                     self.trackerManager.onModeAction(actionName)
-                actionButton.connect('clicked()', onAction)
+
+                actionButton.connect("clicked()", onAction)
                 return actionButton
 
             self.ui.actionsFrame.layout().addWidget(newActionButton(actionName))
@@ -211,4 +210,6 @@ class CameraControlPanel(object):
 
         properties = self.trackerManager.getModeProperties()
         if properties:
-            self.panelConnector = propertyset.PropertyPanelConnector(properties, self.propertiesPanel)
+            self.panelConnector = propertyset.PropertyPanelConnector(
+                properties, self.propertiesPanel
+            )

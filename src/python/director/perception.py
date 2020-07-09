@@ -28,6 +28,7 @@ class CheckProvider(object):
     A decorator class to use to ensure that functions which require a provider for their data source are not called
     if that data source has not yet been initialised. Also counts how many times a function has been skipped.
     """
+
     def __init__(self, func):
         functools.update_wrapper(self, func)
         self.func = func
@@ -45,206 +46,331 @@ class CheckProvider(object):
             return self.func(*args, **kwargs)
         else:
             if self.num_calls % 50 == 0:
-                print("Provider not yet intialised, skipping execution of {}.{}"
-                      " (skipped {} times)".format(args[0].__class__.__name__, self.func.__name__, self.num_calls))
+                print(
+                    "Provider not yet intialised, skipping execution of {}.{}"
+                    " (skipped {} times)".format(
+                        args[0].__class__.__name__, self.func.__name__, self.num_calls
+                    )
+                )
             self.num_calls += 1
             return
 
 
 class MultisenseItem(om.ObjectModelItem):
-
     def __init__(self, model):
 
-        om.ObjectModelItem.__init__(self, 'Multisense', om.Icons.Laser)
+        om.ObjectModelItem.__init__(self, "Multisense", om.Icons.Laser)
 
         self.model = model
         self.scalarBarWidget = None
-        self.addProperty('Color By', 0,
-                         attributes=om.PropertyAttributes(enumNames=['Solid Color', 'Intensity', 'Z Coordinate', 'Range', 'Spindle Angle', 'Azimuth', 'Camera RGB', 'Scan Delta']))
-        self.addProperty('Show Scalar Bar', False)
-        self.addProperty('Updates Enabled', True)
-        self.addProperty('Min Range', model.reader.GetDistanceRange()[0],
-                         attributes=om.PropertyAttributes(decimals=2, minimum=0.0, maximum=100.0, singleStep=0.25, hidden=False))
-        self.addProperty('Max Range', model.reader.GetDistanceRange()[1],
-                         attributes=om.PropertyAttributes(decimals=2, minimum=0.0, maximum=100.0, singleStep=0.25, hidden=False))
-        self.addProperty('Edge Filter Angle', model.reader.GetEdgeAngleThreshold(),
-                         attributes=om.PropertyAttributes(decimals=0, minimum=0.0, maximum=60.0, singleStep=1, hidden=False))
-        self.addProperty('Number of Scan Lines', model.numberOfScanLines,
-                         attributes=om.PropertyAttributes(decimals=0, minimum=0, maximum=100, singleStep=1, hidden=False))
-        self.addProperty('Visible', model.visible)
-        self.addProperty('Point Size', model.pointSize,
-                         attributes=om.PropertyAttributes(decimals=0, minimum=1, maximum=20, singleStep=1, hidden=False))
-        self.addProperty('Alpha', model.alpha,
-                         attributes=om.PropertyAttributes(decimals=2, minimum=0, maximum=1.0, singleStep=0.1, hidden=False))
-        self.addProperty('Min Height', model.reader.GetHeightRange()[0],
-                         attributes=om.PropertyAttributes(decimals=2, minimum=-80.0, maximum=80.0, singleStep=0.25, hidden=False))
-        self.addProperty('Max Height', model.reader.GetHeightRange()[1],
-                         attributes=om.PropertyAttributes(decimals=2, minimum=-80.0, maximum=80.0, singleStep=0.25, hidden=False))
+        self.addProperty(
+            "Color By",
+            0,
+            attributes=om.PropertyAttributes(
+                enumNames=[
+                    "Solid Color",
+                    "Intensity",
+                    "Z Coordinate",
+                    "Range",
+                    "Spindle Angle",
+                    "Azimuth",
+                    "Camera RGB",
+                    "Scan Delta",
+                ]
+            ),
+        )
+        self.addProperty("Show Scalar Bar", False)
+        self.addProperty("Updates Enabled", True)
+        self.addProperty(
+            "Min Range",
+            model.reader.GetDistanceRange()[0],
+            attributes=om.PropertyAttributes(
+                decimals=2, minimum=0.0, maximum=100.0, singleStep=0.25, hidden=False
+            ),
+        )
+        self.addProperty(
+            "Max Range",
+            model.reader.GetDistanceRange()[1],
+            attributes=om.PropertyAttributes(
+                decimals=2, minimum=0.0, maximum=100.0, singleStep=0.25, hidden=False
+            ),
+        )
+        self.addProperty(
+            "Edge Filter Angle",
+            model.reader.GetEdgeAngleThreshold(),
+            attributes=om.PropertyAttributes(
+                decimals=0, minimum=0.0, maximum=60.0, singleStep=1, hidden=False
+            ),
+        )
+        self.addProperty(
+            "Number of Scan Lines",
+            model.numberOfScanLines,
+            attributes=om.PropertyAttributes(
+                decimals=0, minimum=0, maximum=100, singleStep=1, hidden=False
+            ),
+        )
+        self.addProperty("Visible", model.visible)
+        self.addProperty(
+            "Point Size",
+            model.pointSize,
+            attributes=om.PropertyAttributes(
+                decimals=0, minimum=1, maximum=20, singleStep=1, hidden=False
+            ),
+        )
+        self.addProperty(
+            "Alpha",
+            model.alpha,
+            attributes=om.PropertyAttributes(
+                decimals=2, minimum=0, maximum=1.0, singleStep=0.1, hidden=False
+            ),
+        )
+        self.addProperty(
+            "Min Height",
+            model.reader.GetHeightRange()[0],
+            attributes=om.PropertyAttributes(
+                decimals=2, minimum=-80.0, maximum=80.0, singleStep=0.25, hidden=False
+            ),
+        )
+        self.addProperty(
+            "Max Height",
+            model.reader.GetHeightRange()[1],
+            attributes=om.PropertyAttributes(
+                decimals=2, minimum=-80.0, maximum=80.0, singleStep=0.25, hidden=False
+            ),
+        )
 
-        #self.addProperty('Color', QtGui.QColor(255,255,255))
-        #self.addProperty('Scanline Color', QtGui.QColor(255,0,0))
+        # self.addProperty('Color', QtGui.QColor(255,255,255))
+        # self.addProperty('Scanline Color', QtGui.QColor(255,0,0))
 
     def _onPropertyChanged(self, propertySet, propertyName):
         om.ObjectModelItem._onPropertyChanged(self, propertySet, propertyName)
 
-        if propertyName == 'Updates Enabled':
-            if self.getProperty('Updates Enabled'):
+        if propertyName == "Updates Enabled":
+            if self.getProperty("Updates Enabled"):
                 self.model.start()
             else:
                 self.model.stop()
 
-        elif propertyName == 'Edge Filter Angle':
-            self.model.reader.SetEdgeAngleThreshold(self.getProperty('Edge Filter Angle'))
+        elif propertyName == "Edge Filter Angle":
+            self.model.reader.SetEdgeAngleThreshold(
+                self.getProperty("Edge Filter Angle")
+            )
             self.model.showRevolution(self.model.displayedRevolution)
 
-        elif propertyName == 'Alpha':
+        elif propertyName == "Alpha":
             self.model.setAlpha(self.getProperty(propertyName))
 
-        elif propertyName == 'Visible':
+        elif propertyName == "Visible":
             self.model.setVisible(self.getProperty(propertyName))
 
-        elif propertyName == 'Point Size':
+        elif propertyName == "Point Size":
             self.model.setPointSize(self.getProperty(propertyName))
 
-        elif propertyName == 'Number of Scan Lines':
+        elif propertyName == "Number of Scan Lines":
             self.model.numberOfScanLines = self.getProperty(propertyName)
             self.model.initScanLines()
 
-        elif propertyName in ('Min Range', 'Max Range'):
-            self.model.reader.SetDistanceRange(self.getProperty('Min Range'), self.getProperty('Max Range'))
+        elif propertyName in ("Min Range", "Max Range"):
+            self.model.reader.SetDistanceRange(
+                self.getProperty("Min Range"), self.getProperty("Max Range")
+            )
             self.model.showRevolution(self.model.displayedRevolution)
 
-        elif propertyName in ('Min Height', 'Max Height'):
-            self.model.reader.SetHeightRange(self.getProperty('Min Height'), self.getProperty('Max Height'))
+        elif propertyName in ("Min Height", "Max Height"):
+            self.model.reader.SetHeightRange(
+                self.getProperty("Min Height"), self.getProperty("Max Height")
+            )
             self.model.showRevolution(self.model.displayedRevolution)
 
-        elif propertyName == 'Color By':
+        elif propertyName == "Color By":
             self._updateColorBy()
 
-        elif propertyName == 'Show Scalar Bar':
+        elif propertyName == "Show Scalar Bar":
             self._updateScalarBar()
 
         self.model.polyDataObj._renderAllViews()
 
-
     def _updateColorBy(self):
 
         arrayMap = {
-          0 : 'Solid Color',
-          1 : 'intensity',
-          2 : 'z',
-          3 : 'distance',
-          4 : 'spindle_angle',
-          5 : 'azimuth',
-          6 : 'rgb',
-          7 : 'scan_delta'
-          }
+            0: "Solid Color",
+            1: "intensity",
+            2: "z",
+            3: "distance",
+            4: "spindle_angle",
+            5: "azimuth",
+            6: "rgb",
+            7: "scan_delta",
+        }
 
-        colorBy = self.getProperty('Color By')
+        colorBy = self.getProperty("Color By")
         arrayName = arrayMap.get(colorBy)
 
-        if arrayName == 'rgb' and arrayName not in self.model.polyDataObj.getArrayNames():
+        if (
+            arrayName == "rgb"
+            and arrayName not in self.model.polyDataObj.getArrayNames()
+        ):
             self.model.colorizeCallback()
             self.model.polyDataObj._updateColorByProperty()
-        self.model.polyDataObj.setProperty('Color By', arrayName)
+        self.model.polyDataObj.setProperty("Color By", arrayName)
         self._updateScalarBar()
 
     def hasDataSet(self, dataSet):
         return self.model.polyDataObj.hasDataSet(dataSet)
 
     def _updateScalarBar(self):
-        self.model.polyDataObj.setProperty('Show Scalar Bar', self.getProperty('Show Scalar Bar'))
+        self.model.polyDataObj.setProperty(
+            "Show Scalar Bar", self.getProperty("Show Scalar Bar")
+        )
 
 
 class LidarItem(om.ObjectModelItem):
-
     def __init__(self, model):
         om.ObjectModelItem.__init__(self, model.sensorName, om.Icons.EyeOff)
 
         self.model = model
         self.scalarBarWidget = None
-        self.addProperty('Color By', 0,
-                         attributes=om.PropertyAttributes(enumNames=['Solid Color', 'Intensity', 'Z Coordinate', 'Range', 'Spindle Angle', 'Azimuth', 'Camera RGB', 'Scan Delta']))
-        self.addProperty('Show Scalar Bar', False)
-        self.addProperty('Updates Enabled', True)
-        self.addProperty('Min Range', model.reader.GetDistanceRange()[0],
-                         attributes=om.PropertyAttributes(decimals=2, minimum=0.0, maximum=100.0, singleStep=0.25, hidden=False))
-        self.addProperty('Max Range', model.reader.GetDistanceRange()[1],
-                         attributes=om.PropertyAttributes(decimals=2, minimum=0.0, maximum=100.0, singleStep=0.25, hidden=False))
-        self.addProperty('Edge Filter Angle', model.reader.GetEdgeAngleThreshold(),
-                         attributes=om.PropertyAttributes(decimals=0, minimum=0.0, maximum=60.0, singleStep=1, hidden=False))
-        self.addProperty('Number of Scan Lines', model.numberOfScanLines,
-                         attributes=om.PropertyAttributes(decimals=0, minimum=0, maximum=5000, singleStep=1, hidden=False))
-        self.addProperty('Visible', model.visible)
-        self.addProperty('Point Size', model.pointSize,
-                         attributes=om.PropertyAttributes(decimals=0, minimum=-1, maximum=20, singleStep=1, hidden=False))
-        self.addProperty('Alpha', model.alpha,
-                         attributes=om.PropertyAttributes(decimals=2, minimum=0, maximum=1.0, singleStep=0.1, hidden=False))
-        self.addProperty('Min Height', model.reader.GetHeightRange()[0],
-                         attributes=om.PropertyAttributes(decimals=2, minimum=-80.0, maximum=80.0, singleStep=0.25, hidden=False))
-        self.addProperty('Max Height', model.reader.GetHeightRange()[1],
-                         attributes=om.PropertyAttributes(decimals=2, minimum=-80.0, maximum=80.0, singleStep=0.25, hidden=False))
+        self.addProperty(
+            "Color By",
+            0,
+            attributes=om.PropertyAttributes(
+                enumNames=[
+                    "Solid Color",
+                    "Intensity",
+                    "Z Coordinate",
+                    "Range",
+                    "Spindle Angle",
+                    "Azimuth",
+                    "Camera RGB",
+                    "Scan Delta",
+                ]
+            ),
+        )
+        self.addProperty("Show Scalar Bar", False)
+        self.addProperty("Updates Enabled", True)
+        self.addProperty(
+            "Min Range",
+            model.reader.GetDistanceRange()[0],
+            attributes=om.PropertyAttributes(
+                decimals=2, minimum=0.0, maximum=100.0, singleStep=0.25, hidden=False
+            ),
+        )
+        self.addProperty(
+            "Max Range",
+            model.reader.GetDistanceRange()[1],
+            attributes=om.PropertyAttributes(
+                decimals=2, minimum=0.0, maximum=100.0, singleStep=0.25, hidden=False
+            ),
+        )
+        self.addProperty(
+            "Edge Filter Angle",
+            model.reader.GetEdgeAngleThreshold(),
+            attributes=om.PropertyAttributes(
+                decimals=0, minimum=0.0, maximum=60.0, singleStep=1, hidden=False
+            ),
+        )
+        self.addProperty(
+            "Number of Scan Lines",
+            model.numberOfScanLines,
+            attributes=om.PropertyAttributes(
+                decimals=0, minimum=0, maximum=5000, singleStep=1, hidden=False
+            ),
+        )
+        self.addProperty("Visible", model.visible)
+        self.addProperty(
+            "Point Size",
+            model.pointSize,
+            attributes=om.PropertyAttributes(
+                decimals=0, minimum=-1, maximum=20, singleStep=1, hidden=False
+            ),
+        )
+        self.addProperty(
+            "Alpha",
+            model.alpha,
+            attributes=om.PropertyAttributes(
+                decimals=2, minimum=0, maximum=1.0, singleStep=0.1, hidden=False
+            ),
+        )
+        self.addProperty(
+            "Min Height",
+            model.reader.GetHeightRange()[0],
+            attributes=om.PropertyAttributes(
+                decimals=2, minimum=-80.0, maximum=80.0, singleStep=0.25, hidden=False
+            ),
+        )
+        self.addProperty(
+            "Max Height",
+            model.reader.GetHeightRange()[1],
+            attributes=om.PropertyAttributes(
+                decimals=2, minimum=-80.0, maximum=80.0, singleStep=0.25, hidden=False
+            ),
+        )
 
-        #self.addProperty('Color', QtGui.QColor(255,255,255))
-        #self.addProperty('Scanline Color', QtGui.QColor(255,0,0))
+        # self.addProperty('Color', QtGui.QColor(255,255,255))
+        # self.addProperty('Scanline Color', QtGui.QColor(255,0,0))
 
     def _onPropertyChanged(self, propertySet, propertyName):
         om.ObjectModelItem._onPropertyChanged(self, propertySet, propertyName)
 
-        if propertyName == 'Updates Enabled':
-            if self.getProperty('Updates Enabled'):
+        if propertyName == "Updates Enabled":
+            if self.getProperty("Updates Enabled"):
                 self.model.start()
             else:
                 self.model.stop()
 
-        elif propertyName == 'Edge Filter Angle':
-            self.model.reader.SetEdgeAngleThreshold(self.getProperty('Edge Filter Angle'))
+        elif propertyName == "Edge Filter Angle":
+            self.model.reader.SetEdgeAngleThreshold(
+                self.getProperty("Edge Filter Angle")
+            )
             #    self.model.showRevolution(self.model.displayedRevolution)
 
-        elif propertyName == 'Alpha':
+        elif propertyName == "Alpha":
             self.model.setAlpha(self.getProperty(propertyName))
 
-        elif propertyName == 'Visible':
+        elif propertyName == "Visible":
             self.model.setVisible(self.getProperty(propertyName))
 
-        elif propertyName == 'Point Size':
+        elif propertyName == "Point Size":
             self.model.setPointSize(self.getProperty(propertyName))
 
-        elif propertyName == 'Number of Scan Lines':
+        elif propertyName == "Number of Scan Lines":
             self.model.numberOfScanLines = self.getProperty(propertyName)
             self.model.initScanLines()
 
-        elif propertyName in ('Min Range', 'Max Range'):
-            self.model.reader.SetDistanceRange(self.getProperty('Min Range'), self.getProperty('Max Range'))
+        elif propertyName in ("Min Range", "Max Range"):
+            self.model.reader.SetDistanceRange(
+                self.getProperty("Min Range"), self.getProperty("Max Range")
+            )
             #    self.model.showRevolution(self.model.displayedRevolution)
 
-        elif propertyName in ('Min Height', 'Max Height'):
-            self.model.reader.SetHeightRange(self.getProperty('Min Height'), self.getProperty('Max Height'))
+        elif propertyName in ("Min Height", "Max Height"):
+            self.model.reader.SetHeightRange(
+                self.getProperty("Min Height"), self.getProperty("Max Height")
+            )
             #    self.model.showRevolution(self.model.displayedRevolution)
 
-        elif propertyName == 'Color By':
+        elif propertyName == "Color By":
             self._updateColorBy()
 
-        elif propertyName == 'Show Scalar Bar':
+        elif propertyName == "Show Scalar Bar":
             self._updateScalarBar()
 
         self.model.polyDataObj._renderAllViews()
 
-
     def _updateColorBy(self):
 
         arrayMap = {
-          0 : 'Solid Color',
-          1 : 'intensity',
-          2 : 'z',
-          3 : 'distance',
-          4 : 'spindle_angle',
-          5 : 'azimuth',
-          6 : 'rgb',
-          7 : 'scan_delta'
-          }
+            0: "Solid Color",
+            1: "intensity",
+            2: "z",
+            3: "distance",
+            4: "spindle_angle",
+            5: "azimuth",
+            6: "rgb",
+            7: "scan_delta",
+        }
 
-        colorBy = self.getProperty('Color By')
+        colorBy = self.getProperty("Color By")
         arrayName = arrayMap.get(colorBy)
 
         self.model.setColorBy(arrayName)
@@ -254,23 +380,24 @@ class LidarItem(om.ObjectModelItem):
         return self.model.polyDataObj.hasDataSet(dataSet)
 
     def _updateScalarBar(self):
-        self.model.polyDataObj.setProperty('Show Scalar Bar', self.getProperty('Show Scalar Bar'))
+        self.model.polyDataObj.setProperty(
+            "Show Scalar Bar", self.getProperty("Show Scalar Bar")
+        )
 
 
 class SpindleAxisDebug(vis.PolyDataItem):
-
     def __init__(self, frameProvider):
-        vis.PolyDataItem.__init__(self, 'spindle axis', vtk.vtkPolyData(), view=None)
+        vis.PolyDataItem.__init__(self, "spindle axis", vtk.vtkPolyData(), view=None)
         self.frameProvider = frameProvider
         self.timer = TimerCallback()
         self.timer.callback = self.update
-        self.setProperty('Color', QtGui.QColor(0, 255, 0))
-        self.setProperty('Visible', False)
+        self.setProperty("Color", QtGui.QColor(0, 255, 0))
+        self.setProperty("Visible", False)
 
     def _onPropertyChanged(self, propertySet, propertyName):
         vis.PolyDataItem._onPropertyChanged(self, propertySet, propertyName)
 
-        if propertyName == 'Visible':
+        if propertyName == "Visible":
             if self.getProperty(propertyName):
                 self.timer.start()
             else:
@@ -282,7 +409,7 @@ class SpindleAxisDebug(vis.PolyDataItem):
 
     def update(self):
 
-        t = self.frameProvider.getFrame('MULTISENSE_SCAN')
+        t = self.frameProvider.getFrame("MULTISENSE_SCAN")
 
         p1 = [0.0, 0.0, 0.0]
         p2 = [2.0, 0.0, 0.0]
@@ -291,17 +418,15 @@ class SpindleAxisDebug(vis.PolyDataItem):
         p2 = t.TransformPoint(p2)
 
         d = DebugData()
-        d.addSphere(p1, radius=0.01, color=[0,1,0])
-        d.addLine(p1, p2, color=[0,1,0])
+        d.addSphere(p1, radius=0.01, color=[0, 1, 0])
+        d.addLine(p1, p2, color=[0, 1, 0])
         self.setPolyData(d.getPolyData())
 
 
-
-
-
 class LidarSource(TimerCallback):
-
-    def __init__(self, view, channelName, coordinateFrame, sensorName, intensityRange=(400,4000)):
+    def __init__(
+        self, view, channelName, coordinateFrame, sensorName, intensityRange=(400, 4000)
+    ):
         TimerCallback.__init__(self)
         self.view = view
         self.channelName = channelName
@@ -314,17 +439,17 @@ class LidarSource(TimerCallback):
         self.pointSize = 1
         self.alpha = 0.5
         self.visible = True
-        self.colorBy = 'Solid Color'
+        self.colorBy = "Solid Color"
         self.intensityRange = intensityRange
         self.initScanLines()
         self.sensorName = sensorName
         self.coordinateFrame = coordinateFrame
 
         self.revPolyData = vtk.vtkPolyData()
-        self.polyDataObj = vis.PolyDataItem('Lidar Sweep', self.revPolyData, view)
+        self.polyDataObj = vis.PolyDataItem("Lidar Sweep", self.revPolyData, view)
         self.polyDataObj.actor.SetPickable(1)
 
-        self.polyDataObj.setRangeMap('intensity', intensityRange)
+        self.polyDataObj.setRangeMap("intensity", intensityRange)
 
         self.setPointSize(self.pointSize)
         self.setAlpha(self.alpha)
@@ -342,11 +467,11 @@ class LidarSource(TimerCallback):
 
         for i in xrange(self.numberOfScanLines):
             polyData = vtk.vtkPolyData()
-            scanLine = vis.PolyDataItem('scan line %d' % i, polyData, self.view)
+            scanLine = vis.PolyDataItem("scan line %d" % i, polyData, self.view)
             scanLine.rangeMap["intensity"] = self.intensityRange
 
             scanLine.actor.SetPickable(0)
-            #scanLine.setSolidColor((0,1,0))
+            # scanLine.setSolidColor((0,1,0))
             self.scanLines.append(scanLine)
 
     def getScanToLocal(self):
@@ -354,20 +479,20 @@ class LidarSource(TimerCallback):
 
     def setPointSize(self, pointSize):
         for scanLine in self.scanLines:
-            scanLine.setProperty('Point Size', pointSize + 2)
-        self.polyDataObj.setProperty('Point Size', pointSize)
+            scanLine.setProperty("Point Size", pointSize + 2)
+        self.polyDataObj.setProperty("Point Size", pointSize)
 
     def setAlpha(self, alpha):
         self.alpha = alpha
         for scanLine in self.scanLines:
-            scanLine.setProperty('Alpha', alpha)
-        self.polyDataObj.setProperty('Alpha', alpha)
+            scanLine.setProperty("Alpha", alpha)
+        self.polyDataObj.setProperty("Alpha", alpha)
 
     def setVisible(self, visible):
         self.visible = visible
         for scanLine in self.scanLines:
-            scanLine.setProperty('Visible', visible)
-        self.polyDataObj.setProperty('Visible', visible)
+            scanLine.setProperty("Visible", visible)
+        self.polyDataObj.setProperty("Visible", visible)
 
     def setColorBy(self, colorBy):
         self.colorBy = colorBy
@@ -375,7 +500,7 @@ class LidarSource(TimerCallback):
             if colorBy and colorBy in scanLine.getArrayNames():
                 scanLine.colorBy(self.colorBy)
             elif colorBy == "Solid Color":
-                scanLine.setSolidColor((1,1,1))
+                scanLine.setSolidColor((1, 1, 1))
 
     def start(self):
         if self.reader is None:
@@ -401,33 +526,37 @@ class LidarSource(TimerCallback):
         if not scanLinesToUpdate:
             return
 
-        #print 'current scanline:', currentScanLine
-        #print 'scan lines to update:', scanLinesToUpdate
-        #print 'updating actors:', self.nextScanLineId, (self.nextScanLineId + (scanLinesToUpdate-1)) % self.numberOfActors
-        #print 'updating scan lines:', self.lastScanLine + 1, self.lastScanLine + 1 + (scanLinesToUpdate-1)
+        # print 'current scanline:', currentScanLine
+        # print 'scan lines to update:', scanLinesToUpdate
+        # print 'updating actors:', self.nextScanLineId, (self.nextScanLineId + (scanLinesToUpdate-1)) % self.numberOfActors
+        # print 'updating scan lines:', self.lastScanLine + 1, self.lastScanLine + 1 + (scanLinesToUpdate-1)
 
         for i in xrange(scanLinesToUpdate):
-            scanLine = self.scanLines[(self.nextScanLineId + i) % self.numberOfScanLines]
+            scanLine = self.scanLines[
+                (self.nextScanLineId + i) % self.numberOfScanLines
+            ]
             self.reader.GetDataForScanLine(self.lastScanLine + i + 1, scanLine.polyData)
             if self.colorBy and self.colorBy in scanLine.getArrayNames():
                 scanLine.colorBy(self.colorBy)
 
         self.lastScanLine = currentScanLine
-        self.nextScanLineId = (self.nextScanLineId + scanLinesToUpdate) % self.numberOfScanLines
+        self.nextScanLineId = (
+            self.nextScanLineId + scanLinesToUpdate
+        ) % self.numberOfScanLines
 
-        if self.scanLines[0].getProperty('Visible'):
+        if self.scanLines[0].getProperty("Visible"):
             self.view.render()
 
     def getPolyData(self):
         self.revPolyData = vtk.vtkPolyData()
         self.reader.GetDataForHistory(self.numberOfScanLines, self.revPolyData)
-        vis.updatePolyData( self.revPolyData , 'point cloud', colorByName=self.colorBy)
+        vis.updatePolyData(self.revPolyData, "point cloud", colorByName=self.colorBy)
 
     def tick(self):
         self.updateScanLines()
 
     def setIntensityRange(self, lowerBound, upperBound):
-        self.polyDataObj.setRangeMap('intensity', [lowerBound, upperBound])
+        self.polyDataObj.setRangeMap("intensity", [lowerBound, upperBound])
 
 
 class SpindleMonitor(object):
@@ -441,13 +570,13 @@ class SpindleMonitor(object):
     def onRobotStateChanged(self, newState):
         t, newAngle = self._getSpindleAngleFunction()
         elapsed = t - self.lastStateTime
-        if (elapsed > 0.001 and elapsed < 100):
+        if elapsed > 0.001 and elapsed < 100:
             # unwrap
             diff = newAngle - self.lastSpindleAngle
-            if (abs(diff - 2*math.pi) < abs(diff)):
-                diff = diff - 2*math.pi
-            if (abs(diff + 2*math.pi) < abs(diff)):
-                diff = diff + 2*math.pi
+            if abs(diff - 2 * math.pi) < abs(diff):
+                diff = diff - 2 * math.pi
+            if abs(diff + 2 * math.pi) < abs(diff):
+                diff = diff + 2 * math.pi
             velocity = diff / elapsed
             self.spindleSpinRateAverager.update(velocity)
             # if avg veloicty is bad panic
@@ -458,12 +587,13 @@ class SpindleMonitor(object):
         return self.spindleSpinRateAverager.getAverage()
 
 
-
 class RosGridMap(vis.PolyDataItem):
 
     _requiredProviderClass = perceptionmeta.RosGridMapMeta
 
-    def __init__(self, robotStateJointController, name, callbackFunc=None, provider=None):
+    def __init__(
+        self, robotStateJointController, name, callbackFunc=None, provider=None
+    ):
         vis.PolyDataItem.__init__(self, name, vtk.vtkPolyData(), view=None)
         self.firstData = True
         self.robotStateJointController = robotStateJointController
@@ -486,34 +616,37 @@ class RosGridMap(vis.PolyDataItem):
         :return:
         """
         if not issubclass(provider.__class__, self._requiredProviderClass):
-            raise TypeError("Attempted to set {} provider to {}, but it was not a"
-                            " subclass of {} as is required.".format(self.__class__,
-                                                                     provider.__class__,
-                                                                     self._requiredProviderClass.__class__))
+            raise TypeError(
+                "Attempted to set {} provider to {}, but it was not a"
+                " subclass of {} as is required.".format(
+                    self.__class__,
+                    provider.__class__,
+                    self._requiredProviderClass.__class__,
+                )
+            )
 
         self.provider = provider
         self.provider.set_consumer(self)
 
     def _onPropertyChanged(self, propertySet, propertyName):
         vis.PolyDataItem._onPropertyChanged(self, propertySet, propertyName)
-        if propertyName == 'Visible':
+        if propertyName == "Visible":
             if self.getProperty(propertyName):
                 self.timer.start()
             else:
                 self.timer.stop()
-        elif propertyName == 'Color By':
-            color= self.getPropertyEnumValue(propertyName)
+        elif propertyName == "Color By":
+            color = self.getPropertyEnumValue(propertyName)
             self.provider.set_color_layer(color)
-            #only_new_data = False because the poly_date need to be redraw with the new color layer
-            self.showMap(only_new_data = False)
+            # only_new_data = False because the poly_date need to be redraw with the new color layer
+            self.showMap(only_new_data=False)
             self._updateColorBy()
 
         if self.provider:
             self.provider._on_property_changed(propertySet, propertyName)
 
-
     @CheckProvider
-    def showMap(self, only_new_data = True):
+    def showMap(self, only_new_data=True):
 
         polyData = vtk.vtkPolyData()
         self.provider.get_mesh(polyData, only_new_data)
@@ -521,18 +654,18 @@ class RosGridMap(vis.PolyDataItem):
             return
 
         bodyHeight = self.robotStateJointController.q[2]
-        self.setRangeMap('z', [bodyHeight-0.5, bodyHeight])
+        self.setRangeMap("z", [bodyHeight - 0.5, bodyHeight])
 
         if self.callbackFunc:
             self.callbackFunc()
-        #update view
+        # update view
         self.setPolyData(polyData)
 
         if self.firstData:
             self.firstData = False
-            colorList = self.properties.getPropertyAttribute('Color By', 'enumNames')
-            zIndex = colorList.index('z') if 'z' in colorList else 0
-            self.properties.setProperty('Color By', zIndex)
+            colorList = self.properties.getPropertyAttribute("Color By", "enumNames")
+            zIndex = colorList.index("z") if "z" in colorList else 0
+            self.properties.setProperty("Color By", zIndex)
 
     @CheckProvider
     def resetTime(self):
@@ -575,22 +708,26 @@ class MarkerSource(vis.PolyDataItem):
         :return:
         """
         if not issubclass(provider.__class__, self._requiredProviderClass):
-            raise TypeError("Attempted to set {} provider to {}, but it was not a"
-                            " subclass of {} as is required.".format(self.__class__,
-                                                                     provider.__class__,
-                                                                     self._requiredProviderClass.__class__))
+            raise TypeError(
+                "Attempted to set {} provider to {}, but it was not a"
+                " subclass of {} as is required.".format(
+                    self.__class__,
+                    provider.__class__,
+                    self._requiredProviderClass.__class__,
+                )
+            )
 
         self.provider = provider
         self.provider.set_consumer(self)
 
     def _onPropertyChanged(self, propertySet, propertyName):
         vis.PolyDataItem._onPropertyChanged(self, propertySet, propertyName)
-        if propertyName == 'Visible':
+        if propertyName == "Visible":
             if self.getProperty(propertyName):
                 self.timer.start()
             else:
                 self.timer.stop()
-        elif propertyName == 'Subscribe':
+        elif propertyName == "Subscribe":
             if self.getProperty(propertyName):
                 self.timer.start()
             else:
@@ -609,20 +746,20 @@ class MarkerSource(vis.PolyDataItem):
         self.provider.get_mesh(polyData)
 
         if polyData.GetNumberOfPoints() == 0:
-            #if an empty message is received, we will reset the default color when the next message is received
+            # if an empty message is received, we will reset the default color when the next message is received
             self.resetColor = True
 
         if self.callbackFunc:
             self.callbackFunc()
 
-        #update view
+        # update view
         self.setPolyData(polyData)
 
         if self.resetColor and polyData.GetNumberOfPoints() != 0:
             self.resetColor = False
-            colorList = self.properties.getPropertyAttribute('Color By', 'enumNames')
-            index = colorList.index('color') if 'color' in colorList else 0
-            self.properties.setProperty('Color By', index)
+            colorList = self.properties.getPropertyAttribute("Color By", "enumNames")
+            index = colorList.index("color") if "color" in colorList else 0
+            self.properties.setProperty("Color By", index)
 
 
 class MarkerArraySource(vis.PolyDataItemList):
@@ -630,14 +767,14 @@ class MarkerArraySource(vis.PolyDataItemList):
     _requiredProviderClass = perceptionmeta.MarkerArraySourceMeta
 
     def __init__(self, name, singlePolyData=False, callbackFunc=None, provider=None):
-        vis.PolyDataItemList.__init__(self, name, 'color')
+        vis.PolyDataItemList.__init__(self, name, "color")
         # if singlePolyData is True, it means that all the markers received are merged into a single one
         self.singlePolyData = singlePolyData
         self.timer = TimerCallback()
         self.timer.callback = self.showData
         self.timer.start()
         self.callbackFunc = callbackFunc
-        #self.topicName = topicName
+        # self.topicName = topicName
         if provider:
             self.setProvider(provider)
         else:
@@ -652,22 +789,26 @@ class MarkerArraySource(vis.PolyDataItemList):
         :return:
         """
         if not issubclass(provider.__class__, self._requiredProviderClass):
-            raise TypeError("Attempted to set {} provider to {}, but it was not a"
-                            " subclass of {} as is required.".format(self.__class__,
-                                                                     provider.__class__,
-                                                                     self._requiredProviderClass.__class__))
+            raise TypeError(
+                "Attempted to set {} provider to {}, but it was not a"
+                " subclass of {} as is required.".format(
+                    self.__class__,
+                    provider.__class__,
+                    self._requiredProviderClass.__class__,
+                )
+            )
 
         self.provider = provider
         self.provider.set_consumer(self)
 
     def _onPropertyChanged(self, propertySet, propertyName):
         vis.PolyDataItemList._onPropertyChanged(self, propertySet, propertyName)
-        if propertyName == 'Visible':
+        if propertyName == "Visible":
             if self.getProperty(propertyName):
                 self.timer.start()
             else:
                 self.timer.stop()
-        elif propertyName == 'Subscribe':
+        elif propertyName == "Subscribe":
             if self.getProperty(propertyName):
                 self.timer.start()
             else:
@@ -703,7 +844,9 @@ class PointCloudSource(vis.PolyDataItem):
 
     _requiredProviderClass = perceptionmeta.PointCloudSourceMeta
 
-    def __init__(self, name, robotStateJointController, callbackFunc=None, provider=None):
+    def __init__(
+        self, name, robotStateJointController, callbackFunc=None, provider=None
+    ):
         vis.PolyDataItem.__init__(self, name, vtk.vtkPolyData(), view=None)
         self.firstData = True
         self.robotStateJointController = robotStateJointController
@@ -725,26 +868,34 @@ class PointCloudSource(vis.PolyDataItem):
         :return:
         """
         if not issubclass(provider.__class__, self._requiredProviderClass):
-            raise TypeError("Attempted to set {} provider to {}, but it was not a"
-                            " subclass of {} as is required.".format(self.__class__,
-                                                                     provider.__class__,
-                                                                     self._requiredProviderClass.__class__))
+            raise TypeError(
+                "Attempted to set {} provider to {}, but it was not a"
+                " subclass of {} as is required.".format(
+                    self.__class__,
+                    provider.__class__,
+                    self._requiredProviderClass.__class__,
+                )
+            )
 
         self.provider = provider
         self.provider.set_consumer(self)
-        self.addProperty('Updates Enabled', True)
-        self.addProperty('Number of Point Clouds', 10,
-                         attributes=om.PropertyAttributes(decimals=0, minimum=1, maximum=100, singleStep=1, hidden=False))
-
+        self.addProperty("Updates Enabled", True)
+        self.addProperty(
+            "Number of Point Clouds",
+            10,
+            attributes=om.PropertyAttributes(
+                decimals=0, minimum=1, maximum=100, singleStep=1, hidden=False
+            ),
+        )
 
     def _onPropertyChanged(self, propertySet, propertyName):
         vis.PolyDataItem._onPropertyChanged(self, propertySet, propertyName)
-        if propertyName == 'Visible' or propertyName == 'Updates Enabled':
+        if propertyName == "Visible" or propertyName == "Updates Enabled":
             if self.getProperty(propertyName):
                 self.timer.start()
             else:
                 self.timer.stop()
-        elif propertyName == 'Number of Point Clouds':
+        elif propertyName == "Number of Point Clouds":
             numberOfPointCloud = self.getProperty(propertyName)
             self.provider.set_num_pointclouds(numberOfPointCloud)
 
@@ -772,35 +923,58 @@ class PointCloudSource(vis.PolyDataItem):
             return
 
         bodyHeight = self.robotStateJointController.q[2]
-        self.setRangeMap('z', [bodyHeight-0.5, bodyHeight+0.5])
+        self.setRangeMap("z", [bodyHeight - 0.5, bodyHeight + 0.5])
 
         if self.callbackFunc:
             self.callbackFunc()
-        #update view
+        # update view
         self.setPolyData(polyData)
 
         if self.firstData:
             self.firstData = False
-            colorList = self.properties.getPropertyAttribute('Color By', 'enumNames')
-            zIndex = colorList.index('z') if 'z' in colorList else 0
-            self.properties.setProperty('Color By', zIndex)
-
+            colorList = self.properties.getPropertyAttribute("Color By", "enumNames")
+            zIndex = colorList.index("z") if "z" in colorList else 0
+            self.properties.setProperty("Color By", zIndex)
 
 
 class DepthImagePointCloudSource(vis.PolyDataItem):
 
     _requiredProviderClass = perceptionmeta.DepthImageSourceMeta
 
-    def __init__(self, name, cameraName, imageManager, robotStateJointController, provider=None):
+    def __init__(
+        self, name, cameraName, imageManager, robotStateJointController, provider=None
+    ):
         vis.PolyDataItem.__init__(self, name, vtk.vtkPolyData(), view=None)
 
         self.robotStateJointController = robotStateJointController
-        self.addProperty('Camera name', cameraName)
+        self.addProperty("Camera name", cameraName)
 
-        self.addProperty('Decimation', 1, attributes=om.PropertyAttributes(enumNames=['1', '2', '4', '8', '16']))
-        self.addProperty('Remove Size', 1000, attributes=om.PropertyAttributes(decimals=0, minimum=0, maximum=100000.0, singleStep=1000))
-        self.addProperty('Target FPS', 5.0, attributes=om.PropertyAttributes(decimals=1, minimum=0.1, maximum=30.0, singleStep=0.1))
-        self.addProperty('Max Range', 5.0,  attributes=om.PropertyAttributes(decimals=2, minimum=0., maximum=30.0, singleStep=0.25))
+        self.addProperty(
+            "Decimation",
+            1,
+            attributes=om.PropertyAttributes(enumNames=["1", "2", "4", "8", "16"]),
+        )
+        self.addProperty(
+            "Remove Size",
+            1000,
+            attributes=om.PropertyAttributes(
+                decimals=0, minimum=0, maximum=100000.0, singleStep=1000
+            ),
+        )
+        self.addProperty(
+            "Target FPS",
+            5.0,
+            attributes=om.PropertyAttributes(
+                decimals=1, minimum=0.1, maximum=30.0, singleStep=0.1
+            ),
+        )
+        self.addProperty(
+            "Max Range",
+            5.0,
+            attributes=om.PropertyAttributes(
+                decimals=2, minimum=0.0, maximum=30.0, singleStep=0.25
+            ),
+        )
 
         self.imageManager = imageManager
         self.cameraName = cameraName
@@ -824,45 +998,54 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
         :return:
         """
         if not issubclass(provider.__class__, self._requiredProviderClass):
-            raise TypeError("Attempted to set {} provider to {}, but it was not a"
-                            " subclass of {} as is required.".format(self.__class__,
-                                                                     provider.__class__,
-                                                                     self._requiredProviderClass.__class__))
+            raise TypeError(
+                "Attempted to set {} provider to {}, but it was not a"
+                " subclass of {} as is required.".format(
+                    self.__class__,
+                    provider.__class__,
+                    self._requiredProviderClass.__class__,
+                )
+            )
 
         self.provider = provider
         self.provider.set_consumer(self)
 
-        decimation = int(self.properties.getPropertyEnumValue('Decimation'))
-        removeSize = int(self.properties.getProperty('Remove Size'))
-        rangeThreshold = float(self.properties.getProperty('Max Range'))
-        self.addProperty('Remove Stale Data', False)
-        self.addProperty('Stale Data Timeout', 5.0,
-                         attributes=om.PropertyAttributes(decimals=1, minimum=0.1, maximum=30.0, singleStep=0.1))
+        decimation = int(self.properties.getPropertyEnumValue("Decimation"))
+        removeSize = int(self.properties.getProperty("Remove Size"))
+        rangeThreshold = float(self.properties.getProperty("Max Range"))
+        self.addProperty("Remove Stale Data", False)
+        self.addProperty(
+            "Stale Data Timeout",
+            5.0,
+            attributes=om.PropertyAttributes(
+                decimals=1, minimum=0.1, maximum=30.0, singleStep=0.1
+            ),
+        )
 
         self.provider.set_decimate(int(decimation))
         self.provider.set_remove_size(removeSize)
         self.provider.set_range_threshold(rangeThreshold)
-        self.setProperty('Visible', True)
+        self.setProperty("Visible", True)
         self.lastDataReceivedTime = time.time()
 
     def _onPropertyChanged(self, propertySet, propertyName):
         vis.PolyDataItem._onPropertyChanged(self, propertySet, propertyName)
 
-        if propertyName == 'Visible':
+        if propertyName == "Visible":
             if self.getProperty(propertyName):
                 self.timer.start()
             else:
                 self.timer.stop()
 
-        if propertyName in ('Decimation', 'Remove outliers', 'Max Range'):
+        if propertyName in ("Decimation", "Remove outliers", "Max Range"):
             self.lastUtime = 0
-        if propertyName == 'Decimation':
+        if propertyName == "Decimation":
             decimate = self.getPropertyEnumValue(propertyName)
             self.provider.set_decimate(int(decimate))
-        elif propertyName == 'Remove Size':
+        elif propertyName == "Remove Size":
             remove_size = self.getProperty(propertyName)
             self.provider.set_remove_size(remove_size)
-        elif propertyName == 'Max Range':
+        elif propertyName == "Max Range":
             max_range = self.getProperty(propertyName)
             self.provider.set_range_threshold(max_range)
 
@@ -885,18 +1068,21 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
 
     @CheckProvider
     def update(self):
-        #utime = self.imageManager.queue.getCurrentImageTime(self.cameraName)
-        utime =  self.provider.get_sec() *1E6 + round( self.provider.get_nsec() *1E-3)
+        # utime = self.imageManager.queue.getCurrentImageTime(self.cameraName)
+        utime = self.provider.get_sec() * 1e6 + round(self.provider.get_nsec() * 1e-3)
 
         if utime == self.lastUtime:
-            if self.getProperty('Remove Stale Data') and ((time.time()-self.lastDataReceivedTime) > self.getProperty('Stale Data Timeout')):
+            if self.getProperty("Remove Stale Data") and (
+                (time.time() - self.lastDataReceivedTime)
+                > self.getProperty("Stale Data Timeout")
+            ):
                 if self.polyData.GetNumberOfPoints() > 0:
                     self.setPolyData(vtk.vtkPolyData())
             return
 
-        if (utime < self.lastUtime):
-            temp=0 # dummy
-        elif (utime - self.lastUtime < 1E6/self.getProperty('Target FPS')):
+        if utime < self.lastUtime:
+            temp = 0  # dummy
+        elif utime - self.lastUtime < 1e6 / self.getProperty("Target FPS"):
             return
 
         polyData = vtk.vtkPolyData()
@@ -905,60 +1091,77 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
             return
 
         # currently disabled
-        #bodyToLocal = vtk.vtkTransform()
-        #self.imageManager.queue.getTransform('body', 'local', utime, bodyToLocal)
-        #bodyHeight = bodyToLocal.GetPosition()[2]
+        # bodyToLocal = vtk.vtkTransform()
+        # self.imageManager.queue.getTransform('body', 'local', utime, bodyToLocal)
+        # bodyHeight = bodyToLocal.GetPosition()[2]
 
         bodyHeight = self.robotStateJointController.q[2]
-        self.setRangeMap('z',[bodyHeight-0.5, bodyHeight+0.5])
+        self.setRangeMap("z", [bodyHeight - 0.5, bodyHeight + 0.5])
 
         self.setPolyData(polyData)
 
         if self.firstData:
             self.firstData = False
-            colorList = self.properties.getPropertyAttribute('Color By', 'enumNames')
-            zIndex = colorList.index('z') if 'z' in colorList else 0
-            self.properties.setProperty('Color By', zIndex)
+            colorList = self.properties.getPropertyAttribute("Color By", "enumNames")
+            zIndex = colorList.index("z") if "z" in colorList else 0
+            self.properties.setProperty("Color By", zIndex)
 
         self.lastDataReceivedTime = time.time()
         self.lastUtime = utime
 
 
-
 def init(view, robotStateJointController):
     global _multisenseItem
 
-    sensorsFolder = om.getOrCreateContainer('sensors', om.getOrCreateContainer(robotStateJointController.robotName))
+    sensorsFolder = om.getOrCreateContainer(
+        "sensors", om.getOrCreateContainer(robotStateJointController.robotName)
+    )
 
-    config = drcargs.getRobotConfig(robotStateJointController.robotName)['perceptionSources']
+    config = drcargs.getRobotConfig(robotStateJointController.robotName)[
+        "perceptionSources"
+    ]
 
-    validSourceTypes = ['gridMap', 'depthImagePointCloud', 'pointCloud']
+    validSourceTypes = ["gridMap", "depthImagePointCloud", "pointCloud"]
 
     perceptionSources = {}
     for sourceType in config:
         if sourceType not in validSourceTypes:
-            raise ValueError("Source type {} is not a recognised perception source. Valid types are {}. Check your"
-                             " director configuration.".format(sourceType, validSourceTypes))
+            raise ValueError(
+                "Source type {} is not a recognised perception source. Valid types are {}. Check your"
+                " director configuration.".format(sourceType, validSourceTypes)
+            )
         # TODO might be nice to avoid the if statement in the loop by having a function to create each source
         for sourceConfig in config[sourceType]:
-            if sourceType == 'gridMap':
-                source = RosGridMap(robotStateJointController, sourceConfig['name'], callbackFunc=view.render)
+            if sourceType == "gridMap":
+                source = RosGridMap(
+                    robotStateJointController,
+                    sourceConfig["name"],
+                    callbackFunc=view.render,
+                )
                 source.addToView(view)
                 om.addToObjectModel(source, sensorsFolder)
-                if 'properties' in sourceConfig:
-                    for prop, value in sourceConfig['properties'].iteritems():
+                if "properties" in sourceConfig:
+                    for prop, value in sourceConfig["properties"].iteritems():
                         source.setProperty(prop, value)
 
-            if sourceType == 'depthImagePointCloud':
-                source = DepthImagePointCloudSource(sourceConfig['name'], sourceConfig['sensor'], None,
-                                                    robotStateJointController)
+            if sourceType == "depthImagePointCloud":
+                source = DepthImagePointCloudSource(
+                    sourceConfig["name"],
+                    sourceConfig["sensor"],
+                    None,
+                    robotStateJointController,
+                )
                 source.addToView(view)
                 om.addToObjectModel(source, sensorsFolder)
-            if sourceType == 'pointCloud':
-                source = PointCloudSource(sourceConfig['name'], robotStateJointController, callbackFunc=view.render)
+            if sourceType == "pointCloud":
+                source = PointCloudSource(
+                    sourceConfig["name"],
+                    robotStateJointController,
+                    callbackFunc=view.render,
+                )
                 source.addToView(view)
                 om.addToObjectModel(source, sensorsFolder)
 
-            perceptionSources[sourceConfig['robotSystemKey']] = source
+            perceptionSources[sourceConfig["robotSystemKey"]] = source
 
     return perceptionSources
