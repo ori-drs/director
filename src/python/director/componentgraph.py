@@ -36,9 +36,9 @@ class ComponentGraph(object):
             deps = self.getComponentDependencies(name)
             wants = componentGraph[name]
             needs = list(set(deps).difference(wants))
-            print name
-            print '       wants -->', ', '.join(wants) or 'none'
-            print '  also needs -->', ', '.join(needs) or 'none'
+            print(name)
+            print(('       wants -->', ', '.join(wants) or 'none'))
+            print(('  also needs -->', ', '.join(needs) or 'none'))
 
     def addComponent(self, name, deps):
         self._graph[name] = set(deps)
@@ -152,9 +152,9 @@ class ComponentFactory(object):
 
     def printComponentFields(self):
         for k, v in self.componentFields.iteritems():
-            print k, 'exports fields:'
+            print((k, 'exports fields:'))
             for name in v._fields:
-                print '  ', name
+                print(('  ', name))
 
     def initComponent(self, name, defaultFields):
 

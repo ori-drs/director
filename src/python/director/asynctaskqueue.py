@@ -189,7 +189,7 @@ class PrintTask(AsyncTask):
         self.message = message
 
     def __call__(self):
-        print self.message
+        print((self.message))
 
 
 class UserPromptTask(AsyncTask):

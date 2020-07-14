@@ -23,7 +23,7 @@ class SceneLoader(object):
             for link in model.links:
               if hasattr(link, 'submodels'):
                 if len(link.submodels)>0:
-                  print model.name+' - This is an articulated object - SKIPPING!'
+                  print((model.name+' - This is an articulated object - SKIPPING!'))
                   break
               for col in link.collisions:   
                 t1=transformUtils.getTransformFromNumpy(model.pose)
@@ -42,15 +42,15 @@ class SceneLoader(object):
                 if len(col.name)>0 and len(link.collisions)>1:
                     name+='-'+col.name
                 if col.geometry_type=='mesh':
-                    print 'Mesh geometry is unsupported - SKIPPING!'
+                    print('Mesh geometry is unsupported - SKIPPING!')
                 if col.geometry_type=='image':
-                    print 'image geometry is unsupported - SKIPPING!'
+                    print('image geometry is unsupported - SKIPPING!')
                 if col.geometry_type=='height_map':
-                    print 'Height map geometry is unsupported - SKIPPING!'
+                    print('Height map geometry is unsupported - SKIPPING!')
                 if col.geometry_type=='plane':
-                    print 'Plane geometry is unsupported - SKIPPING!'
+                    print('Plane geometry is unsupported - SKIPPING!')
                 if col.geometry_type=='sphere':
-                    print 'Sphere geometry is unsupported - SKIPPING!'
+                    print('Sphere geometry is unsupported - SKIPPING!')
                 if col.geometry_type=='box':
                     desc = dict(classname='BoxAffordanceItem', Name=name, uuid=newUUID(), pose=p, Color=color, Dimensions=map(float, col.geometry_data['size'].split(' ')))
                     self.affordanceManager.newAffordanceFromDescription(desc)
@@ -133,7 +133,7 @@ class SceneLoader(object):
                 elif aff.getDescription()['classname'] == 'CylinderAffordanceItem':
                     world.append(self.generateCylinderLinkNode(aff))
             else:
-                print '{:s} is unsupported skipping {:s} affordance!'.format(aff.getDescription()['classname'], aff.getDescription()['Name'])
+                print(('{:s} is unsupported skipping {:s} affordance!'.format(aff.getDescription()['classname'], aff.getDescription()['Name'])))
         
         #tree.write(sdfFile)
         #sdfFile.close()

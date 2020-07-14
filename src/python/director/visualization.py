@@ -980,7 +980,7 @@ def showPolyData(polyData, name, color=None, colorByName=None, colorByRange=None
     item.setProperty('Alpha', alpha)
 
     if colorByName and colorByName not in item.getArrayNames():
-        print 'showPolyData(colorByName=%s): array not found' % colorByName
+        print(('showPolyData(colorByName=%s): array not found' % colorByName))
         colorByName = None
 
     if colorByName:

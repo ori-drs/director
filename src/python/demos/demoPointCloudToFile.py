@@ -20,7 +20,7 @@ while (continueLoop):
     nsec = reader.GetNsec()
     message = str(polyData.GetNumberOfPoints()) + " points, "
     message += frame_id + ", " + str(sec) + "." + str(nsec)
-    print message
+    print(message)
 
     if (polyData.GetNumberOfPoints() > 0):
         ioutils.writePolyData(polyData, 'out.vtk')

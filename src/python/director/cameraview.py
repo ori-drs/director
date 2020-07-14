@@ -117,7 +117,7 @@ class ImageManager(object):
         if self.providerClasses[robotName]:
             self.queue[robotName][name] = self.providerClasses[robotName].initialise_from_name(name, robotName)
         else:
-            print("Could not initialise camera {} as the provider class is not initialised.".format(name))
+            print(("Could not initialise camera {} as the provider class is not initialised.".format(name)))
             self.queue[robotName][name] = None
 
     def setProviderClass(self, provider, robotName):
@@ -136,12 +136,12 @@ class ImageManager(object):
 
         self.providerClasses[robotName] = provider
         if robotName not in self.images:
-            print("Could not set provider class. Robot name {} not in ImageManager name "
-                  "list {}".format(robotName, self.images.keys()))
+            print(("Could not set provider class. Robot name {} not in ImageManager name "
+                  "list {}".format(robotName, self.images.keys())))
             return
         # Initialise the provider for names which were added to the object before this point
         for name in self.images[robotName].keys():
-            print("Initialising image provider for {}:{}".format(robotName, name))
+            print(("Initialising image provider for {}:{}".format(robotName, name)))
             self.queue[robotName][name] = self.providerClasses[robotName].initialise_from_name(name, robotName)
 
     def writeImage(self, imageName, outFile):
@@ -699,7 +699,7 @@ def init(view=None, robotName=""):
     cameras = [camera['name'] for camera in directorConfig['sensors']['camera']['color']]
     for camera in cameras:
         if camera in cameraNames:
-            print("will add {} to view".format(camera))
+            print(("will add {} to view".format(camera)))
             imageManager.addImage(camera, robotName)
             view = CameraImageView(imageManager, camera, camera, robotName=robotName)
             global views

@@ -408,7 +408,7 @@ def onModelPublisherString(msg):
     if updateModelPublisherString(msg) == lastStr:
         return
 
-    print 'reloading models with new model publisher string'
+    print('reloading models with new model publisher string')
 
     if lastStr is not None:
         app.showInfoMessage('A model publisher string was received that differs from the previous string. '
@@ -417,7 +417,7 @@ def onModelPublisherString(msg):
 
     objs = getExistingRobotModels()
     for obj, jointController in _modelsToReload:
-        print 'reloading model:', obj.getProperty('Name')
+        print(('reloading model:', obj.getProperty('Name')))
         newModel = loadRobotModelFromString(getModelPublisherString())
         obj.setModel(newModel)
         jointController.push()
@@ -469,8 +469,8 @@ def getEnvironmentPackagePaths():
                 if packageName and packageName not in packages:
                     packages[packageName] = root
                 else:
-                    print 'warning, skipping package path:', root
-                    print 'existing package path:', packageName, packages[packageName]
+                    print(('warning, skipping package path:', root))
+                    print(('existing package path:', packageName, packages[packageName]))
                     continue
 
     return packages.values()

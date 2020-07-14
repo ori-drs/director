@@ -398,12 +398,12 @@ for robotSystem in robotSystems:
 
     if 'disableComponents' in directorConfig:
         for component in directorConfig['disableComponents']:
-            print "Disabling", component
+            print(("Disabling", component))
             locals()[component] = False
 
     if 'enableComponents' in directorConfig:
         for component in directorConfig['enableComponents']:
-            print "Enabling", component
+            print(("Enabling", component))
             locals()[component] = True
 
 

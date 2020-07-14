@@ -702,8 +702,8 @@ def main():
         configFile = os.path.abspath(sys.argv[1])
         setDirectorConfigFile(configFile)
     except IndexError:
-        print 'You must provide a director_config.json file.'
-        print 'Usage: %s <path to director_config.json>' % sys.argv[0]
+        print('You must provide a director_config.json file.')
+        print(('Usage: %s <path to director_config.json>' % sys.argv[0]))
         return
 
     # create a global instance of the LCMWrapper

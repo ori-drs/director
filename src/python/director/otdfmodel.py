@@ -71,7 +71,7 @@ class OtdfParser(object):
         try:
             evaluated = NumericStringParser.NumericStringParser().eval(expression)
         except:
-            print 'parser error:', expression
+            print(('parser error:', expression))
             return '0.0'
         #print 'evaluated:', evaluated
         return str(evaluated)

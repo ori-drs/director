@@ -86,7 +86,7 @@ class Visualizer:
             for path, pose in self.poses.items():
                 self.settransform(path, pose)
         else:
-            print("unhandled:", response)
+            print(("unhandled:", response))
 
 if __name__ == '__main__':
     # We'll open the visualizer by spawning it as a subprocess.
@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
     # The viewer will take some time to load before it is ready to receive
     # messages, so we'll wait until it sends its first status message.
-    print "waiting for viewer to initialize"
+    print("waiting for viewer to initialize")
     lc = lcm.LCM()
     lc.subscribe("DIRECTOR_TREE_VIEWER_RESPONSE", lambda c, d: None)
     vis_process = subprocess.Popen([vis_binary, '--testing', '--interactive'])

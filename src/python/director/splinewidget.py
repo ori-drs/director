@@ -201,9 +201,9 @@ class SplineEndEffectorPlanner(object):
         infos = []
         for u in samples:
             t = self.splineInterp(u)
-            print u, t.GetPosition()
+            print((u, t.GetPosition()))
             reachGoal = self.getReachGoalFrame(self.side)
-            print 'copying frame...'
+            print('copying frame...')
             reachGoal.copyFrame(t)
             endPose, info = constraintSet.runIk()
             poses.append(list(endPose))

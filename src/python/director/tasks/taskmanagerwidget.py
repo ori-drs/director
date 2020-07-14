@@ -333,7 +333,7 @@ class TaskQueueWidget(object):
 
 
     def onTaskStarted(self, taskQueue, task):
-        print 'starting task:', task.properties.getProperty('Name')
+        print(('starting task:', task.properties.getProperty('Name')))
         self.taskTree.selectTask(task)
         item = self.taskTree.findTaskItem(task)
         if len(self.completedTasks) and item.getProperty('Visible'):

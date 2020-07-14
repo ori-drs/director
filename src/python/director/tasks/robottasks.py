@@ -106,7 +106,7 @@ class PrintTask(AsyncTask):
         if self.printFunction:
             self.printFunction(self.properties.message)
         else:
-            print self.properties.message
+            print((self.properties.message))
 
 
 class CallbackTask(AsyncTask):

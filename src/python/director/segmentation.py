@@ -577,27 +577,27 @@ def segmentGroundPlanes():
     prevHeadAxis = None
     for obj in objs:
         name = obj.getProperty('Name')
-        print '----- %s---------' % name
-        print  'head axis:', obj.headAxis
+        print(('----- %s---------' % name))
+        print(('head axis:', obj.headAxis))
         origin, normal, groundPoints, _ = segmentGround(obj.polyData)
-        print 'ground normal:', normal
+        print(('ground normal:', normal))
         showPolyData(groundPoints, name + ' ground points', visible=False)
         a = np.array([0,0,1])
         b = np.array(normal)
         diff = math.degrees(math.acos(np.dot(a,b) / (np.linalg.norm(a) * np.linalg.norm(b))))
         if diff > 90:
-            print 180 - diff
+            print((180 - diff))
         else:
-            print diff
+            print(diff)
 
         if prevHeadAxis is not None:
             a = prevHeadAxis
             b = np.array(obj.headAxis)
             diff = math.degrees(math.acos(np.dot(a,b) / (np.linalg.norm(a) * np.linalg.norm(b))))
             if diff > 90:
-                print 180 - diff
+                print((180 - diff))
             else:
-                print diff
+                print(diff)
         prevHeadAxis = np.array(obj.headAxis)
 
         d.addLine([0,0,0], normal)
@@ -1369,7 +1369,7 @@ def applyKmeansLabel(polyData, arrayName, numberOfClusters, whiten=False):
         v1 /= np.linalg.norm(v1)
         v2 /= np.linalg.norm(v2)
         angle = np.arccos(np.dot(v1, v2))
-        print 'angle between normals:', np.degrees(angle)
+        print(('angle between normals:', np.degrees(angle)))
 
     code, distance = scipy.cluster.vq.vq(ar, codes)
 
@@ -2825,8 +2825,8 @@ def findAndFitDrillBarrel(polyData=None):
             if drillFrame is not None:
                 fitResults.append((clusterObj, drillFrame))
         except:
-            print traceback.format_exc()
-            print 'fit drill failed for cluster:', clusterId
+            print((traceback.format_exc()))
+            print(('fit drill failed for cluster:', clusterId))
 
     if not fitResults:
         return
@@ -4149,7 +4149,7 @@ def startSegmentDebrisWallManual():
 
 
 def selectToolTip(point1):
-    print point1
+    print(point1)
 
 
 
@@ -4562,7 +4562,7 @@ def segmentDrillWallFromTag(position, ray):
     polyData = getCurrentRevolutionData()
 
     if (polyData is None): # no data yet
-        print "no LIDAR data yet"
+        print("no LIDAR data yet")
         return False
 
     point1 = extractPointsAlongClickRay(position, ray, polyData )

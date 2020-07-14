@@ -120,7 +120,7 @@ class CameraBookmarkWidget(object):
         focal_str='[' + '{:.2f}'.format(focal[0]) + ',' + '{:.2f}'.format(focal[1]) + ',' + '{:.2f}'.format(focal[2]) + ']'
         position_str='[' + '{:.2f}'.format(position[0]) + ',' + '{:.2f}'.format(position[1]) + ',' + '{:.2f}'.format(position[2]) + ']'
         full_str = 'self.setStoredCamera(0, ' + focal_str + ', ' + position_str + ', "label")'
-        print full_str
+        print(full_str)
 
 
 def init(view):

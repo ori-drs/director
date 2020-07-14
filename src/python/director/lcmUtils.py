@@ -118,7 +118,7 @@ def addSubscriber(channel, messageClass=None, callback=None, historicalLoader=No
             else:
                 callback(msg)
         else:
-            print 'error decoding message on channel:', channel
+            print(('error decoding message on channel:', channel))
 
     if callback is not None:
         if messageClass is not None:
@@ -150,7 +150,7 @@ def getNextMessage(subscriber, messageClass=None, timeout=0):
         try:
             msg = messageClass.decode(messageData)
         except ValueError:
-            print 'error decoding message on channel:', subscriber.channel()
+            print(('error decoding message on channel:', subscriber.channel()))
             return None
 
         return msg
@@ -421,7 +421,7 @@ class HistoricalLCMLoader(object):
         Try to decode an LCM message using its historical definitions. Uses a MRU (most recently used) queue of commit SHAs to try to ensure that repeated calls for messages of the same type are fast
         """
         if not self._initialized:
-            print "Warning: Possible out-of-date LCM message received. I will now try to decode the message using older versions of the type definition. This will be slow the first time it happens."
+            print("Warning: Possible out-of-date LCM message received. I will now try to decode the message using older versions of the type definition. This will be slow the first time it happens.")
             self._initialized = True
         i = 0
         if not type_name in self._mru_shas_cache:
