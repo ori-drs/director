@@ -66,6 +66,10 @@ ddMainWindow::ddMainWindow()
   this->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
   this->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
+  // This disables right-click context menus for the main window, which show all the dock widgets
+  // Doing this means we don't have to handle enabling/disabling each individual item in the context menu
+  this->setContextMenuPolicy(Qt::NoContextMenu);
+
   //QLabel* logoLabel = new QLabel();
   //logoLabel->setPixmap(QPixmap(":/images/drake_logo.png").scaled(QSize(32,32),  Qt::KeepAspectRatio));
   //logoLabel->setScaledContents(true);
@@ -151,20 +155,20 @@ void ddMainWindow::toggleOutputConsoleVisibility()
 }
 
 //-----------------------------------------------------------------------------
-void ddMainWindow::addWidgetToViewMenu(QWidget* widget)
+void ddMainWindow::addWidgetToViewMenu(QWidget* widget, const QString& subMenuName)
 {
   if (!widget)
   {
     return;
   }
 
-  this->Internal->ViewMenuManager->addWidget(widget, widget->windowTitle());
+  this->Internal->ViewMenuManager->addWidget(widget, widget->windowTitle(), QIcon(), subMenuName);
 }
 
 //-----------------------------------------------------------------------------
-void ddMainWindow::addWidgetToViewMenu(QWidget* widget, QAction* action)
+void ddMainWindow::addWidgetToViewMenu(QWidget* widget, QAction* action, const QString& subMenuName)
 {
-  this->Internal->ViewMenuManager->addWidget(widget, action);
+  this->Internal->ViewMenuManager->addWidget(widget, action, subMenuName);
 }
 
 //-----------------------------------------------------------------------------

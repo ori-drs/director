@@ -64,6 +64,13 @@ public:
   ///   True if the event should be filtered out.
   virtual bool eventFilter(QObject* watched, QEvent* e);
 
+
+  /// \brief
+  /// Use to add a submenu to the viewmenu
+  /// 
+  /// \param name the name of the submenu, also appears as the label
+  QMenu* addSubMenu(const QString& name);
+
   /// \brief
   ///   Adds a menu item for the widget to the view menu.
   ///
@@ -74,9 +81,10 @@ public:
   /// \param widget The widget to add.
   /// \param icon An icon to display in the menu.
   /// \param text The text to display in the menu.
-  void addWidget(QWidget* widget, const QString& text, const QIcon &icon = QIcon());
+  /// \param subMenuName optional name for a submenu of the view to which this widget should be added
+  void addWidget(QWidget* widget, const QString& text, const QIcon &icon = QIcon(), const QString& subMenuName = "");
 
-  void addWidget(QWidget* widget, QAction* action);
+  void addWidget(QWidget* widget, QAction* action, const QString& menuName = "");
 
   /// Add a separator to the view menu
   void addSeparator();

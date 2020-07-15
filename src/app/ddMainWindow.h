@@ -32,8 +32,8 @@ public:
   QToolBar* panelToolBar() const;
   QTextEdit* outputConsole() const;
 
-  void addWidgetToViewMenu(QWidget* widget);
-  void addWidgetToViewMenu(QWidget* widget, QAction* action);
+  void addWidgetToViewMenu(QWidget* widget, const QString& subMenuName = "");
+  void addWidgetToViewMenu(QWidget* widget, QAction* action, const QString& subMenuName = "");
 
   QList<QAction*> toolBarActions() const;
 

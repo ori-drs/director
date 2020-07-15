@@ -224,7 +224,7 @@ class RobotSelector(QtGui.QWidget):
         Associate an object of a given type with a robot
         :param object: An object to associate with the robot
         :param robotName: The name of the robot with which to associate the object
-        :param type: The type of the object - one of the keys in self.associatedWidgets
+        :param type: The type of the object - one of the keys in self._objectTypes
         :return:
         """
         if (robotName in self.robotNames) and (object not in self.associatedWidgets[robotName][type]):
@@ -321,6 +321,10 @@ class RobotSelector(QtGui.QWidget):
                 # to pass to the event filter which is enabled, i.e. the one for the currently selected robot
                 viewBehavior.robotViewBehaviors.setEnabled(robot == robotName)
 
+            # Disable the submenu in the view menu for other robots. Without this items in the submenus are hidden
+            # but the submenu is not greyed out
+            app.findMenu(robot).setEnabled(robot == robotName)
+
 drcargs.args()
 app.startup(globals())
 om.init(app.getMainWindow().objectTree(), app.getMainWindow().propertiesPanel())
@@ -358,7 +362,37 @@ else:
         # With multiple robots, prefix the topics with the robot names
         robotSystem._add_fields(rosPrefix=robotSystem.robotName, single=False)
 
-setupScene = True  # The scene setup is done only once, unset this flag once it is done
+# Before going through all the robot systems, we do some setup which is universal and not linked to any specific robot
+useLightColorScheme = True
+
+sceneRoot = om.getOrCreateContainer('scene')
+grid = vis.showGrid(view, color=[0, 0, 0], alpha=0.1, parent=sceneRoot)
+grid.setProperty('Surface Mode', 'Surface with edges')
+
+app.setBackgroundColor([0.3, 0.3, 0.35], [0.95, 0.95, 1])
+
+viewOptions = vis.ViewOptionsItem(view)
+om.addToObjectModel(viewOptions, parentObj=sceneRoot)
+
+viewBackgroundLightHandler = viewcolors.ViewBackgroundLightHandler(viewOptions, grid,
+                                                                   app.getToolsMenuActions()[
+                                                                       'ActionToggleBackgroundLight'])
+
+viewFramesHandler = viewframes.ViewFramesSizeHandler(app.getToolsMenuActions()['ActionToggleFramesSize'])
+
+if not useLightColorScheme:
+    viewBackgroundLightHandler.action.trigger()
+
+gridUpdater = RobotGridUpdater(grid.getChildFrame(), robotSystem.robotStateModel,
+                               robotSystem.robotStateJointController)
+
+cameraBooksmarksPanel = camerabookmarks.init(view)
+
+cameraControlPanel = cameracontrolpanel.CameraControlPanel(view)
+app.addWidgetToDock(cameraControlPanel.widget, action=None).hide()
+
+app.setCameraTerrainModeEnabled(view, True)
+app.resetCamera(viewDirection=[-1, 0, 0], view=view)
 
 for robotSystem in robotSystems:
     selector.addRobot(robotSystem.robotName)
@@ -371,7 +405,6 @@ for robotSystem in robotSystems:
     useHands = False
     usePlanning = True
     useCollections = False
-    useLightColorScheme = True
     useCameraFrustumVisualizer = True
     useForceDisplay = True
     useDataFiles = True
@@ -413,29 +446,6 @@ for robotSystem in robotSystems:
 
         cameraview.cameraViews[robotSystem.robotName].rayCallback = segmentation.extractPointsAlongClickRay
 
-    if setupScene:
-        sceneRoot = om.getOrCreateContainer('scene')
-        grid = vis.showGrid(view, color=[0, 0, 0], alpha=0.1, parent=sceneRoot)
-        grid.setProperty('Surface Mode', 'Surface with edges')
-
-        app.setBackgroundColor([0.3, 0.3, 0.35], [0.95, 0.95, 1])
-
-        viewOptions = vis.ViewOptionsItem(view)
-        om.addToObjectModel(viewOptions, parentObj=sceneRoot)
-
-        viewBackgroundLightHandler = viewcolors.ViewBackgroundLightHandler(viewOptions, grid,
-                                                                           app.getToolsMenuActions()[
-                                                                               'ActionToggleBackgroundLight'])
-
-        viewFramesHandler = viewframes.ViewFramesSizeHandler(app.getToolsMenuActions()['ActionToggleFramesSize'])
-
-        if not useLightColorScheme:
-            viewBackgroundLightHandler.action.trigger()
-        setupScene = False
-
-        gridUpdater = RobotGridUpdater(grid.getChildFrame(), robotSystem.robotStateModel,
-                                       robotSystem.robotStateJointController)
-
     # reset time button and connections
     button = QtGui.QPushButton('Reset time')
     button.setObjectName("resettime")
@@ -474,14 +484,6 @@ for robotSystem in robotSystems:
     screengrabberpanel.init(view, imageWidget, robotSystem.robotName)
     framevisualization.init(view, robotSystem)
     affordancePanel = affordancepanel.init(view, robotSystem.affordanceManager, robotSystem.robotStateJointController)
-    cameraBooksmarksPanel = camerabookmarks.init(view)
-
-    cameraControlPanel = cameracontrolpanel.CameraControlPanel(view)
-    app.addWidgetToDock(cameraControlPanel.widget, action=None).hide()
-
-    app.setCameraTerrainModeEnabled(view, True)
-    app.resetCamera(viewDirection=[-1, 0, 0], view=view)
-
 
     def drawCenterOfMass(model):
         stanceFrame = robotSystem.footstepsDriver.getFeetMidPoint(model)
