@@ -21,4 +21,4 @@ jobs:
       # The dockerfile is run and receives arguments into the entrypoint.sh file. Here we pass the arguments we need to the formatter
       with:
         # We only check the python/director directory, and exclude some directories there.
-        args: --check src/python/director --exclude "thirdparty|tasks"
+        args: --check src/python/director --exclude "(thirdparty|tasks)"
