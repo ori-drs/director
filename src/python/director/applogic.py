@@ -113,7 +113,9 @@ def addDockAction(actionName, actionText, iconPath, append=False):
     return action
 
 
-def addWidgetToDock(widget, dockArea=QtCore.Qt.RightDockWidgetArea, action=None, associatedRobotName=""):
+def addWidgetToDock(
+    widget, dockArea=QtCore.Qt.RightDockWidgetArea, action=None, associatedRobotName=""
+):
     """
     This function adds the given widget to the specified dock area. The widgets can then be accesses by clicking the
     icon. It also adds the widgets to the view menu

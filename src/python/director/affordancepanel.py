@@ -143,7 +143,9 @@ def init(view, affordanceManager, jointController):
     global dock
 
     panel = AffordancePanel(view, affordanceManager, jointController)
-    dock = app.addWidgetToDock(panel.widget, action=_getAction(), associatedRobotName=jointController.robotName)
+    dock = app.addWidgetToDock(
+        panel.widget, action=_getAction(), associatedRobotName=jointController.robotName
+    )
     dock.hide()
 
     return panel
