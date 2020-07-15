@@ -5,7 +5,6 @@ import numpy as np
 
 
 class DebugData(object):
-
     def __init__(self):
         self.append = vtk.vtkAppendPolyData()
 
@@ -15,30 +14,32 @@ class DebugData(object):
         writer.SetFileName(filename)
         writer.Update()
 
-    def addPolyData(self, polyData, color=[1,1,1], extraLabels=None):
-        '''
+    def addPolyData(self, polyData, color=[1, 1, 1], extraLabels=None):
+        """
         Add a vtkPolyData to the debug data.  A color can be provided.
         If the extraLabels argument is used, it should be a list of tuples,
         each tuple is (labelName, labelValue) where labelName is a string and
         labelValue is an int or float.  An array with labelName will be filled
         with labelValue and added to the poly data.
-        '''
+        """
         polyData = shallowCopy(polyData)
 
         if color is not None:
             colorArray = np.empty((polyData.GetNumberOfPoints(), 3), dtype=np.uint8)
-            colorArray[:,:] = np.array(color)*255
-            vnp.addNumpyToVtk(polyData, colorArray, 'RGB255')
+            colorArray[:, :] = np.array(color) * 255
+            vnp.addNumpyToVtk(polyData, colorArray, "RGB255")
 
         if extraLabels is not None:
             for labelName, labelValue in extraLabels:
-                extraArray = np.empty((polyData.GetNumberOfPoints(), 1), dtype=type(labelValue))
+                extraArray = np.empty(
+                    (polyData.GetNumberOfPoints(), 1), dtype=type(labelValue)
+                )
                 extraArray[:] = labelValue
                 vnp.addNumpyToVtk(polyData, extraArray, labelName)
 
         self.append.AddInputData(polyData)
 
-    def addLine(self, p1, p2, radius=0.0, color=[1,1,1]):
+    def addLine(self, p1, p2, radius=0.0, color=[1, 1, 1]):
 
         line = vtk.vtkLineSource()
         line.SetPoint1(p1)
@@ -56,7 +57,7 @@ class DebugData(object):
             tube.Update()
             self.addPolyData(tube.GetOutput(), color)
 
-    def addPolyLine(self, points, isClosed=False, radius=0.0, color=[1,1,1]):
+    def addPolyLine(self, points, isClosed=False, radius=0.0, color=[1, 1, 1]):
         for (p1, p2) in zip(points[:-1], points[1:]):
             self.addLine(p1, p2, radius=radius, color=color)
         if isClosed:
@@ -66,16 +67,16 @@ class DebugData(object):
 
         origin = np.array([0.0, 0.0, 0.0])
         axes = [[scale, 0.0, 0.0], [0.0, scale, 0.0], [0.0, 0.0, scale]]
-        colors = [[1,0,0], [0,1,0], [0,0,1]]
+        colors = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
         frame.TransformPoint(origin, origin)
         for axis, color in zip(axes, colors):
             frame.TransformVector(axis, axis)
-            self.addLine(origin, origin+axis, radius=tubeRadius, color=color)
+            self.addLine(origin, origin + axis, radius=tubeRadius, color=color)
 
-    def addCircle(self, origin, normal, radius, color=[1,1,1]):
+    def addCircle(self, origin, normal, radius, color=[1, 1, 1]):
         self.addCone(origin, normal, radius, height=0, color=color, fill=False)
 
-    def addCone(self, origin, normal, radius, height, color=[1,1,1], fill=True):
+    def addCone(self, origin, normal, radius, height, color=[1, 1, 1], fill=True):
         cone = vtk.vtkConeSource()
         cone.SetRadius(radius)
         cone.SetCenter(origin)
@@ -91,7 +92,17 @@ class DebugData(object):
             edges.Update()
             self.addPolyData(edges.GetOutput(), color)
 
-    def addArrow(self, start, end, headRadius=0.05, headLength=None, tubeRadius=0.01, color=[1,1,1], startHead=False, endHead=True):
+    def addArrow(
+        self,
+        start,
+        end,
+        headRadius=0.05,
+        headLength=None,
+        tubeRadius=0.01,
+        color=[1, 1, 1],
+        startHead=False,
+        endHead=True,
+    ):
         if headLength is None:
             headLength = headRadius
         normal = np.array(end) - np.array(start)
@@ -102,11 +113,23 @@ class DebugData(object):
             end = np.array(end) - 0.5 * headLength * normal
         self.addLine(start, end, radius=tubeRadius, color=color)
         if startHead:
-            self.addCone(origin=start, normal=-normal, radius=headRadius,
-                         height=headLength, color=color, fill=True)
+            self.addCone(
+                origin=start,
+                normal=-normal,
+                radius=headRadius,
+                height=headLength,
+                color=color,
+                fill=True,
+            )
         if endHead:
-            self.addCone(origin=end, normal=normal, radius=headRadius,
-                         height=headLength, color=color, fill=True)
+            self.addCone(
+                origin=end,
+                normal=normal,
+                radius=headRadius,
+                height=headLength,
+                color=color,
+                fill=True,
+            )
 
     def addArrowWithFrame(self, start, scale, **kwargs):
         # Draw an arrow at 'start' (a Transform), of length 'scale'
@@ -115,10 +138,10 @@ class DebugData(object):
         start.TransformPoint(origin, origin)
         axis = [scale, 0.0, 0.0]
         start.TransformVector(axis, axis)
-        origin, origin+axis
-        self.addArrow(origin, origin+axis, **kwargs)
+        origin, origin + axis
+        self.addArrow(origin, origin + axis, **kwargs)
 
-    def addSphere(self, center, radius=0.05, color=[1,1,1], resolution=24):
+    def addSphere(self, center, radius=0.05, color=[1, 1, 1], resolution=24):
 
         sphere = vtk.vtkSphereSource()
         sphere.SetCenter(center)
@@ -128,10 +151,10 @@ class DebugData(object):
         sphere.Update()
         self.addPolyData(sphere.GetOutput(), color)
 
-    def addCube(self, dimensions, center, color=[1,1,1], subdivisions=0):
+    def addCube(self, dimensions, center, color=[1, 1, 1], subdivisions=0):
 
-        bmin = np.array(center) - np.array(dimensions)/2.0
-        bmax = np.array(center) + np.array(dimensions)/2.0
+        bmin = np.array(center) - np.array(dimensions) / 2.0
+        bmax = np.array(center) + np.array(dimensions) / 2.0
         cube = vtk.vtkTessellatedBoxSource()
         cube.SetBounds(bmin[0], bmax[0], bmin[1], bmax[1], bmin[2], bmax[2])
         cube.SetLevel(subdivisions)
@@ -139,28 +162,35 @@ class DebugData(object):
         cube.Update()
         self.addPolyData(cube.GetOutput(), color)
 
-    def addPlane(self, origin, normal, width, height, resolution=1, color=[1,1,1]):
+    def addPlane(self, origin, normal, width, height, resolution=1, color=[1, 1, 1]):
         plane = vtk.vtkPlaneSource()
-        plane.SetOrigin(-width/2.0, -height/2.0, 0.0)
-        plane.SetPoint1(width/2.0, -height/2.0, 0.0)
-        plane.SetPoint2(-width/2.0, height/2.0, 0.0)
+        plane.SetOrigin(-width / 2.0, -height / 2.0, 0.0)
+        plane.SetPoint1(width / 2.0, -height / 2.0, 0.0)
+        plane.SetPoint2(-width / 2.0, height / 2.0, 0.0)
         plane.SetCenter(origin)
         plane.SetNormal(normal)
         plane.SetResolution(resolution, resolution)
         plane.Update()
         self.addPolyData(plane.GetOutput(), color)
 
-    def addCylinder(self, center, axis, length, radius, color=[1,1,1]):
+    def addCylinder(self, center, axis, length, radius, color=[1, 1, 1]):
         axis = np.asarray(axis) / np.linalg.norm(axis)
         center = np.array(center)
-        self.addLine(center - 0.5*length*axis, center + 0.5*length*axis, radius=radius, color=color)
+        self.addLine(
+            center - 0.5 * length * axis,
+            center + 0.5 * length * axis,
+            radius=radius,
+            color=color,
+        )
 
-    def addCapsule(self, center, axis, length, radius, color=[1,1,1]):
+    def addCapsule(self, center, axis, length, radius, color=[1, 1, 1]):
         axis = np.asarray(axis) / np.linalg.norm(axis)
         center = np.array(center)
-        self.addCylinder(center=center, axis=axis, radius=radius, length=length, color=color)
-        self.addSphere(center=center-0.5*length*axis, radius=radius, color=color)
-        self.addSphere(center=center+0.5*length*axis, radius=radius, color=color)
+        self.addCylinder(
+            center=center, axis=axis, radius=radius, length=length, color=color
+        )
+        self.addSphere(center=center - 0.5 * length * axis, radius=radius, color=color)
+        self.addSphere(center=center + 0.5 * length * axis, radius=radius, color=color)
 
     def addTorus(self, radius, thickness, resolution=30):
 
@@ -174,20 +204,20 @@ class DebugData(object):
 
         # rotate Torus so that the hole axis (internally y), is set to be z, which we use for valves
         transform = vtk.vtkTransform()
-        transform.RotateWXYZ(90,1,0,0)
-        transformFilter=vtk.vtkTransformPolyDataFilter()
+        transform.RotateWXYZ(90, 1, 0, 0)
+        transformFilter = vtk.vtkTransformPolyDataFilter()
         transformFilter.SetTransform(transform)
         transformFilter.SetInputConnection(q.GetOutputPort())
         transformFilter.Update()
         self.addPolyData(transformFilter.GetOutput())
 
-    def addEllipsoid(self, center, radii, resolution=24, color=[1,1,1]):
+    def addEllipsoid(self, center, radii, resolution=24, color=[1, 1, 1]):
         """
         Add an ellipsoid centered at [center] with x, y, and z principal axis radii given by
         radii = [x_scale, y_scale, z_scale]
         """
         sphere = vtk.vtkSphereSource()
-        sphere.SetCenter([0,0,0])
+        sphere.SetCenter([0, 0, 0])
         sphere.SetThetaResolution(resolution)
         sphere.SetPhiResolution(resolution)
         sphere.SetRadius(1.0)
@@ -203,7 +233,7 @@ class DebugData(object):
         transformFilter.Update()
         self.addPolyData(transformFilter.GetOutput(), color)
 
-    def addPolygon(self, points, color=[1,1,1]):
+    def addPolygon(self, points, color=[1, 1, 1]):
         points = vnp.getVtkPointsFromNumpy(points.copy())
         polygon = vtk.vtkPolygon()
         polygon.GetPointIds().SetNumberOfIds(points.GetNumberOfPoints())

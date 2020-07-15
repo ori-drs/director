@@ -14,11 +14,10 @@ class WidgetDict(object):
 
 
 class UiPanel(object):
-
     def __init__(self, filename, windowTitle=None):
 
         loader = QtUiTools.QUiLoader()
-        uifile = QtCore.QFile(':/ui/' + filename)
+        uifile = QtCore.QFile(":/ui/" + filename)
         assert uifile.open(uifile.ReadOnly)
 
         self.widget = loader.load(uifile)

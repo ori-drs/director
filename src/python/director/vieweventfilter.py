@@ -2,9 +2,10 @@ import PythonQt
 from PythonQt import QtCore, QtGui
 import director.visualization as vis
 
+
 class ViewEventFilter(object):
 
-    LEFT_DOUBLE_CLICK_EVENT = 'LEFT_DOUBLE_CLICK_EVENT'
+    LEFT_DOUBLE_CLICK_EVENT = "LEFT_DOUBLE_CLICK_EVENT"
 
     def __init__(self, view):
         self.view = view
@@ -16,23 +17,25 @@ class ViewEventFilter(object):
 
     def installEventFilter(self):
         self.eventFilter = PythonQt.dd.ddPythonEventFilter()
-        self.eventFilter.connect('handleEvent(QObject*, QEvent*)', self.filterEvent)
+        self.eventFilter.connect("handleEvent(QObject*, QEvent*)", self.filterEvent)
         self.view.vtkWidget().installEventFilter(self.eventFilter)
         for eventType in self.getFilteredEvents():
             self.eventFilter.addFilteredEventType(eventType)
 
     def removeEventFilter(self):
         self.view.vtkWidget().removeEventFilter(self.eventFilter)
-        self.eventFilter.disconnect('handleEvent(QObject*, QEvent*)', self.filterEvent)
+        self.eventFilter.disconnect("handleEvent(QObject*, QEvent*)", self.filterEvent)
 
     def getFilteredEvents(self):
-        return [QtCore.QEvent.MouseButtonDblClick,
-                QtCore.QEvent.MouseButtonPress,
-                QtCore.QEvent.MouseButtonRelease,
-                QtCore.QEvent.MouseMove,
-                QtCore.QEvent.Wheel,
-                QtCore.QEvent.KeyPress,
-                QtCore.QEvent.KeyRelease]
+        return [
+            QtCore.QEvent.MouseButtonDblClick,
+            QtCore.QEvent.MouseButtonPress,
+            QtCore.QEvent.MouseButtonRelease,
+            QtCore.QEvent.MouseMove,
+            QtCore.QEvent.Wheel,
+            QtCore.QEvent.KeyPress,
+            QtCore.QEvent.KeyRelease,
+        ]
 
     def addHandler(self, eventType, handler):
         self._handlers.setdefault(eventType, []).append(handler)
@@ -60,14 +63,23 @@ class ViewEventFilter(object):
         if not self.enabled:
             return
 
-        if event.type() == QtCore.QEvent.MouseButtonDblClick and event.button() == QtCore.Qt.LeftButton:
+        if (
+            event.type() == QtCore.QEvent.MouseButtonDblClick
+            and event.button() == QtCore.Qt.LeftButton
+        ):
             self.onLeftDoubleClick(event)
 
-        elif event.type() == QtCore.QEvent.MouseButtonPress and event.button() == QtCore.Qt.LeftButton:
+        elif (
+            event.type() == QtCore.QEvent.MouseButtonPress
+            and event.button() == QtCore.Qt.LeftButton
+        ):
             self._leftMouseStart = QtCore.QPoint(event.pos())
             self.onLeftMousePress(event)
 
-        elif event.type() == QtCore.QEvent.MouseButtonPress and event.button() == QtCore.Qt.RightButton:
+        elif (
+            event.type() == QtCore.QEvent.MouseButtonPress
+            and event.button() == QtCore.Qt.RightButton
+        ):
             self._rightMouseStart = QtCore.QPoint(event.pos())
             self.onRightMousePress(event)
 
@@ -86,13 +98,19 @@ class ViewEventFilter(object):
             if self._rightMouseStart is None and self._leftMouseStart is None:
                 self.onMouseMove(event)
 
-        elif event.type() == QtCore.QEvent.MouseButtonRelease and event.button() == QtCore.Qt.LeftButton:
+        elif (
+            event.type() == QtCore.QEvent.MouseButtonRelease
+            and event.button() == QtCore.Qt.LeftButton
+        ):
             self.onLeftMouseRelease(event)
             if self._leftMouseStart is not None:
                 self._leftMouseStart = None
                 self.onLeftClick(event)
 
-        elif event.type() == QtCore.QEvent.MouseButtonRelease and event.button() == QtCore.Qt.RightButton:
+        elif (
+            event.type() == QtCore.QEvent.MouseButtonRelease
+            and event.button() == QtCore.Qt.RightButton
+        ):
             self.onRightMouseRelease(event)
             if self._rightMouseStart is not None:
                 self._rightMouseStart = None

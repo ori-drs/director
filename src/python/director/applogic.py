@@ -1,4 +1,3 @@
-
 import os
 import time
 import math
@@ -44,11 +43,11 @@ def getViewManager():
 
 
 def getDRCView():
-    return _defaultRenderView or getMainWindow().viewManager().findView('DRC View')
+    return _defaultRenderView or getMainWindow().viewManager().findView("DRC View")
 
 
 def getSpreadsheetView():
-    return getMainWindow().viewManager().findView('Spreadsheet View')
+    return getMainWindow().viewManager().findView("Spreadsheet View")
 
 
 def getCurrentView():
@@ -57,7 +56,7 @@ def getCurrentView():
 
 def getCurrentRenderView():
     view = getCurrentView()
-    if hasattr(view, 'camera'):
+    if hasattr(view, "camera"):
         return view
 
 
@@ -136,13 +135,12 @@ def addWidgetToDock(widget, dockArea=QtCore.Qt.RightDockWidgetArea, action=None,
             _exclusiveDockWidgets[action].append((dock, widget))
         else:
             _exclusiveDockWidgets[action] = [(dock, widget)]
-        action.connect('triggered()', functools.partial(hideDockWidgets, action))
+        action.connect("triggered()", functools.partial(hideDockWidgets, action))
 
     if action is None:
         getMainWindow().addWidgetToViewMenu(dock, associatedRobotName)
     else:
         getMainWindow().addWidgetToViewMenu(dock, action, associatedRobotName)
-
 
     return dock
 
@@ -150,13 +148,13 @@ def addWidgetToDock(widget, dockArea=QtCore.Qt.RightDockWidgetArea, action=None,
 def resetCamera(viewDirection=None, view=None):
 
     view = view or getCurrentRenderView()
-    assert(view)
+    assert view
 
     if viewDirection is not None:
         camera = view.camera()
         camera.SetPosition([0, 0, 0])
         camera.SetFocalPoint(viewDirection)
-        camera.SetViewUp([0,0,1])
+        camera.SetViewUp([0, 0, 1])
 
     view.resetCamera()
     view.render()
@@ -164,7 +162,7 @@ def resetCamera(viewDirection=None, view=None):
 
 def setBackgroundColor(color, color2=None, view=None):
     view = view or getCurrentRenderView()
-    assert(view)
+    assert view
 
     if color2 is None:
         color2 = color
@@ -175,12 +173,12 @@ def setBackgroundColor(color, color2=None, view=None):
 
 def displaySnoptInfo(info):
     if getMainWindow() is not None:
-        getMainWindow().statusBar().showMessage('Info: %d' % info)
+        getMainWindow().statusBar().showMessage("Info: %d" % info)
 
 
 def toggleStereoRender():
     view = getCurrentRenderView()
-    assert(view)
+    assert view
 
     renderWindow = view.renderWindow()
     renderWindow.SetStereoRender(not renderWindow.GetStereoRender())
@@ -188,7 +186,10 @@ def toggleStereoRender():
 
 
 def getCameraTerrainModeEnabled(view):
-    return isinstance(view.renderWindow().GetInteractor().GetInteractorStyle(), vtk.vtkInteractorStyleTerrain2)
+    return isinstance(
+        view.renderWindow().GetInteractor().GetInteractorStyle(),
+        vtk.vtkInteractorStyleTerrain2,
+    )
 
 
 def setCameraTerrainModeEnabled(view, enabled):
@@ -197,15 +198,19 @@ def setCameraTerrainModeEnabled(view, enabled):
         return
 
     if enabled:
-        view.renderWindow().GetInteractor().SetInteractorStyle(vtk.vtkInteractorStyleTerrain2())
-        view.camera().SetViewUp(0,0,1)
+        view.renderWindow().GetInteractor().SetInteractorStyle(
+            vtk.vtkInteractorStyleTerrain2()
+        )
+        view.camera().SetViewUp(0, 0, 1)
     else:
-        view.renderWindow().GetInteractor().SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
+        view.renderWindow().GetInteractor().SetInteractorStyle(
+            vtk.vtkInteractorStyleTrackballCamera()
+        )
 
     view.render()
 
 
-def toggleCameraTerrainMode(view = None):
+def toggleCameraTerrainMode(view=None):
 
     view = view or getCurrentRenderView()
     assert view
@@ -216,10 +221,10 @@ def toggleCameraTerrainMode(view = None):
 
 def findMenu(menuTitle, mainWindow=None):
     mainWindow = mainWindow or getMainWindow()
-    menus = mainWindow.findChildren('QMenu')
+    menus = mainWindow.findChildren("QMenu")
     for menu in menus:
         title = str(menu.title)
-        if title.startswith('&'):
+        if title.startswith("&"):
             title = title[1:]
         if title == menuTitle:
             return menu
@@ -227,7 +232,7 @@ def findMenu(menuTitle, mainWindow=None):
 
 def findToolBar(title, mainWindow=None):
     mainWindow = mainWindow or getMainWindow()
-    bars = mainWindow.findChildren('QToolBar')
+    bars = mainWindow.findChildren("QToolBar")
     for bar in bars:
         if title == str(bar.windowTitle):
             return bar
@@ -259,16 +264,19 @@ def updateToggleTerrainAction(view):
     if not getMainWindow():
         return
     isTerrainMode = False
-    if hasattr(view, 'renderWindow'):
-        isTerrainMode = isinstance(view.renderWindow().GetInteractor().GetInteractorStyle(), vtk.vtkInteractorStyleTerrain2)
-    getToolBarActions()['ActionToggleCameraTerrainMode'].checked = isTerrainMode
+    if hasattr(view, "renderWindow"):
+        isTerrainMode = isinstance(
+            view.renderWindow().GetInteractor().GetInteractorStyle(),
+            vtk.vtkInteractorStyleTerrain2,
+        )
+    getToolBarActions()["ActionToggleCameraTerrainMode"].checked = isTerrainMode
 
 
 class ActionToggleHelper(object):
-    '''
+    """
     This class manages a checkable action and forwards checked events
     to user selected callbacks.
-    '''
+    """
 
     def __init__(self, action, getEnabledFunc, setEnabledFunc):
         self.getEnabled = getEnabledFunc
@@ -277,7 +285,7 @@ class ActionToggleHelper(object):
         self.action = action
         self.action.setCheckable(True)
         self.action.checked = getEnabledFunc()
-        self.action.connect('triggered()', self.onActionChanged)
+        self.action.connect("triggered()", self.onActionChanged)
 
     def updateAction(self):
         self.action.checked = self.getEnabled()
@@ -291,7 +299,6 @@ class ActionToggleHelper(object):
 
 
 class MenuActionToggleHelper(ActionToggleHelper):
-
     def __init__(self, menuName, actionName, getEnabledFunc, setEnabledFunc):
         self.action = addMenuAction(menuName, actionName)
         ActionToggleHelper.__init__(self, self.action, getEnabledFunc, setEnabledFunc)
@@ -304,8 +311,9 @@ def onCurrentViewChanged(previousView, currentView):
 def addToolbarMacro(name, func, robotName=""):
     toolbar = getMainWindow().macrosToolBar()
     action = toolbar.addAction(name)
-    action.connect('triggered()', func)
+    action.connect("triggered()", func)
     getRobotSelector().associateWidgetWithRobot(action, robotName)
+
 
 def removeToolbarMacro(name):
     action = getToolBarActions().get(name)
@@ -315,32 +323,31 @@ def removeToolbarMacro(name):
 
 def addShortcut(widget, keySequence, func):
     shortcut = QtGui.QShortcut(QtGui.QKeySequence(keySequence), widget)
-    shortcut.connect('activated()', func)
-    shortcut.connect('activatedAmbiguously()', func)
+    shortcut.connect("activated()", func)
+    shortcut.connect("activatedAmbiguously()", func)
     return shortcut
 
 
-def showErrorMessage(message, title='Error'):
+def showErrorMessage(message, title="Error"):
     QtGui.QMessageBox.warning(getMainWindow(), title, message)
 
 
-def showInfoMessage(message, title='Info'):
+def showInfoMessage(message, title="Info"):
     QtGui.QMessageBox.information(getMainWindow(), title, message)
 
 
 def showViewTabContextMenu(view, tabBar, menuPosition):
-
     def onPopOut():
         getViewManager().popOut(view)
 
     menu = QtGui.QMenu(tabBar)
-    menu.addAction('Pop out').connect('triggered()', onPopOut)
+    menu.addAction("Pop out").connect("triggered()", onPopOut)
     menu.popup(menuPosition)
 
 
 def onTabWidgetContextMenu(mouseClick):
 
-    tabBar = getViewManager().findChildren('QTabBar')[0]
+    tabBar = getViewManager().findChildren("QTabBar")[0]
     tabIndex = tabBar.tabAt(mouseClick)
     viewName = tabBar.tabText(tabIndex)
     view = getViewManager().findView(viewName)
@@ -351,24 +358,24 @@ def onTabWidgetContextMenu(mouseClick):
 def setupViewManager():
 
     vm = getViewManager()
-    vm.connect('currentViewChanged(ddViewBase*, ddViewBase*)', onCurrentViewChanged)
+    vm.connect("currentViewChanged(ddViewBase*, ddViewBase*)", onCurrentViewChanged)
 
-    tabBar = vm.findChildren('QTabBar')[0]
+    tabBar = vm.findChildren("QTabBar")[0]
     tabBar.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-    tabBar.connect('customContextMenuRequested(const QPoint &)', onTabWidgetContextMenu)
+    tabBar.connect("customContextMenuRequested(const QPoint &)", onTabWidgetContextMenu)
 
 
 def startup(globals):
 
     global _mainWindow
-    _mainWindow = globals['_mainWindow']
+    _mainWindow = globals["_mainWindow"]
 
     if not director.getDRCBaseIsSet():
-        showErrorMessage('director_drs package cannot be found')
+        showErrorMessage("director_drs package cannot be found")
         return
 
-    _mainWindow.connect('resetCamera()', resetCamera)
-    _mainWindow.connect('toggleStereoRender()', toggleStereoRender)
-    _mainWindow.connect('toggleCameraTerrainMode()', toggleCameraTerrainMode)
+    _mainWindow.connect("resetCamera()", resetCamera)
+    _mainWindow.connect("toggleStereoRender()", toggleStereoRender)
+    _mainWindow.connect("toggleCameraTerrainMode()", toggleCameraTerrainMode)
 
     setupViewManager()

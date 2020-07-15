@@ -3,6 +3,7 @@ def deepCopy(dataObj):
     newData.DeepCopy(dataObj)
     return newData
 
+
 def shallowCopy(dataObj):
     newData = dataObj.NewInstance()
     newData.ShallowCopy(dataObj)

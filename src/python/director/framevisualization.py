@@ -19,14 +19,11 @@ def addWidgetsToDict(widgets, d):
 
 
 class WidgetDict(object):
-
     def __init__(self, widgets):
         addWidgetsToDict(widgets, self.__dict__)
 
 
 class FrameUpdater(object):
-
-
     def __init__(self, folderName, listWidget):
 
         self.folderName = folderName
@@ -36,8 +33,6 @@ class FrameUpdater(object):
         self.initListWidget()
 
         self.trace = {}
-
-
 
     def getFrameTransform(self, frameName):
         return vtk.vtkTransform()
@@ -58,7 +53,7 @@ class FrameUpdater(object):
             self.listWidget.addItem(item)
             self.itemMap[name] = item
 
-        self.listWidget.connect('itemChanged(QListWidgetItem*)', self.onItemChecked)
+        self.listWidget.connect("itemChanged(QListWidgetItem*)", self.onItemChecked)
         self.initialised = True
 
     def onItemChecked(self, item):
@@ -66,8 +61,8 @@ class FrameUpdater(object):
         isChecked = item.checkState() == QtCore.Qt.Checked
 
         for frameObj in self.getFrameObjects():
-            if frameObj.getProperty('Name') == name:
-                frameObj.setProperty('Visible', isChecked)
+            if frameObj.getProperty("Name") == name:
+                frameObj.setProperty("Visible", isChecked)
                 break
         else:
             if isChecked:
@@ -89,7 +84,7 @@ class FrameUpdater(object):
         t = self.getFrameTransform(frameName)
         folder = self.getFramesFolder()
         frame = vis.showFrame(t, frameName, parent=folder, scale=0.2)
-        frame.setProperty('Trace', True)
+        frame.setProperty("Trace", True)
 
     def getFramesFolder(self):
         return om.getOrCreateContainer(self.folderName)
@@ -101,7 +96,7 @@ class FrameUpdater(object):
 
     def hideAllFrames(self):
         for frame in self.getFrameObjects():
-            frame.setProperty('Visible', False)
+            frame.setProperty("Visible", False)
 
     def updateFrames(self):
 
@@ -110,8 +105,12 @@ class FrameUpdater(object):
 
         for frame in frames:
 
-            frameName = frame.getProperty('Name')
-            isChecked = QtCore.Qt.Checked if frame.getProperty('Visible') else QtCore.Qt.Unchecked
+            frameName = frame.getProperty("Name")
+            isChecked = (
+                QtCore.Qt.Checked
+                if frame.getProperty("Visible")
+                else QtCore.Qt.Unchecked
+            )
             self.itemMap[frameName].setCheckState(isChecked)
 
             try:
@@ -119,7 +118,7 @@ class FrameUpdater(object):
             except:
                 pass
 
-            if not frame.getProperty('Visible'):
+            if not frame.getProperty("Visible"):
                 continue
 
             self.updateFrame(frameName, frame)
@@ -131,7 +130,7 @@ class FrameUpdater(object):
 
 # Depreciated after bot frames was disabled
 # TODO: add support for tf frame visualization
-#class BotFrameUpdater(FrameUpdater):
+# class BotFrameUpdater(FrameUpdater):
 #
 #    def __init__(self, listWidget):
 #        FrameUpdater.__init__(self, 'Bot Frames', listWidget)
@@ -144,10 +143,9 @@ class FrameUpdater(object):
 
 
 class LinkFrameUpdater(FrameUpdater):
-
     def __init__(self, robotModel, listWidget):
         self.robotModel = robotModel
-        FrameUpdater.__init__(self, 'Link Frames', listWidget)
+        FrameUpdater.__init__(self, "Link Frames", listWidget)
         robotModel.connectModelChanged(self.onModelChanged)
 
     def getFrameTransform(self, frameName):
@@ -166,55 +164,57 @@ class LinkFrameUpdater(FrameUpdater):
 
 
 class FrameVisualizationPanel(object):
-
     def __init__(self, view, robotSystem):
 
         self.view = view
 
         loader = QtUiTools.QUiLoader()
-        uifile = QtCore.QFile(':/ui/ddFrameVisualization.ui')
+        uifile = QtCore.QFile(":/ui/ddFrameVisualization.ui")
         assert uifile.open(uifile.ReadOnly)
-
 
         self.widget = loader.load(uifile)
         self.ui = WidgetDict(self.widget.children())
 
-        #self.botFrameUpdater = BotFrameUpdater(self.ui.botFramesListWidget)
+        # self.botFrameUpdater = BotFrameUpdater(self.ui.botFramesListWidget)
 
-        self.linkFrameUpdater = LinkFrameUpdater(robotSystem.robotStateModel, self.ui.linkFramesListWidget)
+        self.linkFrameUpdater = LinkFrameUpdater(
+            robotSystem.robotStateModel, self.ui.linkFramesListWidget
+        )
 
         self.eventFilter = PythonQt.dd.ddPythonEventFilter()
         self.ui.scrollArea.installEventFilter(self.eventFilter)
         self.eventFilter.addFilteredEventType(QtCore.QEvent.Resize)
-        self.eventFilter.connect('handleEvent(QObject*, QEvent*)', self.onEvent)
+        self.eventFilter.connect("handleEvent(QObject*, QEvent*)", self.onEvent)
 
-        #PythonQt.dd.ddGroupBoxHider(self.ui.botFramesGroup)
-        #PythonQt.dd.ddGroupBoxHider(self.ui.linkFramesGroup)
+        # PythonQt.dd.ddGroupBoxHider(self.ui.botFramesGroup)
+        # PythonQt.dd.ddGroupBoxHider(self.ui.linkFramesGroup)
 
-        #self.updateTimer = TimerCallback(targetFps=60)
-        #self.updateTimer.callback = self.updateFrames
-        #self.updateTimer.start()
+        # self.updateTimer = TimerCallback(targetFps=60)
+        # self.updateTimer.callback = self.updateFrames
+        # self.updateTimer.start()
 
     def onEvent(self, obj, event):
-        minSize = self.ui.scrollArea.widget().minimumSizeHint.width() + self.ui.scrollArea.verticalScrollBar().width
+        minSize = (
+            self.ui.scrollArea.widget().minimumSizeHint.width()
+            + self.ui.scrollArea.verticalScrollBar().width
+        )
         self.ui.scrollArea.setMinimumWidth(minSize)
 
-    #def updateFrames(self):
+    # def updateFrames(self):
     #    self.botFrameUpdater.updateFrames()
 
-    #def getNameFilter(self):
+    # def getNameFilter(self):
     #    return str(self.ui.botFramesFilterEdit.text)
 
-    #def onNameFilterChanged(self):
+    # def onNameFilterChanged(self):
     #    filter = self.getNameFilter()
-
 
 
 def init(view, robotSystem):
 
     global panels
 
-    if 'panels' not in globals():
+    if "panels" not in globals():
         panels = {}
 
     panel = FrameVisualizationPanel(view, robotSystem)

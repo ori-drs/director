@@ -29,26 +29,26 @@ def numpyToImageData(img, flip=True, vtktype=vtk.VTK_UNSIGNED_CHAR):
     image = vtk.vtkImageData()
     image.SetDimensions(width, height, 1)
     image.AllocateScalars(vtktype, numChannels)
-    scalars = getNumpyFromVtk(image, 'ImageScalars')
+    scalars = getNumpyFromVtk(image, "ImageScalars")
     if numChannels > 1:
-        scalars[:] = img.reshape(width*height, numChannels)[:]
+        scalars[:] = img.reshape(width * height, numChannels)[:]
     else:
-        scalars[:] = img.reshape(width*height)[:]
+        scalars[:] = img.reshape(width * height)[:]
     return image
 
 
-def getNumpyFromVtk(dataObj, arrayName='Points', arrayType='points'):
-    assert arrayType in ('points', 'cells')
+def getNumpyFromVtk(dataObj, arrayName="Points", arrayType="points"):
+    assert arrayType in ("points", "cells")
 
-    if arrayName == 'Points':
+    if arrayName == "Points":
         vtkArray = dataObj.GetPoints().GetData()
-    elif arrayType == 'points':
+    elif arrayType == "points":
         vtkArray = dataObj.GetPointData().GetArray(arrayName)
     else:
         vtkArray = dataObj.GetCellData().GetArray(arrayName)
 
     if not vtkArray:
-        raise KeyError('Array not found')
+        raise KeyError("Array not found")
 
     return numpy_support.vtk_to_numpy(vtkArray)
 
@@ -65,22 +65,22 @@ def getVtkPolyDataFromNumpyPoints(points):
 
 
 def getVtkFromNumpy(numpyArray):
-
     def MakeCallback(numpyArray):
         def Closure(caller, event):
             closureArray = numpyArray
+
         return Closure
 
     vtkArray = numpy_support.numpy_to_vtk(numpyArray)
-    vtkArray.AddObserver('DeleteEvent', MakeCallback(numpyArray))
+    vtkArray.AddObserver("DeleteEvent", MakeCallback(numpyArray))
     return vtkArray
 
 
-def addNumpyToVtk(dataObj, numpyArray, arrayName, arrayType='points'):
-    assert arrayType in ('points', 'cells')
+def addNumpyToVtk(dataObj, numpyArray, arrayName, arrayType="points"):
+    assert arrayType in ("points", "cells")
     vtkArray = getVtkFromNumpy(numpyArray)
     vtkArray.SetName(arrayName)
-    if arrayType == 'points':
+    if arrayType == "points":
         assert dataObj.GetNumberOfPoints() == numpyArray.shape[0]
         dataObj.GetPointData().AddArray(vtkArray)
     else:

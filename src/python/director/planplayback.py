@@ -16,11 +16,11 @@ import scipy.interpolate
 
 
 def asRobotPlan(msg):
-    '''
+    """
     If the given message is a robot_plan_with_supports_t then this function returns
     the plan message contained within it.  For any other message type, this function
     just returns its input argument.
-    '''
+    """
     try:
         import drc as lcmdrc
     except ImportError:
@@ -32,13 +32,12 @@ def asRobotPlan(msg):
 
 
 class PlanPlayback(object):
-
     def __init__(self):
         self.animationCallback = None
         self.animationTimer = None
-        self.interpolationMethod = 'slinear'
+        self.interpolationMethod = "slinear"
         self.playbackSpeed = 1.0
-        self.jointNameRegex = ''
+        self.jointNameRegex = ""
 
     @staticmethod
     def getPlanPoses(msgOrList):
@@ -72,19 +71,15 @@ class PlanPlayback(object):
         endTime = msg.plan[-1].utime
         return (endTime - startTime) / 1e6
 
-
     def stopAnimation(self):
         if self.animationTimer:
             self.animationTimer.stop()
 
-
     def setInterpolationMethod(method):
         self.interpolationMethod = method
 
-
     def playPlan(self, msg, jointController):
         self.playPlans([msg], jointController)
-
 
     def playPlans(self, messages, jointController):
 
@@ -93,23 +88,22 @@ class PlanPlayback(object):
         poseTimes, poses = self.getPlanPoses(messages)
         self.playPoses(poseTimes, poses, jointController)
 
-
     def getPoseInterpolatorFromPlan(self, message):
         poseTimes, poses = self.getPlanPoses(message)
         return self.getPoseInterpolator(poseTimes, poses)
 
-
     def getPoseInterpolator(self, poseTimes, poses, unwrap_rpy=True):
         if unwrap_rpy:
             poses = np.array(poses, copy=True)
-            poses[:,3:6] = np.unwrap(poses[:,3:6],axis=0)
+            poses[:, 3:6] = np.unwrap(poses[:, 3:6], axis=0)
 
-        if self.interpolationMethod in ['slinear', 'quadratic', 'cubic']:
-            f = scipy.interpolate.interp1d(poseTimes, poses, axis=0, kind=self.interpolationMethod)
-        elif self.interpolationMethod == 'pchip':
+        if self.interpolationMethod in ["slinear", "quadratic", "cubic"]:
+            f = scipy.interpolate.interp1d(
+                poseTimes, poses, axis=0, kind=self.interpolationMethod
+            )
+        elif self.interpolationMethod == "pchip":
             f = scipy.interpolate.PchipInterpolator(poseTimes, poses, axis=0)
         return f
-
 
     def getPlanPoseMeshes(self, messages, jointController, robotModel, numberOfSamples):
 
@@ -121,18 +115,16 @@ class PlanPlayback(object):
         for sampleTime in sampleTimes:
 
             pose = f(sampleTime)
-            jointController.setPose('plan_playback', pose)
+            jointController.setPose("plan_playback", pose)
             polyData = vtk.vtkPolyData()
             robotModel.model.getModelMesh(polyData)
             meshes.append(polyData)
 
         return meshes
 
-
     def showPoseAtTime(self, time, jointController, poseInterpolator):
         pose = poseInterpolator(time)
-        jointController.setPose('plan_playback', pose)
-
+        jointController.setPose("plan_playback", pose)
 
     def playPoses(self, poseTimes, poses, jointController):
 
@@ -146,7 +138,7 @@ class PlanPlayback(object):
 
             if tNow > poseTimes[-1]:
                 pose = poses[-1]
-                jointController.setPose('plan_playback', pose)
+                jointController.setPose("plan_playback", pose)
 
                 if self.animationCallback:
                     self.animationCallback()
@@ -154,7 +146,7 @@ class PlanPlayback(object):
                 return False
 
             pose = f(tNow)
-            jointController.setPose('plan_playback', pose)
+            jointController.setPose("plan_playback", pose)
 
             if self.animationCallback:
                 self.animationCallback()
@@ -165,25 +157,23 @@ class PlanPlayback(object):
         self.animationTimer.start()
         updateAnimation()
 
-
     def picklePlan(self, filename, msg):
         poseTimes, poses = self.getPlanPoses(msg)
-        pickle.dump((poseTimes, poses), open(filename, 'w'))
-
+        pickle.dump((poseTimes, poses), open(filename, "w"))
 
     def getMovingJointNames(self, msg):
         poseTimes, poses = self.getPlanPoses(msg)
         diffs = np.diff(poses, axis=0)
-        jointIds =  np.unique(np.where(diffs != 0.0)[1])
-        jointNames = [robotstate.getDrakePoseJointNames()[jointId] for jointId in jointIds]
+        jointIds = np.unique(np.where(diffs != 0.0)[1])
+        jointNames = [
+            robotstate.getDrakePoseJointNames()[jointId] for jointId in jointIds
+        ]
         return jointNames
-
 
     def plotPlan(self, msg):
 
         poseTimes, poses = self.getPlanPoses(msg)
         self.plotPoses(poseTimes, poses)
-
 
     def plotPoses(self, poseTimes, poses):
 
@@ -197,8 +187,10 @@ class PlanPlayback(object):
             diffs = np.diff(poses, axis=0)
             jointIds = np.unique(np.where(diffs != 0.0)[1])
 
-        jointNames = [robotstate.getDrakePoseJointNames()[jointId] for jointId in jointIds]
-        jointTrajectories = [poses[:,jointId] for jointId in jointIds]
+        jointNames = [
+            robotstate.getDrakePoseJointNames()[jointId] for jointId in jointIds
+        ]
+        jointTrajectories = [poses[:, jointId] for jointId in jointIds]
 
         seriesNames = []
 
@@ -209,8 +201,9 @@ class PlanPlayback(object):
         fig = plt.figure()
         ax = fig.add_subplot(111)
 
-
-        for jointId, jointName, jointTrajectory in zip(jointIds, jointNames, jointTrajectories):
+        for jointId, jointName, jointTrajectory in zip(
+            jointIds, jointNames, jointTrajectories
+        ):
 
             if self.jointNameRegex and not re.match(self.jointNameRegex, jointName):
                 continue
@@ -220,20 +213,19 @@ class PlanPlayback(object):
 
             y = np.rad2deg(y)
 
-            if self.interpolationMethod in ['slinear', 'quadratic', 'cubic']:
+            if self.interpolationMethod in ["slinear", "quadratic", "cubic"]:
                 f = scipy.interpolate.interp1d(x, y, kind=self.interpolationMethod)
-            elif self.interpolationMethod == 'pchip':
+            elif self.interpolationMethod == "pchip":
                 f = scipy.interpolate.PchipInterpolator(x, y)
 
-            ax.plot(x, y, 'ko')
-            seriesNames.append(jointName + ' points')
+            ax.plot(x, y, "ko")
+            seriesNames.append(jointName + " points")
 
-            ax.plot(xnew, f(xnew), '-')
-            seriesNames.append(jointName + ' ' + self.interpolationMethod)
+            ax.plot(xnew, f(xnew), "-")
+            seriesNames.append(jointName + " " + self.interpolationMethod)
 
-
-        ax.legend(seriesNames, loc='upper right').draggable()
-        ax.set_xlabel('time (s)')
-        ax.set_ylabel('joint angle (deg)')
-        ax.set_title('joint trajectories')
+        ax.legend(seriesNames, loc="upper right").draggable()
+        ax.set_xlabel("time (s)")
+        ax.set_ylabel("joint angle (deg)")
+        ax.set_title("joint trajectories")
         plt.show()

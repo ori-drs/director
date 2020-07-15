@@ -6,8 +6,8 @@ from director.timercallback import TimerCallback
 from director import propertyset
 from collections import OrderedDict
 
-class OrbitController(TimerCallback):
 
+class OrbitController(TimerCallback):
     def __init__(self, view):
         TimerCallback.__init__(self)
         self.view = view
@@ -21,7 +21,6 @@ class OrbitController(TimerCallback):
 
 
 class CameraInterpolator(object):
-
     def __init__(self, view):
         self.view = view
         self.reset()
@@ -46,7 +45,6 @@ class CameraInterpolator(object):
 
 
 class Flyer(TimerCallback):
-
     def __init__(self, view):
         TimerCallback.__init__(self)
         self.view = view
@@ -76,8 +74,8 @@ class Flyer(TimerCallback):
                 newPosition = oldPosition + (newFocalPoint - oldFocalPoint)
             else:
                 newPosition = oldPosition
-            newPosition += self.positionZoom*(newFocalPoint - newPosition)
-            #newPosition = newFocalPoint - self.positionZoom*(newFocalPoint - newPosition)
+            newPosition += self.positionZoom * (newFocalPoint - newPosition)
+            # newPosition = newFocalPoint - self.positionZoom*(newFocalPoint - newPosition)
 
         c.SetFocalPoint(newFocalPoint)
         c.SetPosition(newPosition)
@@ -86,7 +84,6 @@ class Flyer(TimerCallback):
         self.interp.AddCamera(1.0, c)
         self.startTime = time.time()
         self.start()
-
 
     def tick(self):
 
@@ -101,7 +98,6 @@ class Flyer(TimerCallback):
 
 
 class CameraTracker(object):
-
     def __init__(self, view, targetFrame):
         self.view = view
         self.targetFrame = targetFrame
@@ -122,15 +118,21 @@ class CameraTracker(object):
 
     def getCameraTransform(self):
         c = self.camera
-        return transformUtils.getLookAtTransform(c.GetFocalPoint(), c.GetPosition(), c.GetViewUp())
+        return transformUtils.getLookAtTransform(
+            c.GetFocalPoint(), c.GetPosition(), c.GetViewUp()
+        )
 
     def getCameraToTargetTransform(self, targetFrame):
 
         targetToWorld = transformUtils.copyFrame(targetFrame)
         cameraToWorld = self.getCameraTransform()
 
-        cameraToTarget = transformUtils.concatenateTransforms([cameraToWorld, targetToWorld.GetLinearInverse()])
-        focalDistance = np.linalg.norm(np.array(self.camera.GetFocalPoint()) - np.array(self.camera.GetPosition()))
+        cameraToTarget = transformUtils.concatenateTransforms(
+            [cameraToWorld, targetToWorld.GetLinearInverse()]
+        )
+        focalDistance = np.linalg.norm(
+            np.array(self.camera.GetFocalPoint()) - np.array(self.camera.GetPosition())
+        )
         return cameraToTarget, focalDistance
 
     def setCameraFocalPointToTarget(self):
@@ -160,12 +162,11 @@ class CameraTracker(object):
 
 
 class PositionTracker(CameraTracker):
-
     def setup(self):
-        self.actions = ['Re-center']
+        self.actions = ["Re-center"]
 
     def onAction(self, actionName):
-        if actionName == 'Re-center':
+        if actionName == "Re-center":
             self.setCameraFocalPointToTarget()
 
     def reset(self):
@@ -196,7 +197,6 @@ class PositionTracker(CameraTracker):
 
 
 class LookAtTracker(CameraTracker):
-
     def update(self):
         self.setCameraFocalPointToTarget()
 
@@ -205,14 +205,19 @@ class LookAtTracker(CameraTracker):
 
 
 class OrbitTracker(PositionTracker):
-
     def setup(self):
         super(OrbitTracker, self).setup()
-        self.properties.addProperty('Orbit Time (s)', 20, attributes=propertyset.PropertyAttributes(minimum=1, maximum=100, singleStep=1))
+        self.properties.addProperty(
+            "Orbit Time (s)",
+            20,
+            attributes=propertyset.PropertyAttributes(
+                minimum=1, maximum=100, singleStep=1
+            ),
+        )
 
     def update(self):
         super(OrbitTracker, self).update()
-        orbitTime = self.properties.getProperty('Orbit Time (s)')
+        orbitTime = self.properties.getProperty("Orbit Time (s)")
         speed = 360.0 / orbitTime
         degrees = self.dt * speed
         self.view.camera().Azimuth(degrees)
@@ -223,7 +228,6 @@ class OrbitTracker(PositionTracker):
 
 
 class PositionOrientationTracker(CameraTracker):
-
     def storeTargetPose(self):
         self.lastTargetPosition = self.getTargetPosition()
         self.lastTargetQuaternion = self.getTargetQuaternion()
@@ -234,32 +238,42 @@ class PositionOrientationTracker(CameraTracker):
         targetToWorld = transformUtils.copyFrame(self.targetFrame.transform)
         cameraToWorld = self.getCameraTransform()
 
-        cameraToTarget = transformUtils.concatenateTransforms([cameraToWorld, targetToWorld.GetLinearInverse()])
+        cameraToTarget = transformUtils.concatenateTransforms(
+            [cameraToWorld, targetToWorld.GetLinearInverse()]
+        )
 
         self.boomTransform = cameraToTarget
-        self.focalDistance = np.linalg.norm(np.array(self.camera.GetFocalPoint()) - np.array(self.camera.GetPosition()))
+        self.focalDistance = np.linalg.norm(
+            np.array(self.camera.GetFocalPoint()) - np.array(self.camera.GetPosition())
+        )
 
     def update(self):
 
-        previousTargetFrame = transformUtils.transformFromPose(self.lastTargetPosition, self.lastTargetQuaternion)
+        previousTargetFrame = transformUtils.transformFromPose(
+            self.lastTargetPosition, self.lastTargetQuaternion
+        )
         self.storeTargetPose()
 
-        cameraToTarget, focalDistance = self.getCameraToTargetTransform(previousTargetFrame)
+        cameraToTarget, focalDistance = self.getCameraToTargetTransform(
+            previousTargetFrame
+        )
 
         targetToWorld = self.targetFrame.transform
-        #cameraToTarget = self.boomTransform
-        cameraToWorld = transformUtils.concatenateTransforms([cameraToTarget, targetToWorld])
+        # cameraToTarget = self.boomTransform
+        cameraToWorld = transformUtils.concatenateTransforms(
+            [cameraToTarget, targetToWorld]
+        )
 
         c = self.camera
 
         focalPoint = cameraToWorld.TransformPoint([self.focalDistance, 0, 0])
         focalPoint = targetToWorld.GetPosition()
 
-        #print 'focal distance:', self.focalDistance
-        #print 'cameraToTarget pos:', cameraToTarget.GetPosition()
-        #print 'cameraToWorld pos:', cameraToWorld.GetPosition()
-        #print 'targetToWorld pos:', targetToWorld.GetPosition()
-        #print 'focal pos:', focalPoint
+        # print 'focal distance:', self.focalDistance
+        # print 'cameraToTarget pos:', cameraToTarget.GetPosition()
+        # print 'cameraToWorld pos:', cameraToWorld.GetPosition()
+        # print 'targetToWorld pos:', targetToWorld.GetPosition()
+        # print 'focal pos:', focalPoint
 
         c.SetPosition(cameraToWorld.GetPosition())
         c.SetFocalPoint(focalPoint)
@@ -267,15 +281,38 @@ class PositionOrientationTracker(CameraTracker):
 
 
 class SmoothFollowTracker(CameraTracker):
-
     def getMinimumUpdateRate(self):
         return 30
 
     def setup(self):
-        self.properties.addProperty('Smooth Time (s)', 0.5, attributes=propertyset.PropertyAttributes(decimals=1, minimum=0.1, maximum=5, singleStep=0.1))
-        self.properties.addProperty('Distance (m)', 15, attributes=propertyset.PropertyAttributes(decimals=1, minimum=0.5, maximum=1000.0, singleStep=1))
-        self.properties.addProperty('Elevation (deg)', 10, attributes=propertyset.PropertyAttributes(minimum=-90, maximum=90, singleStep=2))
-        self.properties.addProperty('Azimuth (deg)', 0, attributes=propertyset.PropertyAttributes(minimum=-180, maximum=180, singleStep=10))
+        self.properties.addProperty(
+            "Smooth Time (s)",
+            0.5,
+            attributes=propertyset.PropertyAttributes(
+                decimals=1, minimum=0.1, maximum=5, singleStep=0.1
+            ),
+        )
+        self.properties.addProperty(
+            "Distance (m)",
+            15,
+            attributes=propertyset.PropertyAttributes(
+                decimals=1, minimum=0.5, maximum=1000.0, singleStep=1
+            ),
+        )
+        self.properties.addProperty(
+            "Elevation (deg)",
+            10,
+            attributes=propertyset.PropertyAttributes(
+                minimum=-90, maximum=90, singleStep=2
+            ),
+        )
+        self.properties.addProperty(
+            "Azimuth (deg)",
+            0,
+            attributes=propertyset.PropertyAttributes(
+                minimum=-180, maximum=180, singleStep=10
+            ),
+        )
 
     def reset(self):
         self.currentVelocity = np.array([0.0, 0.0, 0.0])
@@ -285,15 +322,13 @@ class SmoothFollowTracker(CameraTracker):
         if not self.targetFrame:
             return
 
-
-        r = self.properties.getProperty('Distance (m)')
-        theta = np.radians(90 - self.properties.getProperty('Elevation (deg)'))
-        phi = np.radians(180 - self.properties.getProperty('Azimuth (deg)'))
+        r = self.properties.getProperty("Distance (m)")
+        theta = np.radians(90 - self.properties.getProperty("Elevation (deg)"))
+        phi = np.radians(180 - self.properties.getProperty("Azimuth (deg)"))
 
         x = r * np.cos(phi) * np.sin(theta)
         y = r * np.sin(phi) * np.sin(theta)
         z = r * np.cos(theta)
-
 
         c = self.camera
         targetToWorld = self.targetFrame.transform
@@ -301,11 +336,20 @@ class SmoothFollowTracker(CameraTracker):
         currentPosition = np.array(c.GetPosition())
         desiredPosition = np.array(targetToWorld.TransformPoint([x, y, z]))
 
-        smoothTime = self.properties.getProperty('Smooth Time (s)')
+        smoothTime = self.properties.getProperty("Smooth Time (s)")
 
-        newPosition, self.currentVelocity = smoothDamp(currentPosition, desiredPosition, self.currentVelocity, smoothTime, maxSpeed=100, deltaTime=self.dt)
+        newPosition, self.currentVelocity = smoothDamp(
+            currentPosition,
+            desiredPosition,
+            self.currentVelocity,
+            smoothTime,
+            maxSpeed=100,
+            deltaTime=self.dt,
+        )
 
-        trackerToWorld = transformUtils.getLookAtTransform(targetToWorld.GetPosition(), newPosition)
+        trackerToWorld = transformUtils.getLookAtTransform(
+            targetToWorld.GetPosition(), newPosition
+        )
 
         c.SetFocalPoint(targetToWorld.GetPosition())
         c.SetPosition(trackerToWorld.GetPosition())
@@ -313,7 +357,6 @@ class SmoothFollowTracker(CameraTracker):
 
 
 class TargetFrameConverter(object):
-
     def __init__(self):
         self.targetFrame = None
 
@@ -326,7 +369,6 @@ class TargetFrameConverter(object):
 
 
 class CameraTrackerManager(object):
-
     def __init__(self):
         self.target = None
         self.targetFrame = None
@@ -342,7 +384,7 @@ class CameraTrackerManager(object):
 
         tNow = time.time()
         dt = tNow - self.tLast
-        if dt < self.timer.elapsed/2.0:
+        if dt < self.timer.elapsed / 2.0:
             return
 
         self.update()
@@ -352,10 +394,10 @@ class CameraTrackerManager(object):
         self.camera = view.camera()
 
     def setTarget(self, target):
-        '''
+        """
         target should be an instance of TargetFrameConverter or
         any object that provides a method getTargetFrame().
-        '''
+        """
 
         if target == self.target:
             return
@@ -367,7 +409,9 @@ class CameraTrackerManager(object):
 
         self.target = target
         self.targetFrame = target.getTargetFrame()
-        self.callbackId = self.targetFrame.connectFrameModified(self.onTargetFrameModified)
+        self.callbackId = self.targetFrame.connectFrameModified(
+            self.onTargetFrameModified
+        )
 
         self.initTracker()
 
@@ -395,7 +439,6 @@ class CameraTrackerManager(object):
         if self.activeTracker:
             self.activeTracker.reset()
 
-
     def getModeActions(self):
         if self.activeTracker:
             return self.activeTracker.actions
@@ -416,7 +459,11 @@ class CameraTrackerManager(object):
     def initTracker(self):
 
         self.timer.stop()
-        self.activeTracker = self.trackerClass(self.view, self.targetFrame) if (self.trackerClass and self.targetFrame) else None
+        self.activeTracker = (
+            self.trackerClass(self.view, self.targetFrame)
+            if (self.trackerClass and self.targetFrame)
+            else None
+        )
         self.reset()
         self.update()
 
@@ -427,14 +474,16 @@ class CameraTrackerManager(object):
                 self.timer.start()
 
     def addTrackers(self):
-        self.trackers = OrderedDict([
-          ['Off', None],
-          ['Position', PositionTracker],
-          ['Position & Orientation', PositionOrientationTracker],
-          ['Smooth Follow', SmoothFollowTracker],
-          ['Look At', LookAtTracker],
-          ['Orbit', OrbitTracker],
-        ])
+        self.trackers = OrderedDict(
+            [
+                ["Off", None],
+                ["Position", PositionTracker],
+                ["Position & Orientation", PositionOrientationTracker],
+                ["Smooth Follow", SmoothFollowTracker],
+                ["Look At", LookAtTracker],
+                ["Orbit", OrbitTracker],
+            ]
+        )
 
     def setTrackerMode(self, modeName):
         assert modeName in self.trackers
@@ -443,14 +492,14 @@ class CameraTrackerManager(object):
 
 
 def smoothDamp(current, target, currentVelocity, smoothTime, maxSpeed, deltaTime):
-    '''
+    """
     Based on Unity3D SmoothDamp
     See: http://answers.unity3d.com/answers/310645/view.html
-    '''
+    """
     smoothTime = max(0.0001, smoothTime)
 
-    num = 2.0 / smoothTime;
-    num2 = num * deltaTime;
+    num = 2.0 / smoothTime
+    num2 = num * deltaTime
     num3 = 1.0 / (1.0 + num2 + 0.48 * num2 * num2 + 0.235 * num2 * num2 * num2)
     num4 = current - target
     num5 = target
@@ -461,7 +510,7 @@ def smoothDamp(current, target, currentVelocity, smoothTime, maxSpeed, deltaTime
     currentVelocity = (currentVelocity - num * num7) * num3
     num8 = target + (num4 + num7) * num3
     for i in xrange(len(current)):
-        if (num5[i] - current[i] > 0.0 == num8[i] > num5[i]):
+        if num5[i] - current[i] > 0.0 == num8[i] > num5[i]:
             num8[i] = num5[i]
             currentVelocity[i] = (num8[i] - num5[i]) / deltaTime
 
@@ -469,7 +518,6 @@ def smoothDamp(current, target, currentVelocity, smoothTime, maxSpeed, deltaTime
 
 
 class RobotModelFollower(object):
-
     def __init__(self, view, robotModel, jointController):
         self.view = view
         self.robotModel = robotModel
