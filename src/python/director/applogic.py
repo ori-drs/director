@@ -352,7 +352,7 @@ def onTabWidgetContextMenu(mouseClick):
     tabBar = getViewManager().findChildren("QTabBar")[0]
     tabIndex = tabBar.tabAt(mouseClick)
     viewName = tabBar.tabText(tabIndex)
-    view = getViewManager().findView(viewName)
+    view = getViewManager().findView(viewName, getRobotSelector().selectedRobotName())
     if view:
         showViewTabContextMenu(view, tabBar, tabBar.mapToGlobal(mouseClick))
 
