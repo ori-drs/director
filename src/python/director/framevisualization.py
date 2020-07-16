@@ -218,7 +218,9 @@ def init(view, robotSystem):
         panels = {}
 
     panel = FrameVisualizationPanel(view, robotSystem)
-    dock = app.addWidgetToDock(panel.widget, action=None)
+    dock = app.addWidgetToDock(
+        panel.widget, action=None, associatedRobotName=robotSystem.robotName
+    )
     dock.hide()
 
     panels[robotSystem.robotName] = (panel, dock)

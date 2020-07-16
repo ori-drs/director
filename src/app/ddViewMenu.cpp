@@ -91,7 +91,13 @@ bool ddViewMenu::eventFilter(QObject* watched, QEvent* e)
   return QObject::eventFilter(watched, e);
 }
 
-void ddViewMenu::addWidget(QWidget* widget, QAction* action)
+QMenu* ddViewMenu::addSubMenu(const QString& name) {
+  QMenu* submenu = this->Implementation->Menu.addMenu(name);
+  submenu->setObjectName(name);
+  return submenu;
+}
+
+void ddViewMenu::addWidget(QWidget* widget, QAction* action, const QString& menuName)
 {
   if (this->Implementation->ActionMap.contains(widget))
     {
@@ -117,11 +123,23 @@ void ddViewMenu::addWidget(QWidget* widget, QAction* action)
   this->connect(action, SIGNAL(triggered(bool)), widget, SLOT(setVisible(bool)));
   this->Implementation->ActionMap.insert(widget, action);
   widget->installEventFilter(this);
-  this->Implementation->Menu.addAction(action);
+
+  // Without a specific menu name, add the action to the toplevel menu
+  if (menuName == "") {
+    this->Implementation->Menu.addAction(action);
+  } else {
+    // if the submenu doesn't exist yet, create and then insert the action there
+    QMenu* subMenu = this->Implementation->Menu.findChild<QMenu*>(menuName);
+    if (subMenu == nullptr) {
+      subMenu = addSubMenu(menuName);
+    }
+
+    subMenu->addAction(action);
+  }
 }
 
 
-void ddViewMenu::addWidget(QWidget* widget, const QString& text, const QIcon& icon)
+void ddViewMenu::addWidget(QWidget* widget, const QString& text, const QIcon& icon, const QString& menuName)
 {
   if(this->Implementation->ActionMap.contains(widget))
     {
@@ -141,7 +159,7 @@ void ddViewMenu::addWidget(QWidget* widget, const QString& text, const QIcon& ic
     action->setIcon(icon);
     }
 
-  this->addWidget(widget, action);
+  this->addWidget(widget, action, menuName);
 }
 
 void ddViewMenu::addSeparator()

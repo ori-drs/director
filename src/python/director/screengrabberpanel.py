@@ -366,7 +366,9 @@ def init(view, imageWidget, robotName=""):
         os.path.join(os.path.dirname(__file__), "images/video_record.png"),
         append=True,
     )
-    dock = app.addWidgetToDock(panel.widget, action=action)
+    dock = app.addWidgetToDock(
+        panel.widget, action=action, associatedRobotName=robotName
+    )
     app.getRobotSelector().associateWidgetWithRobot(action, robotName)
 
     dock.hide()

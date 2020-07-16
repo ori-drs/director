@@ -113,8 +113,20 @@ def addDockAction(actionName, actionText, iconPath, append=False):
     return action
 
 
-def addWidgetToDock(widget, dockArea=QtCore.Qt.RightDockWidgetArea, action=None):
+def addWidgetToDock(
+    widget, dockArea=QtCore.Qt.RightDockWidgetArea, action=None, associatedRobotName=""
+):
+    """
+    This function adds the given widget to the specified dock area. The widgets can then be accesses by clicking the
+    icon. It also adds the widgets to the view menu
 
+    :param widget: The widget to add
+    :param dockArea: The dock area to which the widget should be added
+    :param action: The action associated with the widget, which is required for it to work TODO: what is the actual relationship
+    :param associatedRobotName: The name of the robot associated with this action. This is used to set the name of
+    the submenu of the view menu to which this widget will also be added
+    :return:
+    """
     dock = QtGui.QDockWidget()
     dock.setWidget(widget)
     dock.setWindowTitle(widget.windowTitle)
@@ -128,9 +140,9 @@ def addWidgetToDock(widget, dockArea=QtCore.Qt.RightDockWidgetArea, action=None)
         action.connect("triggered()", functools.partial(hideDockWidgets, action))
 
     if action is None:
-        getMainWindow().addWidgetToViewMenu(dock)
+        getMainWindow().addWidgetToViewMenu(dock, associatedRobotName)
     else:
-        getMainWindow().addWidgetToViewMenu(dock, action)
+        getMainWindow().addWidgetToViewMenu(dock, action, associatedRobotName)
 
     return dock
 
