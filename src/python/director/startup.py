@@ -393,12 +393,6 @@ viewFramesHandler = viewframes.ViewFramesSizeHandler(
 if not useLightColorScheme:
     viewBackgroundLightHandler.action.trigger()
 
-gridUpdater = RobotGridUpdater(
-    grid.getChildFrame(),
-    robotSystem.robotStateModel,
-    robotSystem.robotStateJointController,
-)
-
 cameraBooksmarksPanel = camerabookmarks.init(view)
 
 cameraControlPanel = cameracontrolpanel.CameraControlPanel(view)
@@ -460,6 +454,12 @@ for robotSystem in robotSystems:
         cameraview.cameraViews[
             robotSystem.robotName
         ].rayCallback = segmentation.extractPointsAlongClickRay
+
+    gridUpdater = RobotGridUpdater(
+        grid.getChildFrame(),
+        robotSystem.robotStateModel,
+        robotSystem.robotStateJointController,
+    )
 
     # reset time button and connections
     button = QtGui.QPushButton("Reset time")
