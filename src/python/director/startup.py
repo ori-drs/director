@@ -470,6 +470,8 @@ for robotSystem in robotSystems:
         for source in robotSystem.sources:
             if hasattr(source, "resetTime"):
                 source.resetTime()
+            else:
+                print("WARNING: source {} does not have a resetTime function. This is probably a mistake.".format(source))
 
     reset_time_button.connect("clicked()", reset_sources_time)
     reset_time_button.connect(
