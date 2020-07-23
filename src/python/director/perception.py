@@ -817,7 +817,7 @@ class MarkerArraySource(vis.PolyDataItemList):
             self.provider._on_property_changed(propertySet, propertyName)
 
     def resetTime(self):
-        self.provider.ResetTime()
+        self.provider.reset_time()
 
     @CheckProvider
     def showData(self):

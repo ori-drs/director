@@ -48,6 +48,14 @@ class SourceMeta(object):
         pass
 
     @abc.abstractmethod
+    def reset_time(self):
+        """
+        Reset the time used by whatever provides the frame transformations
+        :return:
+        """
+        pass
+
+    @abc.abstractmethod
     def _on_property_changed(self, property_set, property_name):
         """
         This function can be used to pass information about changing properties on the object which uses this as a
@@ -90,14 +98,6 @@ class CloudSourceMeta(SourceMeta):
         """
         Set the fixed frame of the provider
         :param fixed_frame: The name of the fixed frame to use
-        :return:
-        """
-        pass
-
-    @abc.abstractmethod
-    def reset_time(self):
-        """
-        Reset the time used by whatever provides the frame transformations
         :return:
         """
         pass
@@ -149,14 +149,6 @@ class ImageSourceMeta(SourceMeta):
         """
         Get a transform between the camera frame and the robot base frame
         :param vtk_transform: This transform will be populated with the transform
-        :return:
-        """
-        pass
-
-    @abc.abstractmethod
-    def reset_time(self):
-        """
-        Reset the time used by whatever provides the frame transformations
         :return:
         """
         pass
@@ -242,14 +234,6 @@ class RosGridMapMeta(SourceMeta):
         """
         Set the fixed frame of the provider
         :param fixed_frame: The name of the fixed frame to use
-        :return:
-        """
-        pass
-
-    @abc.abstractmethod
-    def reset_time(self):
-        """
-        Reset the time used by whatever provides the frame transformations
         :return:
         """
         pass

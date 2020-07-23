@@ -84,7 +84,7 @@ class RobotSystemFactory(object):
         )
 
         # Expand dict to keyword args, robotSystem object will have objects accessible via keys set in config
-        return FieldContainer(**perceptionSources)
+        return FieldContainer(sources=perceptionSources.values(), **perceptionSources)
 
     def initConvexHullModel(self, robotSystem):
 

@@ -462,17 +462,29 @@ for robotSystem in robotSystems:
     )
 
     # reset time button and connections
-    button = QtGui.QPushButton("Reset time")
-    button.setObjectName("resettime")
+    reset_time_button = QtGui.QPushButton("Reset time")
+    reset_time_button.setObjectName("resettime")
 
-    # Connect reset time button to all sources. Assumes that the source name ends with "source"
-    for name, attr in robotSystem:
-        if str.lower(name).endswith("source"):
-            button.connect("clicked()", attr.resetTime)
+    # Iterate over all sources and reset time when reset button pressed
+    def reset_sources_time():
+        for source in robotSystem.sources:
+            if hasattr(source, "resetTime"):
+                source.resetTime()
+            else:
+                print (
+                    "WARNING: source {} does not have a resetTime function. This is probably a mistake.".format(
+                        source
+                    )
+                )
 
-    button.connect("clicked()", cameraview.cameraViews[robotSystem.robotName].resetTime)
-    app.getMainWindow().statusBar().addPermanentWidget(button)
-    app.getRobotSelector().associateWidgetWithRobot(button, robotSystem.robotName)
+    reset_time_button.connect("clicked()", reset_sources_time)
+    reset_time_button.connect(
+        "clicked()", cameraview.cameraViews[robotSystem.robotName].resetTime
+    )
+    app.getMainWindow().statusBar().addPermanentWidget(reset_time_button)
+    app.getRobotSelector().associateWidgetWithRobot(
+        reset_time_button, robotSystem.robotName
+    )
 
     useControllerRate = False
     if useControllerRate:
