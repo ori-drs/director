@@ -1140,9 +1140,6 @@ def init(view, robotStateJointController):
                 )
                 source.addToView(view)
                 om.addToObjectModel(source, sensorsFolder)
-                if "properties" in sourceConfig:
-                    for prop, value in sourceConfig["properties"].iteritems():
-                        source.setProperty(prop, value)
 
             if sourceType == "depthImagePointCloud":
                 source = DepthImagePointCloudSource(
@@ -1161,6 +1158,10 @@ def init(view, robotStateJointController):
                 )
                 source.addToView(view)
                 om.addToObjectModel(source, sensorsFolder)
+
+            if "properties" in sourceConfig:
+                for prop, value in sourceConfig["properties"].iteritems():
+                    source.setProperty(prop, value)
 
             perceptionSources[sourceConfig["robotSystemKey"]] = source
 
