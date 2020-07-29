@@ -1,7 +1,43 @@
 cmake_minimum_required(VERSION 2.8.7)
 
-# Drake Designer
-project(DD)
+
+project(director)
+
+find_package(catkin REQUIRED)
+
+catkin_package(
+  CATKIN_DEPENDS  
+    pcl_ros pcl_plugin
+    ctk_python_console
+    qt_property_browser python_qt
+    anymal_msgs vtk_ros)
+
+# set a default build type if none was specified
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  message(STATUS "Setting build type to 'Release' as none was specified.")
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+  # set the possible values of build type for cmake-gui
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+    "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+endif()
+
+option(USE_EXTERNAL_INSTALL "If enabled, install dependencies to CMAKE_INSTALL_PREFIX." OFF)
+mark_as_advanced(USE_EXTERNAL_INSTALL)
+
+include(cmake/dd-macros.cmake)
+include(cmake/externals.cmake)
+include(ExternalProject)
+
+set_property(DIRECTORY PROPERTY EP_PREFIX ${director_BINARY_DIR})
+
+set(source_prefix ${director_BINARY_DIR}/src)
+set(install_prefix ${director_BINARY_DIR}/install)
+if (USE_EXTERNAL_INSTALL)
+  set(install_prefix ${CMAKE_INSTALL_PREFIX})
+else()
+  mark_as_advanced(CMAKE_INSTALL_PREFIX)
+endif()
+
 set(CMAKE_DIRECTOR_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_DIRECTOR_SOURCE_DIR}/cmake/modules")
