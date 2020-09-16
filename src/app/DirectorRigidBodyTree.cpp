@@ -79,24 +79,25 @@ void RigidBodyTree::addRobotFromURDFString(const std::string &xml_string, std::m
       body->mass = links[i]->inertial->mass;
       body->com << links[i]->inertial->origin.position.x, links[i]->inertial->origin.position.y, links[i]->inertial->origin.position.z;
     }
-    //visual
-    if (links[i]->visual) {
+    //visuals
+    for (auto& link_visual : links[i]->visual_array)
+    {
       Eigen::Isometry3d T_element_to_local;
       Eigen::Vector3d rpy;
       double roll, pitch, yaw;
-      links[i]->visual->origin.rotation.getRPY(roll, pitch, yaw);
+      link_visual->origin.rotation.getRPY(roll, pitch, yaw);
       rpy << roll, pitch, yaw;
       Eigen::Vector3d xyz;
-      xyz << links[i]->visual->origin.position.x, links[i]->visual->origin.position.y, links[i]->visual->origin.position.z;
+      xyz << link_visual->origin.position.x, link_visual->origin.position.y, link_visual->origin.position.z;
       T_element_to_local.matrix() << rpy2rotmat(rpy), xyz, 0, 0, 0, 1;
       //Eigen::Vector4d material(Eigen::Vector4d(0.7, 0.7, 0.7, 1));
       Eigen::Vector4d material(Eigen::Vector4d(1, 1, 1, 1)); // default material = white
-      if (links[i]->visual->material) {
-        material = Eigen::Vector4d(links[i]->visual->material->color.r, links[i]->visual->material->color.g,
-                                   links[i]->visual->material->color.b, links[i]->visual->material->color.a);
+      if (link_visual->material) {
+        material = Eigen::Vector4d(link_visual->material->color.r, link_visual->material->color.g,
+                                   link_visual->material->color.b, link_visual->material->color.a);
       }
       //geometry
-      std::shared_ptr<DrakeShapes::Geometry> geometry = getGeometry(links[i]->visual->geometry);
+      std::shared_ptr<DrakeShapes::Geometry> geometry = getGeometry(link_visual->geometry);
       DrakeShapes::VisualElement visual_element(geometry, T_element_to_local, material);
       body->visual_elements.push_back(visual_element);
     }
