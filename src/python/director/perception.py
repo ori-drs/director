@@ -633,8 +633,12 @@ class RosGridMap(vis.PolyDataItem):
         if propertyName == "Visible":
             if self.getProperty(propertyName):
                 self.timer.start()
+                if self.provider:
+                    self.provider.start()
             else:
                 self.timer.stop()
+                if self.provider:
+                    self.provider.stop()
         elif propertyName == "Color By":
             color = self.getPropertyEnumValue(propertyName)
             self.provider.set_color_layer(color)
@@ -893,8 +897,12 @@ class PointCloudSource(vis.PolyDataItem):
         if propertyName == "Visible" or propertyName == "Updates Enabled":
             if self.getProperty(propertyName):
                 self.timer.start()
+                if self.provider:
+                    self.provider.start()
             else:
                 self.timer.stop()
+                if self.provider:
+                    self.provider.stop()
         elif propertyName == "Number of Point Clouds":
             numberOfPointCloud = self.getProperty(propertyName)
             self.provider.set_num_pointclouds(numberOfPointCloud)
