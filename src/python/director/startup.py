@@ -32,6 +32,7 @@ from director.pointpicker import ImagePointPicker
 from director.timercallback import TimerCallback
 
 
+
 class RobotLinkHighlighter(object):
     def __init__(self, robotModel):
         self.robotModel = robotModel
@@ -154,12 +155,13 @@ class ToggleImageViewHandler(object):
 
 
 class RobotGridUpdater(object):
-    def __init__(self, gridFrame, robotModel, jointController):
+    def __init__(self, gridFrame, robotModel, jointController, z_offset=0):
         self.gridFrame = gridFrame
         self.robotModel = robotModel
         self.jointController = jointController
         self.robotModel.connectModelChanged(self.updateGrid)
-        self.z_offset = 0.627  # for Husky # 0.85 for Atlas
+        print("Setting z offset to {}".format(z_offset))
+        self.z_offset = z_offset
 
     def setZOffset(self, z_offset):
         self.z_offset = z_offset
@@ -459,6 +461,7 @@ for robotSystem in robotSystems:
         grid.getChildFrame(),
         robotSystem.robotStateModel,
         robotSystem.robotStateJointController,
+        directorConfig.get("grid_z_offset", 0)
     )
 
     # reset time button and connections
