@@ -196,9 +196,10 @@ class RobotConfig(object):
         self.dirname = os.path.dirname(os.path.abspath(config_file))
         self.config = yaml.safe_load(open(config_file))
 
-        self.config["fixedPointFile"] = os.path.join(
-            self.dirname, self.config["fixedPointFile"]
-        )
+        if "fixedPointFile" in self.config:
+            self.config["fixedPointFile"] = os.path.join(
+                self.dirname, self.config["fixedPointFile"]
+            )
 
         # we received a robot name along with the config file
         if len(config) > 1:
@@ -216,9 +217,20 @@ class RobotConfig(object):
         """Used for 'in' statements on a robotconfig object"""
         return item in self.config
 
-    def get(self, item):
-        """Some places call get rather than using []"""
-        return self[item]
+    def get(self, key, default=None):
+        """
+        Some places call get rather than using []
+
+        :param key: The key to retrieve from the configuration
+        :param default: The default value to return if the key does not exist
+        :return: The value of the key, or the default value if the key is not present
+        """
+
+        if key in self.config:
+            return self.config[key]
+        else:
+            print("Key {} was not found in director config, returning default value '{}'".format(key, default))
+            return default
 
 
 class DirectorConfig(object):

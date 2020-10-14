@@ -411,7 +411,7 @@ def loadRobotModel(
     )
 
     if useConfigFile:
-        fixedPointFile = drcargs.getRobotConfig(robotName).get("fixedPointFile")
+        fixedPointFile = drcargs.getRobotConfig(robotName).get("fixedPointFile", None)
         if fixedPointFile:
             jointController.setPose(
                 "q_nom",
