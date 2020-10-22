@@ -360,6 +360,7 @@ for (
     _,
     robotConfig,
 ) in drcargs.DirectorConfig.getDefaultInstance().robotConfigs.iteritems():
+    print("Loading config for robot with name {}".format(robotConfig["robotName"]))
     robotSystems.append(robotsystem.create(view, robotName=robotConfig["robotName"]))
 
 # If there is only one robot, the selector should not be shown

@@ -118,11 +118,12 @@ class DRCArgParser(object):
     def addDefaultArgs(self, parser):
         class IgnoreROSArgsAction(argparse.Action):
             """
-            This action allows us to ignore ROS arguments, which are always added and prefixed by __
+            This action allows us to ignore ROS arguments, which are always added and prefixed by __. Also ignores
+            remapping arguments, which contain :=
             """
 
             def __call__(self, parser, namespace, values, option_string=None):
-                valid_args = [arg for arg in values if not arg.startswith("__")]
+                valid_args = [arg for arg in values if not arg.startswith("__") and ":=" not in arg]
                 if getattr(namespace, self.dest):
                     # Already received a config argument previously, need to append to the list
                     getattr(namespace, self.dest).append(valid_args)
