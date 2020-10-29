@@ -37,8 +37,7 @@ public:
             }
             int argc = cstrings.size();
 
-            ros::init(argc, cstrings.data(), "director_dd", ros::init_options::NoSigintHandler |
-                        ros::init_options::AnonymousName);
+            ros::init(argc, cstrings.data(), "director_dd", ros::init_options::NoSigintHandler);
         } else {
             ROS_INFO("dd ROS is already initialised.");
         }
