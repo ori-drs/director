@@ -190,12 +190,12 @@ def args():
 
 class RobotConfig(object):
     def __init__(self, config):
-        config_file = config[0]
-        if not os.path.isfile(config_file):
-            raise Exception("Robot config file not found: %s" % config_file)
+        self.config_file = config[0]
+        if not os.path.isfile(self.config_file):
+            raise Exception("Robot config file not found: %s" % self.config_file)
 
-        self.dirname = os.path.dirname(os.path.abspath(config_file))
-        self.config = yaml.safe_load(open(config_file))
+        self.dirname = os.path.dirname(os.path.abspath(self.config_file))
+        self.config = yaml.safe_load(open(self.config_file))
 
         if "fixedPointFile" in self.config:
             self.config["fixedPointFile"] = os.path.join(
