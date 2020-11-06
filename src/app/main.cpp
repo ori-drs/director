@@ -2,11 +2,16 @@
 #include "ddMainWindow.h"
 #include "ddPythonManager.h"
 #include "QVTKOpenGLInit.h"
+#include <signal.h>
 
 #define USE_TDX 0
 #if USE_TDX
   #include <QVTKApplication.h>
 #endif
+
+void signalhandler(int sig){
+  QApplication::instance()->quit();
+}
 
 int main(int argc, char **argv)
 {
@@ -23,6 +28,7 @@ int main(int argc, char **argv)
   window->setPythonManager(pythonManager);
   window->resize(1800, 1000);
   window->show();
+  signal(SIGINT, signalhandler);
 
   int result = app.exec();
 
