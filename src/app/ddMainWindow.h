@@ -50,6 +50,7 @@ signals:
   void fileSaveData();
   void fileExportUrdf();
   void openOnlineHelp();
+  void shuttingDown();
 
 
 protected slots:

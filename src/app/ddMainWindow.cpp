@@ -51,6 +51,7 @@ ddMainWindow::ddMainWindow()
 
   this->Internal->OutputConsoleDock->hide();
   this->connect(this->Internal->ActionMatlabConsole, SIGNAL(triggered()), this, SLOT(toggleOutputConsoleVisibility()));
+  this->connect(QCoreApplication::instance(), SIGNAL(aboutToQuit()), this, SIGNAL(shuttingDown()));
   this->connect(this->Internal->ActionResetCamera, SIGNAL(triggered()), this, SIGNAL(resetCamera()));
   this->connect(this->Internal->ActionToggleStereoRender, SIGNAL(triggered()), this, SIGNAL(toggleStereoRender()));
   this->connect(this->Internal->ActionToggleCameraTerrainMode, SIGNAL(triggered()), this, SIGNAL(toggleCameraTerrainMode()));

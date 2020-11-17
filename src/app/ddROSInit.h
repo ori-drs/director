@@ -48,6 +48,10 @@ public:
         spinner->start();
     }
 
+    void ddROSShutdown() {
+        ros::shutdown();
+    }
+
 private:
     std::shared_ptr<ros::AsyncSpinner> spinner;
 };
