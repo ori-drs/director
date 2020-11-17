@@ -13,14 +13,13 @@ class RobotSystemFactory(object):
             "SegmentationRobotState": ["Segmentation", "RobotState"],
             "SegmentationAffordances": ["Segmentation", "Affordances"],
             "PerceptionDrivers": ["RobotState"],
-            "ConvexHullModel": [],  # x
             "Affordances": [],
             #'ViewBehaviors' : ['Footsteps', 'PerceptionDrivers', 'Planning', 'Affordances'],
             "ViewBehaviors": ["PerceptionDrivers", "Affordances"],
             "RobotLinkSelector": ["ViewBehaviors"],
         }  # x
 
-        disabledComponents = ["ConvexHullModel", "RobotLinkSelector"]
+        disabledComponents = ["RobotLinkSelector"]
 
         return components, disabledComponents
 
