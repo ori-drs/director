@@ -6,5 +6,4 @@ ddROSInit::ddROSInit(const QStringList&);
 void ddROSInit::ddROSShutdown();
 
 ddROSTfListener::ddROSTfListener();
-QVector<double> ddROSTfListener::computeOdomInMap();
 QVector<double> ddROSTfListener::computeTransform(const QString&,const QString&);
