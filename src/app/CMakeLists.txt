@@ -174,6 +174,7 @@ if (USE_ROS)
   set(moc_srcs)
   qt_wrap_cpp(moc_srcs
     ddROSSubscriber.h
+    ddROSTfListener.h
     ddROSInit.h
   )
 
