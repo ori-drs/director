@@ -394,7 +394,6 @@ for robotSystem in robotSystems:
     useRobotState = True
     usePerception = True
     useGrid = True
-    usePlanning = True
     useCollections = False
     useDataFiles = True
     useIk = True
