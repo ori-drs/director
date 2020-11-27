@@ -64,26 +64,6 @@ class RobotLinkHighlighter(object):
         self.robotModel.model.setLinkColor(linkName, color)
 
 
-class ControllerRateLabel(object):
-    """
-    Displays a controller frequency in the status bar
-    """
-
-    def __init__(self, atlasDriver, statusBar):
-        self.atlasDriver = atlasDriver
-        self.label = QtGui.QLabel("")
-        statusBar.addPermanentWidget(self.label)
-
-        self.timer = TimerCallback(targetFps=1)
-        self.timer.callback = self.showRate
-        self.timer.start()
-
-    def showRate(self):
-        rate = self.atlasDriver.getControllerRate()
-        rate = "unknown" if rate is None else "%d hz" % rate
-        self.label.text = "Controller rate: %s" % rate
-
-
 class ImageOverlayManager(object):
     def __init__(self, monoCamerasConfig, robotName):
         self.viewName = monoCamerasConfig[0]
@@ -421,7 +401,6 @@ for robotSystem in robotSystems:
     useIk = True
     useSpreadsheet = True
     useFootsteps = True
-    useControllerRate = True
     useGamepad = False
 
     useSkybox = False
@@ -481,12 +460,6 @@ for robotSystem in robotSystems:
     app.getRobotSelector().associateWidgetWithRobot(
         reset_time_button, robotSystem.robotName
     )
-
-    useControllerRate = False
-    if useControllerRate:
-        controllerRateLabel = ControllerRateLabel(
-            robotSystem.atlasDriver, app.getMainWindow().statusBar()
-        )
 
     if useSkybox:
         skyboxDataDir = os.path.expanduser("~/Downloads/skybox")
