@@ -391,19 +391,10 @@ for robotSystem in robotSystems:
     )
     directorConfig = drcargs.getRobotConfig(robotSystem.robotName)
 
-    useRobotState = True
     usePerception = True
-    useGrid = True
-    useCollections = False
     useDataFiles = True
-    useIk = True
-    useSpreadsheet = True
-    useFootsteps = True
-    useGamepad = False
 
     useSkybox = False
-    useBlackoutText = False
-    useLimitJointsSentToPlanner = False
     useFeetlessRobot = False
 
     poseCollection = PythonQt.dd.ddSignalMap()
