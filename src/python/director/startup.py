@@ -421,8 +421,6 @@ for robotSystem in robotSystems:
     useIk = True
     useSpreadsheet = True
     useFootsteps = True
-    useHumanoidDRCDemos = False
-    useAtlasDriver = False
     useControllerRate = True
     useGamepad = False
 
