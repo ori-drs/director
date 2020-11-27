@@ -417,8 +417,6 @@ for robotSystem in robotSystems:
     useHands = False
     usePlanning = True
     useCollections = False
-    useCameraFrustumVisualizer = True
-    useForceDisplay = True
     useDataFiles = True
     useIk = True
     useSpreadsheet = True
