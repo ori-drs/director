@@ -436,10 +436,6 @@ for robotSystem in robotSystems:
     poseCollection = PythonQt.dd.ddSignalMap()
     costCollection = PythonQt.dd.ddSignalMap()
 
-    if "userConfig" in directorConfig:
-        if "fixedBaseArm" in directorConfig["userConfig"]:
-            robotSystem.ikPlanner.fixedBaseArm = True
-
     if "disableComponents" in directorConfig:
         for component in directorConfig["disableComponents"]:
             print "Disabling", component
