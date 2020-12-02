@@ -5,7 +5,7 @@ import director.vtkAll as vtk
 
 class ViewFramesSizeHandler(object):
     """
-        An class used to change the size of Frames objects
+    An class used to change the size of Frames objects
     """
 
     def __init__(self, action):

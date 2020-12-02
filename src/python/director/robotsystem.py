@@ -117,7 +117,9 @@ class RobotSystemFactory(object):
         )
         affordanceitems.MeshAffordanceItem.getMeshManager()
 
-        return FieldContainer(affordanceManager=affordanceManager,)
+        return FieldContainer(
+            affordanceManager=affordanceManager,
+        )
 
     def initSegmentationAffordances(self, robotSystem):
 

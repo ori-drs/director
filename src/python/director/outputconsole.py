@@ -28,7 +28,7 @@ class OutputConsole(object):
 
     def appendText(self, text, color=None, bold=False):
         """Add text to the output console.  The color arg should be a string that is a valid CSS color
-           string, for example: red, or #FF0000, or rgb(255,0,0)."""
+        string, for example: red, or #FF0000, or rgb(255,0,0)."""
         if color is not None:
             text = '<font color="%s">%s</font>' % (color, text)
         if bold:
