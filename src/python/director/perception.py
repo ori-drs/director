@@ -726,16 +726,15 @@ class MarkerSource(vis.PolyDataItem):
 
     def _onPropertyChanged(self, propertySet, propertyName):
         vis.PolyDataItem._onPropertyChanged(self, propertySet, propertyName)
-        if propertyName == "Visible":
+        if propertyName == "Visible" or propertyName == "Subscribe":
             if self.getProperty(propertyName):
                 self.timer.start()
+                if self.provider:
+                    self.provider.start()
             else:
                 self.timer.stop()
-        elif propertyName == "Subscribe":
-            if self.getProperty(propertyName):
-                self.timer.start()
-            else:
-                self.timer.stop()
+                if self.provider:
+                    self.provider.stop()
 
         if self.provider:
             self.provider._on_property_changed(propertySet, propertyName)
@@ -807,16 +806,16 @@ class MarkerArraySource(vis.PolyDataItemList):
 
     def _onPropertyChanged(self, propertySet, propertyName):
         vis.PolyDataItemList._onPropertyChanged(self, propertySet, propertyName)
-        if propertyName == "Visible":
+        if propertyName == "Visible" or propertyName == "Subscribe":
             if self.getProperty(propertyName):
                 self.timer.start()
+                if self.provider:
+                    self.provider.start()
             else:
                 self.timer.stop()
-        elif propertyName == "Subscribe":
-            if self.getProperty(propertyName):
-                self.timer.start()
-            else:
-                self.timer.stop()
+                if self.provider:
+                    self.provider.stop()
+
         if self.provider:
             self.provider._on_property_changed(propertySet, propertyName)
 
@@ -1042,8 +1041,12 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
         if propertyName == "Visible":
             if self.getProperty(propertyName):
                 self.timer.start()
+                if self.provider:
+                    self.provider.start()
             else:
                 self.timer.stop()
+                if self.provider:
+                    self.provider.stop()
 
         if propertyName in ("Decimation", "Remove outliers", "Max Range"):
             self.lastUtime = 0
