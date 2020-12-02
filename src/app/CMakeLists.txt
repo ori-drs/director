@@ -174,11 +174,12 @@ if (USE_ROS)
   set(moc_srcs)
   qt_wrap_cpp(moc_srcs
     ddROSSubscriber.h
+    ddROSTfListener.h
     ddROSInit.h
   )
 
   list(APPEND srcs
-    ${moc_srcs}
+    ${moc_srcs} ddROSTfListener.cpp
   )
 
   list(APPEND wrap_files
