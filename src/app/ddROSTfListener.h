@@ -9,7 +9,7 @@
 
 #include "ddAppConfigure.h"
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
 
@@ -23,7 +23,10 @@ public:
   ddROSTfListener(QObject* parent=NULL) 
     : QObject(parent)
   {
-    mTfListener = boost::make_shared<tf::TransformListener>();
+    if(!mTfListener)
+    {
+      mTfListener = std::make_shared<tf::TransformListener>();
+    }
   }
 
   virtual ~ddROSTfListener(){}
@@ -72,7 +75,7 @@ public:
 
 protected:
 
-  boost::shared_ptr<tf::TransformListener> mTfListener;
+  static std::shared_ptr<tf::TransformListener> mTfListener;
 };
 
 #endif

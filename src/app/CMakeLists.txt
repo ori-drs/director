@@ -179,7 +179,7 @@ if (USE_ROS)
   )
 
   list(APPEND srcs
-    ${moc_srcs}
+    ${moc_srcs} ddROSTfListener.cpp
   )
 
   list(APPEND wrap_files
