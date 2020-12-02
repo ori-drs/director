@@ -178,8 +178,9 @@ def extractLargestCluster(polyData, **kwargs):
 
 
 def segmentGround(polyData, groundThickness=0.02, sceneHeightFromGround=0.05):
-    """ A More complex ground removal algorithm. Works when plane isn't
-    preceisely flat. First clusters on z to find approx ground height, then fits a plane there
+    """
+    A More complex ground removal algorithm. Works when plane isn't preceisely flat. First clusters on z to find
+    approx ground height, then fits a plane there
     """
 
     searchRegionThickness = 0.5
@@ -767,10 +768,9 @@ def removeMajorPlane(polyData, distanceThreshold=0.02):
 
 
 def removeGroundSimple(polyData, groundThickness=0.02, sceneHeightFromGround=0.05):
-    """ Simple ground plane removal algorithm. Uses ground height
-        and does simple z distance filtering.
-        Suitable for noisy data e.g. kinect/stereo camera
-        (Default args should be relaxed, filtering simplfied)
+    """
+    Simple ground plane removal algorithm. Uses ground height and does simple z distance filtering. Suitable for
+    noisy data e.g. kinect/stereo camera (Default args should be relaxed, filtering simplfied)
     """
     groundHeight = SegmentationContext.getGlobalInstance().getGroundHeight()
     origin = [0, 0, groundHeight]
@@ -2977,10 +2977,9 @@ def makeMovable(obj, initialTransform=None):
 
 def segmentTable(polyData, searchPoint):
     """
-    NB: If you wish to use the table frame use segmentTableAndFrame instead 
-    ##################
-    Segment a horizontal table surface (perpendicular to +Z) in the given polyData
-    Input:
+    NB: If you wish to use the table frame use segmentTableAndFrame instead
+
+    Segment a horizontal table surface (perpendicular to +Z) in the given polyData Input:
     - polyData
     - search point on plane
 
@@ -3067,10 +3066,9 @@ def segmentTableScene(polyData, searchPoint, filterClustering=True):
 
 
 def segmentTableSceneClusters(polyData, searchPoint, clusterInXY=False):
-    """ Given a point cloud of a table with some objects on it
-        and a point on that table
-        determine the plane of the table and
-        extract clusters above the table
+    """
+    Given a point cloud of a table with some objects on it and a point on that table determine the plane of the table
+    and extract clusters above the table
     """
 
     tableData, polyData = segmentTableAndFrame(polyData, searchPoint)
@@ -3550,8 +3548,8 @@ def fitVerticalPosts(polyData):
 
 
 def findAndFitDrillBarrel(polyData=None):
-    """ Find the horizontal surfaces
-    on the horizontal surfaces, find all the drills
+    """
+    Find the horizontal surfaces on the horizontal surfaces, find all the drills
     """
 
     inputObj = om.findObjectByName("pointcloud snapshot")
