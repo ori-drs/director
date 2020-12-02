@@ -28,8 +28,10 @@ def geometryFromAffordance(aff):
 
     if isinstance(aff, affordanceitems.MeshAffordanceItem):
         filename = aff.getProperty("Filename")
-        filename = affordanceitems.MeshAffordanceItem.getMeshManager().getFilesystemFilename(
-            filename
+        filename = (
+            affordanceitems.MeshAffordanceItem.getMeshManager().getFilesystemFilename(
+                filename
+            )
         )
         return urdf.Mesh(filename=filename, scale=[1.0, 1.0, 1.0])
 

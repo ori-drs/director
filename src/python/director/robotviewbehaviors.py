@@ -256,12 +256,17 @@ class RobotViewBehaviors(object):
 
         if affordanceObj:
             actions.extend(
-                [("Copy affordance", copyAffordance), ("Add new frame", addNewFrame),]
+                [
+                    ("Copy affordance", copyAffordance),
+                    ("Add new frame", addNewFrame),
+                ]
             )
 
         elif type(pickedObj) == vis.PolyDataItem:
             actions.extend(
-                [("Promote to Affordance", onPromoteToAffordance),]
+                [
+                    ("Promote to Affordance", onPromoteToAffordance),
+                ]
             )
 
         return actions
@@ -631,7 +636,11 @@ def getRobotActions(view, pickedObj, pickedPoint):
 
     if isGraspSeed(pickedObj):
         actions.extend(
-            [(None, None), ("Flip Side", flipHandSide), ("Flip Thumb", flipHandThumb),]
+            [
+                (None, None),
+                ("Flip Side", flipHandSide),
+                ("Flip Thumb", flipHandThumb),
+            ]
         )
 
     if reachFrame is not None:

@@ -32,7 +32,6 @@ from director.pointpicker import ImagePointPicker
 from director.timercallback import TimerCallback
 
 
-
 class RobotLinkHighlighter(object):
     def __init__(self, robotModel):
         self.robotModel = robotModel
@@ -160,7 +159,7 @@ class RobotGridUpdater(object):
         self.robotModel = robotModel
         self.jointController = jointController
         self.robotModel.connectModelChanged(self.updateGrid)
-        print("Setting z offset to {}".format(z_offset))
+        print ("Setting z offset to {}".format(z_offset))
         self.z_offset = z_offset
 
     def setZOffset(self, z_offset):
@@ -360,7 +359,7 @@ for (
     _,
     robotConfig,
 ) in drcargs.DirectorConfig.getDefaultInstance().robotConfigs.iteritems():
-    print("Loading config for robot with name {}".format(robotConfig["robotName"]))
+    print ("Loading config for robot with name {}".format(robotConfig["robotName"]))
     robotSystems.append(robotsystem.create(view, robotName=robotConfig["robotName"]))
 
 # If there is only one robot, the selector should not be shown
@@ -462,7 +461,7 @@ for robotSystem in robotSystems:
         grid.getChildFrame(),
         robotSystem.robotStateModel,
         robotSystem.robotStateJointController,
-        directorConfig.get("grid_z_offset", 0)
+        directorConfig.get("grid_z_offset", 0),
     )
 
     # reset time button and connections

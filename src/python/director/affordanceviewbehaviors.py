@@ -53,12 +53,17 @@ def getActions(view, pickedObj, pickedPoint):
 
     if affordanceManager and affordanceObj:
         actions.extend(
-            [("Copy affordance", copyAffordance), ("Add new frame", addNewFrame),]
+            [
+                ("Copy affordance", copyAffordance),
+                ("Add new frame", addNewFrame),
+            ]
         )
 
     if type(pickedObj) == vis.PolyDataItem:
         actions.extend(
-            [("Promote to Affordance", onPromoteToAffordance),]
+            [
+                ("Promote to Affordance", onPromoteToAffordance),
+            ]
         )
 
     return actions

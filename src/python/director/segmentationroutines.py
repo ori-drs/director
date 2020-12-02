@@ -21,18 +21,18 @@ from debugpolydata import DebugData
 
 class SegmentationContext(object):
     """
-       Maintains an abstraction between the fitting scene and a robot
-       Assumes point cloud is world aligned, with z up
-       Provides access to (1) ground height,
-       (2) location of the head frame, (3) view direction
+    Maintains an abstraction between the fitting scene and a robot
+    Assumes point cloud is world aligned, with z up
+    Provides access to (1) ground height,
+    (2) location of the head frame, (3) view direction
 
-       Can be configured:
-       (a) Default mode: populated continously by EST_ROBOT_STATE
-           (2) and (3) set seperately
-       (b) Autonomy: where (2) gives (3)
-       (c) Populated programmatically. e.g:
-           - for unit testing
-           - where ground plane from feet cannot be used
+    Can be configured:
+    (a) Default mode: populated continously by EST_ROBOT_STATE
+        (2) and (3) set seperately
+    (b) Autonomy: where (2) gives (3)
+    (c) Populated programmatically. e.g:
+        - for unit testing
+        - where ground plane from feet cannot be used
     """
 
     def __init__(self, groundHeightProvider, viewProvider, providerName):
@@ -300,9 +300,9 @@ def applyEuclideanClustering(
 
 
 def extractClusters(polyData, clusterInXY=False, **kwargs):
-    """ Segment a single point cloud into smaller clusters
-        using Euclidean Clustering
-     """
+    """Segment a single point cloud into smaller clusters
+    using Euclidean Clustering
+    """
 
     if not polyData.GetNumberOfPoints():
         return []
@@ -349,7 +349,7 @@ def labelOutliers(dataObj, searchRadius=0.03, neighborsInSearchRadius=10):
 
 
 def sparsifyStereoCloud(polyData):
-    """ Take in a typical Stereo Camera Point Cloud
+    """Take in a typical Stereo Camera Point Cloud
     Filter it down to about the density of a lidar point cloud
     and remove outliers
     """
@@ -371,10 +371,10 @@ def sparsifyStereoCloud(polyData):
 
 
 def fitDrillBarrel(drillPoints, forwardDirection, plane_origin, plane_normal):
-    """ Given a point cloud which ONLY contains points from a barrell drill, standing upright
-        and the equations of a table its resting on, and the general direction of the robot
-        Fit a barrell drill
-     """
+    """Given a point cloud which ONLY contains points from a barrell drill, standing upright
+    and the equations of a table its resting on, and the general direction of the robot
+    Fit a barrell drill
+    """
 
     if not drillPoints.GetNumberOfPoints():
         return
