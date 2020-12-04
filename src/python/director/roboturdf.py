@@ -400,19 +400,6 @@ def loadRobotModel(
         [obj], jointNames=jointNames, robotName=robotName, pushToModel=haveModel
     )
 
-    if useConfigFile:
-        fixedPointFile = drcargs.getRobotConfig(robotName).get("fixedPointFile", None)
-        if fixedPointFile:
-            jointController.setPose(
-                "q_nom",
-                jointController.loadPoseFromFile(fixedPointFile),
-                pushToModel=haveModel,
-            )
-        else:
-            jointController.setPose(
-                "q_nom", jointController.getPose("q_zero"), pushToModel=haveModel
-            )
-
     return obj, jointController
 
 

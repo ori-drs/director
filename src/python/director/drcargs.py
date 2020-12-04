@@ -201,11 +201,6 @@ class RobotConfig(object):
         self.dirname = os.path.dirname(os.path.abspath(self.config_file))
         self.config = yaml.safe_load(open(self.config_file))
 
-        if "fixedPointFile" in self.config:
-            self.config["fixedPointFile"] = os.path.join(
-                self.dirname, self.config["fixedPointFile"]
-            )
-
         # we received a robot name along with the config file
         if len(config) > 1:
             self.config["robotName"] = config[1]
