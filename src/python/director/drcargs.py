@@ -123,7 +123,11 @@ class DRCArgParser(object):
             """
 
             def __call__(self, parser, namespace, values, option_string=None):
-                valid_args = [arg for arg in values if not arg.startswith("__") and ":=" not in arg]
+                valid_args = [
+                    arg
+                    for arg in values
+                    if not arg.startswith("__") and ":=" not in arg
+                ]
                 if getattr(namespace, self.dest):
                     # Already received a config argument previously, need to append to the list
                     getattr(namespace, self.dest).append(valid_args)
@@ -226,7 +230,11 @@ class RobotConfig(object):
         if key in self.config:
             return self.config[key]
         else:
-            print("Key {} was not found in director config, returning default value '{}'".format(key, default))
+            print(
+                "Key {} was not found in director config, returning default value '{}'".format(
+                    key, default
+                )
+            )
             return default
 
 

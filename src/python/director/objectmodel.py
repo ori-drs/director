@@ -29,8 +29,8 @@ class Icons(object):
     @staticmethod
     def getIcon(iconId):
         """
-      Return a QIcon given an icon id as a string or int.
-      """
+        Return a QIcon given an icon id as a string or int.
+        """
         if type(iconId) == int:
             return QtGui.QApplication.style().standardIcon(iconId)
         else:
