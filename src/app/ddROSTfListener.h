@@ -38,6 +38,10 @@ public:
     mTfBuffer->clear();
   }
 
+  QString getAllFrames() const {
+    return QString(mTfBuffer->allFramesAsYAML().c_str());
+  }
+
   QVector<double> computeTransform(const QString& targetFrame, const QString& sourceFrame) const
   {
     // returns transform from target frame to source frame in x,y,z,qx,qy,qz,qw
