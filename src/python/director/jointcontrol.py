@@ -20,7 +20,7 @@ class JointController(object):
     ):
         self.robotState = robotstate.getRobotState(robotName)
         self.robotName = robotName
-        self.jointNames = jointNames or self.robotState.getDrakePoseJointNames()
+        self.jointNames = jointNames or self.robotState.getStateAndPoseFieldNames()
         self.numberOfJoints = len(self.jointNames)
         self.models = list(models)
         self.poses = {}
