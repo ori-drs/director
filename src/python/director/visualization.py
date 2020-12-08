@@ -378,6 +378,7 @@ class PolyDataItemList(PolyDataItem):
         for i in range(0, size):
             name = self.name if i == 0 else (self.name + str(i))
             item = PolyDataItem(name, vtk.vtkPolyData(), view=None)
+            item.setProperty("Visible", self.getProperty("Visible"))
             for view in self.views:
                 item.addToView(view)
             om.addToObjectModel(item, self)
