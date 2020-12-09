@@ -627,6 +627,8 @@ class RosGridMap(vis.PolyDataItem):
 
         self.provider = provider
         self.provider.set_consumer(self)
+        if self.getProperty("Visible"):
+            self.provider.start()
 
     def _onPropertyChanged(self, propertySet, propertyName):
         vis.PolyDataItem._onPropertyChanged(self, propertySet, propertyName)
@@ -723,6 +725,8 @@ class MarkerSource(vis.PolyDataItem):
 
         self.provider = provider
         self.provider.set_consumer(self)
+        if self.getProperty("Visible"):
+            self.provider.start()
 
     def _onPropertyChanged(self, propertySet, propertyName):
         vis.PolyDataItem._onPropertyChanged(self, propertySet, propertyName)
@@ -803,6 +807,8 @@ class MarkerArraySource(vis.PolyDataItemList):
 
         self.provider = provider
         self.provider.set_consumer(self)
+        if self.getProperty("Visible"):
+            self.provider.start()
 
     def _onPropertyChanged(self, propertySet, propertyName):
         vis.PolyDataItemList._onPropertyChanged(self, propertySet, propertyName)
@@ -890,6 +896,8 @@ class PointCloudSource(vis.PolyDataItem):
                 decimals=0, minimum=1, maximum=100, singleStep=1, hidden=False
             ),
         )
+        if self.getProperty("Visible"):
+            self.provider.start()
 
     def _onPropertyChanged(self, propertySet, propertyName):
         vis.PolyDataItem._onPropertyChanged(self, propertySet, propertyName)

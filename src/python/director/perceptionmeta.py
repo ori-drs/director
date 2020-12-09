@@ -11,6 +11,7 @@ class SourceMeta(object):
         :param initialisation_object:
         """
         self.consumer = None
+        self.running = False
         self.init_object = initialisation_object
 
     @abc.abstractmethod
