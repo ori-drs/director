@@ -8,3 +8,4 @@ void ddROSInit::ddROSShutdown();
 ddROSTfListener::ddROSTfListener();
 QVector<double> ddROSTfListener::computeTransform(const QString&,const QString&);
 void ddROSTfListener::resetTime();
+QString ddROSTfListener::getAllFrames();

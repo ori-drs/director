@@ -11,7 +11,7 @@
 
 #include <memory>
 #include <ros/ros.h>
-#include <tf/transform_listener.h>
+#include <tf2_ros/transform_listener.h>
 
 
 class DD_APP_EXPORT ddROSTfListener : public QObject
@@ -25,15 +25,21 @@ public:
   {
     if(!mTfListener)
     {
-      mTfListener = std::make_shared<tf::TransformListener>();
+      mTfBuffer = std::make_shared<tf2_ros::Buffer>();
+      mTfListener = std::make_shared<tf2_ros::TransformListener>(*mTfBuffer);
     }
+
   }
 
   virtual ~ddROSTfListener(){}
   
   void resetTime()
   {
-    mTfListener->clear();
+    mTfBuffer->clear();
+  }
+
+  QString getAllFrames() const {
+    return QString(mTfBuffer->allFramesAsYAML().c_str());
   }
 
   QVector<double> computeTransform(const QString& targetFrame, const QString& sourceFrame) const
@@ -50,32 +56,30 @@ public:
     tfTransform[5] = 0;
     tfTransform[6] = 1;
 
-    tf::StampedTransform transform;
+    geometry_msgs::TransformStamped transform;
     try {
-      mTfListener->lookupTransform(targetFrame.toStdString(), sourceFrame.toStdString(), ros::Time(0), transform);
+      transform = mTfBuffer->lookupTransform(targetFrame.toStdString(), sourceFrame.toStdString(), ros::Time(0));
     }
-    catch (tf::TransformException& ex){
+    catch (tf2::TransformException ex){
       ROS_ERROR("%s",ex.what());
       return tfTransform; // this isn't correct
     }
 
-    tf::Vector3 origin = transform.getOrigin();
-    tf::Quaternion quaternion = transform.getRotation();
-
-    tfTransform[0] = origin.getX();
-    tfTransform[1] = origin.getY();
-    tfTransform[2] = origin.getZ();
-    tfTransform[3] = quaternion.x();
-    tfTransform[4] = quaternion.y();
-    tfTransform[5] = quaternion.z();
-    tfTransform[6] = quaternion.w();
+    tfTransform[0] = transform.transform.translation.x;
+    tfTransform[1] = transform.transform.translation.y;
+    tfTransform[2] = transform.transform.translation.z;
+    tfTransform[3] = transform.transform.rotation.x;
+    tfTransform[4] = transform.transform.rotation.y;
+    tfTransform[5] = transform.transform.rotation.z;
+    tfTransform[6] = transform.transform.rotation.w;
 
     return tfTransform;
   }
 
 protected:
 
-  static std::shared_ptr<tf::TransformListener> mTfListener;
+  static std::shared_ptr<tf2_ros::TransformListener> mTfListener;
+  static std::shared_ptr<tf2_ros::Buffer> mTfBuffer;
 };
 
 #endif
