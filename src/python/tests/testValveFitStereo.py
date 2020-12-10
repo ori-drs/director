@@ -18,8 +18,9 @@ view = app.createView()
 segmentation._defaultSegmentationView = view
 segmentation.initAffordanceManager(view)
 
-robotStateModel, robotStateJointController = roboturdf.loadRobotModel('robot state model', view, parent='sensors', urdfFile = drcargs.getRobotConfig(
-    )['urdfConfig']['default'], color=roboturdf.getRobotGrayColor(), visible=True)
+robot_config = drcargs.getRobotConfig()
+urdf_path = os.path.join(robot_config.dirname, robot_config['urdfConfig']['default'])
+robotStateModel, robotStateJointController = roboturdf.loadRobotModel('robot state model', view, parent='sensors', urdfFile = urdf_path, color=roboturdf.getRobotGrayColor(), visible=True)
 segmentationroutines.SegmentationContext.initWithRobot(robotStateModel)
 
 # load poly data
