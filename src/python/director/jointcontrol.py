@@ -62,6 +62,10 @@ class JointController(object):
         if self.poseCollection is not None:
             self.poseCollection.setItem(poseName, poseData)
 
+    def getJointPosition(self, jointName):
+        for model in self.models:
+            return model.model.getJointPositions([jointName])[0]
+
     def loadPoseFromFile(self, filename):
         ext = os.path.splitext(filename)[1].lower()
 

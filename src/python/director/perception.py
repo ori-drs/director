@@ -659,7 +659,8 @@ class RosGridMap(vis.PolyDataItem):
         if polyData.GetNumberOfPoints() == 0:
             return
 
-        bodyHeight = self.robotStateJointController.q[2]
+        bodyHeight = self.robotStateJointController.getJointPosition("base_z")
+        print("robot body height is {}".format(bodyHeight))
         self.setRangeMap("z", [bodyHeight - 0.5, bodyHeight])
 
         if self.callbackFunc:
