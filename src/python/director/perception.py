@@ -627,6 +627,8 @@ class RosGridMap(vis.PolyDataItem):
 
         self.provider = provider
         self.provider.set_consumer(self)
+        if self.getProperty("Visible"):
+            self.provider.start()
 
     def _onPropertyChanged(self, propertySet, propertyName):
         vis.PolyDataItem._onPropertyChanged(self, propertySet, propertyName)
@@ -723,19 +725,20 @@ class MarkerSource(vis.PolyDataItem):
 
         self.provider = provider
         self.provider.set_consumer(self)
+        if self.getProperty("Visible"):
+            self.provider.start()
 
     def _onPropertyChanged(self, propertySet, propertyName):
         vis.PolyDataItem._onPropertyChanged(self, propertySet, propertyName)
-        if propertyName == "Visible":
+        if propertyName == "Visible" or propertyName == "Subscribe":
             if self.getProperty(propertyName):
                 self.timer.start()
+                if self.provider:
+                    self.provider.start()
             else:
                 self.timer.stop()
-        elif propertyName == "Subscribe":
-            if self.getProperty(propertyName):
-                self.timer.start()
-            else:
-                self.timer.stop()
+                if self.provider:
+                    self.provider.stop()
 
         if self.provider:
             self.provider._on_property_changed(propertySet, propertyName)
@@ -804,19 +807,21 @@ class MarkerArraySource(vis.PolyDataItemList):
 
         self.provider = provider
         self.provider.set_consumer(self)
+        if self.getProperty("Visible"):
+            self.provider.start()
 
     def _onPropertyChanged(self, propertySet, propertyName):
         vis.PolyDataItemList._onPropertyChanged(self, propertySet, propertyName)
-        if propertyName == "Visible":
+        if propertyName == "Visible" or propertyName == "Subscribe":
             if self.getProperty(propertyName):
                 self.timer.start()
+                if self.provider:
+                    self.provider.start()
             else:
                 self.timer.stop()
-        elif propertyName == "Subscribe":
-            if self.getProperty(propertyName):
-                self.timer.start()
-            else:
-                self.timer.stop()
+                if self.provider:
+                    self.provider.stop()
+
         if self.provider:
             self.provider._on_property_changed(propertySet, propertyName)
 
@@ -891,6 +896,8 @@ class PointCloudSource(vis.PolyDataItem):
                 decimals=0, minimum=1, maximum=100, singleStep=1, hidden=False
             ),
         )
+        if self.getProperty("Visible"):
+            self.provider.start()
 
     def _onPropertyChanged(self, propertySet, propertyName):
         vis.PolyDataItem._onPropertyChanged(self, propertySet, propertyName)
@@ -1042,8 +1049,12 @@ class DepthImagePointCloudSource(vis.PolyDataItem):
         if propertyName == "Visible":
             if self.getProperty(propertyName):
                 self.timer.start()
+                if self.provider:
+                    self.provider.start()
             else:
                 self.timer.stop()
+                if self.provider:
+                    self.provider.stop()
 
         if propertyName in ("Decimation", "Remove outliers", "Max Range"):
             self.lastUtime = 0
