@@ -86,7 +86,6 @@ class RobotModelItem(om.ObjectModelItem):
         if model:
             self.setModel(model)
 
-        self.footMeshFiles = []
         self.pelvisLink = ""  # pelvis
         self.leftFootLink = ""  # l_foot
         self.rightFootLink = ""  # r_foot
@@ -94,15 +93,6 @@ class RobotModelItem(om.ObjectModelItem):
         self.leftHandLink = ""
         self.rightHandLink = ""
         self.quadruped = False
-
-        if "leftFootMeshFiles" in directorConfig:
-            self.footMeshFiles.append(directorConfig["leftFootMeshFiles"])
-            self.footMeshFiles.append(directorConfig["rightFootMeshFiles"])
-            for j in range(0, 2):
-                for i in range(len(self.footMeshFiles[j])):
-                    self.footMeshFiles[j][i] = os.path.join(
-                        directorConfig.dirname, self.footMeshFiles[j][i]
-                    )
 
         if "pelvisLink" in directorConfig:
             self.pelvisLink = directorConfig["pelvisLink"]
@@ -409,19 +399,6 @@ def loadRobotModel(
     jointController = jointcontrol.JointController(
         [obj], jointNames=jointNames, robotName=robotName, pushToModel=haveModel
     )
-
-    if useConfigFile:
-        fixedPointFile = drcargs.getRobotConfig(robotName).get("fixedPointFile", None)
-        if fixedPointFile:
-            jointController.setPose(
-                "q_nom",
-                jointController.loadPoseFromFile(fixedPointFile),
-                pushToModel=haveModel,
-            )
-        else:
-            jointController.setPose(
-                "q_nom", jointController.getPose("q_zero"), pushToModel=haveModel
-            )
 
     return obj, jointController
 

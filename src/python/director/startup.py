@@ -63,26 +63,6 @@ class RobotLinkHighlighter(object):
         self.robotModel.model.setLinkColor(linkName, color)
 
 
-class ControllerRateLabel(object):
-    """
-    Displays a controller frequency in the status bar
-    """
-
-    def __init__(self, atlasDriver, statusBar):
-        self.atlasDriver = atlasDriver
-        self.label = QtGui.QLabel("")
-        statusBar.addPermanentWidget(self.label)
-
-        self.timer = TimerCallback(targetFps=1)
-        self.timer.callback = self.showRate
-        self.timer.start()
-
-    def showRate(self):
-        rate = self.atlasDriver.getControllerRate()
-        rate = "unknown" if rate is None else "%d hz" % rate
-        self.label.text = "Controller rate: %s" % rate
-
-
 class ImageOverlayManager(object):
     def __init__(self, monoCamerasConfig, robotName):
         self.viewName = monoCamerasConfig[0]
@@ -410,34 +390,14 @@ for robotSystem in robotSystems:
     )
     directorConfig = drcargs.getRobotConfig(robotSystem.robotName)
 
-    useRobotState = True
     usePerception = True
-    useGrid = True
-    useHands = False
-    usePlanning = True
-    useCollections = False
-    useCameraFrustumVisualizer = True
-    useForceDisplay = True
     useDataFiles = True
-    useIk = True
-    useSpreadsheet = True
-    useFootsteps = True
-    useHumanoidDRCDemos = False
-    useAtlasDriver = False
-    useControllerRate = True
-    useGamepad = False
 
     useSkybox = False
-    useBlackoutText = False
-    useLimitJointsSentToPlanner = False
     useFeetlessRobot = False
 
     poseCollection = PythonQt.dd.ddSignalMap()
     costCollection = PythonQt.dd.ddSignalMap()
-
-    if "userConfig" in directorConfig:
-        if "fixedBaseArm" in directorConfig["userConfig"]:
-            robotSystem.ikPlanner.fixedBaseArm = True
 
     if "disableComponents" in directorConfig:
         for component in directorConfig["disableComponents"]:
@@ -488,12 +448,6 @@ for robotSystem in robotSystems:
     app.getRobotSelector().associateWidgetWithRobot(
         reset_time_button, robotSystem.robotName
     )
-
-    useControllerRate = False
-    if useControllerRate:
-        controllerRateLabel = ControllerRateLabel(
-            robotSystem.atlasDriver, app.getMainWindow().statusBar()
-        )
 
     if useSkybox:
         skyboxDataDir = os.path.expanduser("~/Downloads/skybox")

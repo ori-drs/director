@@ -13,14 +13,13 @@ class RobotSystemFactory(object):
             "SegmentationRobotState": ["Segmentation", "RobotState"],
             "SegmentationAffordances": ["Segmentation", "Affordances"],
             "PerceptionDrivers": ["RobotState"],
-            "ConvexHullModel": [],  # x
             "Affordances": [],
             #'ViewBehaviors' : ['Footsteps', 'PerceptionDrivers', 'Planning', 'Affordances'],
             "ViewBehaviors": ["PerceptionDrivers", "Affordances"],
             "RobotLinkSelector": ["ViewBehaviors"],
         }  # x
 
-        disabledComponents = ["ConvexHullModel", "RobotLinkSelector"]
+        disabledComponents = ["RobotLinkSelector"]
 
         return components, disabledComponents
 
@@ -46,7 +45,6 @@ class RobotSystemFactory(object):
         robotStateModel, robotStateJointController = roboturdf.loadRobotModel(
             "robot state model",
             robotSystem.view,
-            # urdfFile=robotSystem.directorConfig['urdfConfig']['robotState'],
             color=roboturdf.getRobotGrayColor(),
             colorMode=robotSystem.directorConfig["colorMode"],
             parent=om.getOrCreateContainer(
@@ -85,27 +83,6 @@ class RobotSystemFactory(object):
 
         # Expand dict to keyword args, robotSystem object will have objects accessible via keys set in config
         return FieldContainer(sources=perceptionSources.values(), **perceptionSources)
-
-    def initConvexHullModel(self, robotSystem):
-
-        from director import roboturdf
-
-        directorConfig = robotSystem.directorConfig
-        chullRobotModel, chullJointController = roboturdf.loadRobotModel(
-            "convex hull model",
-            view,
-            urdfFile=directorConfig["urdfConfig"]["chull"],
-            parent="planning",
-            color=roboturdf.getRobotOrangeColor(),
-            colorMode=directorConfig["colorMode"],
-            visible=False,
-        )
-
-        robotSystem.playbackJointController.models.append(chullRobotModel)
-
-        return FieldContainer(
-            chullRobotModel=chullRobotModel, chullJointController=chullJointController
-        )
 
     def initAffordances(self, robotSystem):
 
