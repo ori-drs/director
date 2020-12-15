@@ -183,6 +183,7 @@ class FrameVisualizationPanel(object):
 
         self.eventFilter = PythonQt.dd.ddPythonEventFilter()
         self.ui.scrollArea.installEventFilter(self.eventFilter)
+        self.ui.allFramesCheckBox.connect("stateChanged(int)", self.toggleAllFrames)
         self.eventFilter.addFilteredEventType(QtCore.QEvent.Resize)
         self.eventFilter.connect("handleEvent(QObject*, QEvent*)", self.onEvent)
 
@@ -199,6 +200,15 @@ class FrameVisualizationPanel(object):
             + self.ui.scrollArea.verticalScrollBar().width
         )
         self.ui.scrollArea.setMinimumWidth(minSize)
+
+    def toggleAllFrames(self, ignored):
+        newCheckState = (
+            QtCore.Qt.Checked
+            if self.ui.allFramesCheckBox.isChecked()
+            else QtCore.Qt.Unchecked
+        )
+        for _, item in self.linkFrameUpdater.itemMap.items():
+            item.setData(QtCore.Qt.CheckStateRole, newCheckState)
 
     # def updateFrames(self):
     #    self.botFrameUpdater.updateFrames()

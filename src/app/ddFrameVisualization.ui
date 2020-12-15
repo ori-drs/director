@@ -23,7 +23,16 @@
    <property name="spacing">
     <number>0</number>
    </property>
-   <property name="margin">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
     <number>0</number>
    </property>
    <item>
@@ -54,8 +63,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>306</width>
-        <height>351</height>
+        <width>292</width>
+        <height>378</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -66,6 +75,13 @@
          </property>
          <property name="placeholderText">
           <string>Name Filter Regexp [todo]</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="allFramesCheckBox">
+         <property name="text">
+          <string>Show all frames</string>
          </property>
         </widget>
        </item>
