@@ -209,6 +209,8 @@ class ImageManager(object):
     def getTexture(self, imageName, robotName):
         return self.textures[robotName][imageName]
 
+    def getProvider(self, imageName, robotName):
+        return self.queue[robotName][imageName]
 
 def disableCameraTexture(obj):
     obj.actor.SetTexture(None)
@@ -718,8 +720,12 @@ class CameraImageView(object):
 
     def updateView(self):
 
+        # Start or stop the provider for this camera image depending on whether the view is visible
         if not self.view.isVisible():
+            self.imageManager.getProvider(self.imageName, self.robotName).stop()
             return
+        else:
+            self.imageManager.getProvider(self.imageName, self.robotName).start()
 
         if self.useImageColorMap and self.imageMapToColors:
             self.imageMapToColors.Update()
