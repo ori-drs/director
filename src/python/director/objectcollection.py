@@ -39,7 +39,7 @@ class ObjectCollection(object):
         return desc["uuid"]
 
     def prettyPrintCollection(self):
-        print json.dumps(json.loads(numpyjsoncoder.encode(self.collection)), indent=2)
+        print(json.dumps(json.loads(numpyjsoncoder.encode(self.collection)), indent=2))
 
     def getDescription(self, descriptionId):
         return self.collection[descriptionId]

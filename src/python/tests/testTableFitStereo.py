@@ -51,14 +51,14 @@ polyData = segmentation.thresholdPoints(polyData, 'distance_along_view_x', [0, 1
 #segmentation.segmentTableThenFindDrills(polyData, [1.2864902,  -0.93351376,  1.10208917])
 objectClusters, tableData = segmentation.segmentTableSceneClusters(polyData, [1.2864902,  -0.93351376,  1.10208917], clusterInXY=True )
 
-print ""
-print "answer should be: 314 297 292 16 10"
+print("")
+print("answer should be: 314 297 292 16 10")
 
 result_str='answer: '
 for i,c in enumerate(objectClusters):
     result_str +=str(int(c.GetNumberOfPoints())) + " "
 
-print result_str
+print(result_str)
 
 if app.getTestingInteractiveEnabled():
 

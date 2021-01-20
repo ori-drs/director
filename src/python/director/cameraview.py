@@ -90,7 +90,7 @@ class ImageManager(object):
     #        return frames.split(',')
 
     def resetTime(self):
-        for robotName in self.queue.keys():
+        for robotName in list(self.queue.keys()):
             for cameraName in self.queue[robotName]:
                 self.queue[robotName][cameraName].reset_time()
 
@@ -123,11 +123,11 @@ class ImageManager(object):
                 robotName
             ].initialise_from_name(name, robotName)
         else:
-            print(
+            print((
                 "Could not initialise camera {} as the provider class is not initialised.".format(
                     name
                 )
-            )
+            ))
             self.queue[robotName][name] = None
 
     def setProviderClass(self, provider, robotName):
@@ -150,14 +150,14 @@ class ImageManager(object):
 
         self.providerClasses[robotName] = provider
         if robotName not in self.images:
-            print(
+            print((
                 "Could not set provider class. Robot name {} not in ImageManager name "
-                "list {}".format(robotName, self.images.keys())
-            )
+                "list {}".format(robotName, list(self.images.keys()))
+            ))
             return
         # Initialise the provider for names which were added to the object before this point
-        for name in self.images[robotName].keys():
-            print("Initialising image provider for {}:{}".format(robotName, name))
+        for name in list(self.images[robotName].keys()):
+            print(("Initialising image provider for {}:{}".format(robotName, name)))
             self.queue[robotName][name] = self.providerClasses[
                 robotName
             ].initialise_from_name(name, robotName)
@@ -189,8 +189,8 @@ class ImageManager(object):
         return imageUtime
 
     def updateImages(self):
-        for robotName in self.images.keys():
-            for imageName in self.images[robotName].keys():
+        for robotName in list(self.images.keys()):
+            for imageName in list(self.images[robotName].keys()):
                 self.updateImage(imageName, robotName)
 
     def setImageRotation180(self, imageName, robotName):
@@ -371,7 +371,7 @@ class CameraView(object):
     def updateImages(self):
 
         updated = False
-        for imageName, lastUtime in self.updateUtimes.iteritems():
+        for imageName, lastUtime in self.updateUtimes.items():
             currentUtime = self.imageManager.updateImage(imageName, self.robotName)
             if currentUtime != lastUtime:
                 self.updateUtimes[imageName] = currentUtime
@@ -771,7 +771,7 @@ def init(view=None, robotName=""):
     ]
     for camera in cameras:
         if camera in cameraNames:
-            print("will add {} to view".format(camera))
+            print(("will add {} to view".format(camera)))
             imageManager.addImage(camera, robotName)
             view = CameraImageView(imageManager, camera, camera, robotName=robotName)
             global views

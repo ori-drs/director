@@ -11,7 +11,7 @@ class ComponentGraph(object):
         return self._graph
 
     def getComponentNames(self):
-        return self._graph.keys()
+        return list(self._graph.keys())
 
     def getComponentDependencies(self, componentName):
         componentGraph = self.getComponentGraph()
@@ -35,9 +35,9 @@ class ComponentGraph(object):
             deps = self.getComponentDependencies(name)
             wants = componentGraph[name]
             needs = list(set(deps).difference(wants))
-            print name
-            print "       wants -->", ", ".join(wants) or "none"
-            print "  also needs -->", ", ".join(needs) or "none"
+            print(name)
+            print("       wants -->", ", ".join(wants) or "none")
+            print("  also needs -->", ", ".join(needs) or "none")
 
     def addComponent(self, name, deps):
         self._graph[name] = set(deps)
@@ -66,13 +66,13 @@ class ComponentFactory(object):
                 raise Exception("Missing init function for component %s" % name)
 
         for name in disabledComponents:
-            if name not in components.keys():
+            if name not in list(components.keys()):
                 raise Exception(
                     "Unknown component %s found in list of disabled components." % name
                 )
 
         options = dict()
-        for name, deps in components.iteritems():
+        for name, deps in components.items():
             self.componentGraph.addComponent(name, deps)
             self.initFunctions[name] = getattr(fact, "init" + name)
             isEnabled = name not in disabledComponents
@@ -108,11 +108,11 @@ class ComponentFactory(object):
     def setDependentOptions(self, options, **kwargs):
 
         # verify the given args exist in the options fields
-        for name in kwargs.keys():
+        for name in list(kwargs.keys()):
             if name not in options._fields:
                 raise Exception("unknown option given: " + name)
 
-        for name, enabled in kwargs.iteritems():
+        for name, enabled in kwargs.items():
             setattr(options, name, enabled)
 
             # if option is being enabled, also enable its dependencies
@@ -152,14 +152,14 @@ class ComponentFactory(object):
             if isEnabled:
                 self.initComponent(name, defaultFields)
 
-        fields = self._joinFields([defaultFields] + self.componentFields.values())
+        fields = self._joinFields([defaultFields] + list(self.componentFields.values()))
         return fields
 
     def printComponentFields(self):
-        for k, v in self.componentFields.iteritems():
-            print k, "exports fields:"
+        for k, v in self.componentFields.items():
+            print(k, "exports fields:")
             for name in v._fields:
-                print "  ", name
+                print("  ", name)
 
     def initComponent(self, name, defaultFields):
 

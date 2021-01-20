@@ -1,9 +1,7 @@
 import abc
 
 
-class SourceMeta(object):
-    __metaclass__ = abc.ABCMeta
-
+class SourceMeta(object, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def __init__(self, initialisation_object):
         """

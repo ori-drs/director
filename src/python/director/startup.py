@@ -1,7 +1,7 @@
 # This script is executed in the main console namespace so
 # that all the variables defined here become console variables.
 
-from __future__ import division
+
 
 import os
 
@@ -139,7 +139,7 @@ class RobotGridUpdater(object):
         self.robotModel = robotModel
         self.jointController = jointController
         self.robotModel.connectModelChanged(self.updateGrid)
-        print ("Setting z offset to {}".format(z_offset))
+        print(("Setting z offset to {}".format(z_offset)))
         self.z_offset = z_offset
 
     def setZOffset(self, z_offset):
@@ -289,7 +289,7 @@ class RobotSelector(QtGui.QWidget):
         app.hideDockWidgets()
         # TODO use an object with a hide/show method to store widgets and other components so that the hiding method
         #  is associated with the object rather than being implemented here
-        for robot in self.associatedWidgets.keys():
+        for robot in list(self.associatedWidgets.keys()):
             for widget in self.associatedWidgets[robot]["widgets"]:
                 widget.setVisible(robot == robotName)
 
@@ -338,8 +338,8 @@ robotSystems = []
 for (
     _,
     robotConfig,
-) in drcargs.DirectorConfig.getDefaultInstance().robotConfigs.iteritems():
-    print ("Loading config for robot with name {}".format(robotConfig["robotName"]))
+) in drcargs.DirectorConfig.getDefaultInstance().robotConfigs.items():
+    print(("Loading config for robot with name {}".format(robotConfig["robotName"])))
     robotSystems.append(robotsystem.create(view, robotName=robotConfig["robotName"]))
 
 # If there is only one robot, the selector should not be shown
@@ -401,12 +401,12 @@ for robotSystem in robotSystems:
 
     if "disableComponents" in directorConfig:
         for component in directorConfig["disableComponents"]:
-            print "Disabling", component
+            print("Disabling", component)
             locals()[component] = False
 
     if "enableComponents" in directorConfig:
         for component in directorConfig["enableComponents"]:
-            print "Enabling", component
+            print("Enabling", component)
             locals()[component] = True
 
     if usePerception:
@@ -434,11 +434,11 @@ for robotSystem in robotSystems:
             if hasattr(source, "resetTime"):
                 source.resetTime()
             else:
-                print (
+                print((
                     "WARNING: source {} does not have a resetTime function. This is probably a mistake.".format(
                         source
                     )
-                )
+                ))
 
     reset_time_button.connect("clicked()", reset_sources_time)
     reset_time_button.connect(
@@ -510,6 +510,6 @@ for robotSystem in robotSystems:
 print ("===== director setup complete, calling scripts for further setup =====")
 
 for scriptArgs in drcargs.args().scripts:
-    execfile(scriptArgs[0])
+    exec(compile(open(scriptArgs[0], "rb").read(), scriptArgs[0], 'exec'))
 
 selector.finishSetup()

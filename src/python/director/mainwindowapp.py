@@ -358,7 +358,7 @@ class MainWindowAppFactory(object):
                 globalsDict["__file__"] = filename
                 globalsDict["_argv"] = scriptArgs
                 try:
-                    execfile(filename, fields.globalsDict)
+                    exec(compile(open(filename, "rb").read(), filename, 'exec'), fields.globalsDict)
                 finally:
                     globalsDict["__file__"] = prevFile
 

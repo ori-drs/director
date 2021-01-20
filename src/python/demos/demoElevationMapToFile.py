@@ -13,7 +13,7 @@ vtkRos.Start()
 
 reader= vtkRos.vtkRosGridMapSubscriber()
 reader.Start()
-print reader
+print(reader)
 
 import time
 
@@ -22,11 +22,11 @@ while (continueLoop):
     polyData = vtk.vtkPolyData()
     reader.GetMesh(polyData)
     n = polyData.GetNumberOfPoints()
-    print "Number of points",  polyData.GetNumberOfPoints()
+    print("Number of points",  polyData.GetNumberOfPoints())
 
     polyDataPC = vtk.vtkPolyData()
     reader.GetPointCloud(polyDataPC)
-    print "Number of output points",  polyDataPC.GetNumberOfPoints()
+    print("Number of output points",  polyDataPC.GetNumberOfPoints())
 
 
 

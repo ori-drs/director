@@ -50,7 +50,7 @@ class CameraBookmarkWidget(object):
         w = QtGui.QWidget()
         l = QtGui.QGridLayout(w)
 
-        for i in xrange(self.numberOfBookmarks):
+        for i in range(self.numberOfBookmarks):
             storeButton = QtGui.QPushButton("Set")
             flyButton = QtGui.QPushButton("Fly")
             textEdit = QtGui.QLineEdit("camera %d" % i)
@@ -140,7 +140,7 @@ class CameraBookmarkWidget(object):
         full_str = (
             "self.setStoredCamera(0, " + focal_str + ", " + position_str + ', "label")'
         )
-        print full_str
+        print(full_str)
 
 
 def init(view):

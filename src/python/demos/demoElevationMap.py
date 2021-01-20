@@ -17,7 +17,7 @@ vtkRos.Start()
 
 reader= vtk.vtkRosGridMapSubscriber()
 reader.Start()
-print reader
+print(reader)
 
 
 import time
@@ -29,14 +29,14 @@ def spin():
     polyData = vtk.vtkPolyData()
     reader.GetMesh(polyData)
     vis.updatePolyData(polyData,'mesh')
-    print "Number of points (a)",  polyData.GetNumberOfPoints()
+    print("Number of points (a)",  polyData.GetNumberOfPoints())
     if (polyData.GetNumberOfPoints() == 0):
         return
 
     polyDataPC = vtk.vtkPolyData()
     reader.GetPointCloud(polyDataPC)
     vis.updatePolyData(polyDataPC, 'output')
-    print "Number of points (b)",  polyDataPC.GetNumberOfPoints()
+    print("Number of points (b)",  polyDataPC.GetNumberOfPoints())
 
 
     

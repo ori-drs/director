@@ -57,7 +57,7 @@ class SegmentationPanel(object):
         }
 
         self.wizards = {}
-        for name, func in wizards.iteritems():
+        for name, func in wizards.items():
             widget = func()
             self.wizards[name] = widget
             l.addWidget(widget)
@@ -451,7 +451,7 @@ class SegmentationPanel(object):
         self.moveDrillToHand()
 
     def cancelCurrentTask(self):
-        for w in self.wizards.values():
+        for w in list(self.wizards.values()):
             w.hide()
         self.backButton.hide()
         self.taskSelection.show()

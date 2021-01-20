@@ -215,13 +215,13 @@ class ObjectModelTree(object):
     def getObjectChildren(self, obj):
         item = self._getItemForObject(obj)
         return [
-            self._getObjectForItem(item.child(i)) for i in xrange(item.childCount())
+            self._getObjectForItem(item.child(i)) for i in range(item.childCount())
         ]
 
     def getTopLevelObjects(self):
         return [
             self._getObjectForItem(self._treeWidget.topLevelItem(i))
-            for i in xrange(self._treeWidget.topLevelItemCount)
+            for i in range(self._treeWidget.topLevelItemCount)
         ]
 
     def getActiveObject(self):
@@ -241,14 +241,14 @@ class ObjectModelTree(object):
         self.getTreeWidget().setCurrentItem(None)
 
     def getObjects(self):
-        return self._objects.values()
+        return list(self._objects.values())
 
     def _getSelectedItem(self):
         items = self.getTreeWidget().selectedItems()
         return items[0] if len(items) == 1 else None
 
     def _getItemForObject(self, obj):
-        for item, itemObj in self._objects.iteritems():
+        for item, itemObj in self._objects.items():
             if itemObj == obj:
                 return item
 
@@ -258,7 +258,7 @@ class ObjectModelTree(object):
     def findObjectByName(self, name, parent=None):
         if parent:
             return self.findChildByName(parent, name)
-        for obj in self._objects.values():
+        for obj in list(self._objects.values()):
             if obj.getProperty("Name") == name:
                 return obj
 

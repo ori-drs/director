@@ -70,7 +70,7 @@ class FrameUpdater(object):
 
     def getEnabledFrameNames(self):
         enabledFrames = set()
-        for name, item in self.itemMap.iteritems():
+        for name, item in self.itemMap.items():
             isChecked = item.checkState() == QtCore.Qt.Checked
             if isChecked:
                 enabledFrames.add(name)
@@ -207,7 +207,7 @@ class FrameVisualizationPanel(object):
             if self.ui.allFramesCheckBox.isChecked()
             else QtCore.Qt.Unchecked
         )
-        for _, item in self.linkFrameUpdater.itemMap.items():
+        for _, item in list(self.linkFrameUpdater.itemMap.items()):
             item.setData(QtCore.Qt.CheckStateRole, newCheckState)
 
     # def updateFrames(self):

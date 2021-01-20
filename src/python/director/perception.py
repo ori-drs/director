@@ -46,12 +46,12 @@ class CheckProvider(object):
             return self.func(*args, **kwargs)
         else:
             if self.num_calls % 50 == 0:
-                print(
+                print((
                     "Provider not yet intialised, skipping execution of {}.{}"
                     " (skipped {} times)".format(
                         args[0].__class__.__name__, self.func.__name__, self.num_calls
                     )
-                )
+                ))
             self.num_calls += 1
             return
 
@@ -465,7 +465,7 @@ class LidarSource(TimerCallback):
         self.nextScanLineId = 0
         self.lastScanLine = max(self.lastScanLine - self.numberOfScanLines, 0)
 
-        for i in xrange(self.numberOfScanLines):
+        for i in range(self.numberOfScanLines):
             polyData = vtk.vtkPolyData()
             scanLine = vis.PolyDataItem("scan line %d" % i, polyData, self.view)
             scanLine.rangeMap["intensity"] = self.intensityRange
@@ -531,7 +531,7 @@ class LidarSource(TimerCallback):
         # print 'updating actors:', self.nextScanLineId, (self.nextScanLineId + (scanLinesToUpdate-1)) % self.numberOfActors
         # print 'updating scan lines:', self.lastScanLine + 1, self.lastScanLine + 1 + (scanLinesToUpdate-1)
 
-        for i in xrange(scanLinesToUpdate):
+        for i in range(scanLinesToUpdate):
             scanLine = self.scanLines[
                 (self.nextScanLineId + i) % self.numberOfScanLines
             ]
@@ -1179,7 +1179,7 @@ def init(view, robotStateJointController):
                 om.addToObjectModel(source, sensorsFolder)
 
             if "properties" in sourceConfig:
-                for prop, value in sourceConfig["properties"].iteritems():
+                for prop, value in sourceConfig["properties"].items():
                     source.setProperty(prop, value)
 
             perceptionSources[sourceConfig["robotSystemKey"]] = source

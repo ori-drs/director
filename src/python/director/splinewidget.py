@@ -41,7 +41,7 @@ class SplineEndEffectorPlanner(object):
         rep = self.splineWidget.GetRepresentation()
 
         handlePoints = []
-        for i in xrange(rep.GetNumberOfHandles()):
+        for i in range(rep.GetNumberOfHandles()):
             pt = [0.0, 0.0, 0.0]
             rep.GetHandlePosition(i, pt)
             handlePoints.append(pt)
@@ -118,7 +118,7 @@ class SplineEndEffectorPlanner(object):
 
             pt = [0.0, 0.0, 0.0]
             self.splineWidget.GetRepresentation().GetParametricSpline().Evaluate(
-                [u, 0.0, 0.0], pt, range(9)
+                [u, 0.0, 0.0], pt, list(range(9))
             )
 
             handleParameterization = self.computeHandleParameterization()
@@ -178,7 +178,7 @@ class SplineEndEffectorPlanner(object):
             "sampled hands", parentObj=om.getOrCreateContainer("debug")
         )
 
-        for i in xrange(numberOfSamples):
+        for i in range(numberOfSamples):
             t = self.splineInterp(i / float(numberOfSamples - 1))
             handObj, f = self.handFactory.placeHandModelWithTransform(
                 t, self.view, side=self.side, name="sample %d" % i, parent=handFolder
@@ -189,7 +189,7 @@ class SplineEndEffectorPlanner(object):
 
     def getSplineSegmentSamples(self):
         params = self.computeHandleParameterization()
-        segments = zip(params, params[1:])
+        segments = list(zip(params, params[1:]))
         times = [np.linspace(segment[0], segment[1], 6) for segment in segments]
         times = [[0.0, 0.25, 0.5], np.linspace(params[-2], params[-1], 6)]
         # times = np.linspace(params[-2], params[-1], 6)
@@ -204,9 +204,9 @@ class SplineEndEffectorPlanner(object):
         infos = []
         for u in samples:
             t = self.splineInterp(u)
-            print u, t.GetPosition()
+            print(u, t.GetPosition())
             reachGoal = self.getReachGoalFrame(self.side)
-            print "copying frame..."
+            print("copying frame...")
             reachGoal.copyFrame(t)
             endPose, info = constraintSet.runIk()
             poses.append(list(endPose))
@@ -219,7 +219,7 @@ class SplineEndEffectorPlanner(object):
     ):
 
         params = self.computeHandleParameterization()
-        segments = zip(params, params[1:])
+        segments = list(zip(params, params[1:]))
         # times = [np.linspace(segment[0], segment[1], 6) for segment in segments]
         # times = [[0.0, 0.3, 0.5], np.linspace(params[-2], params[-1], 6)]
 
