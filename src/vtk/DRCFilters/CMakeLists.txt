@@ -165,5 +165,7 @@ include(${CMAKE_DIRECTOR_SOURCE_DIR}/cmake/wrap-python.cmake)
 wrap_python(${library_name} "${sources}")
 set_target_properties(${library_name}Python
   PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CATKIN_DEVEL_PREFIX}/${DD_INSTALL_PYTHON_DIR}/director")
+set_target_properties(${library_name}Python
+  PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CATKIN_DEVEL_PREFIX}/${DD_INSTALL_PYTHON3_DIR}")
 target_link_libraries(${library_name}Python ${PYTHON_LIBRARIES})
 target_link_libraries(${library_name}PythonD ${PYTHON_LIBRARIES})
