@@ -722,7 +722,9 @@ class CameraImageView(object):
 
         # Start or stop the provider for this camera image depending on whether the view is visible
         if not self.view.isVisible():
-            self.imageManager.getProvider(self.imageName, self.robotName).stop()
+            provider = self.imageManager.getProvider(self.imageName, self.robotName)
+            if provider:
+                provider.stop()
             return
         else:
             self.imageManager.getProvider(self.imageName, self.robotName).start()
