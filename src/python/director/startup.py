@@ -139,7 +139,7 @@ class RobotGridUpdater(object):
         self.robotModel = robotModel
         self.jointController = jointController
         self.robotModel.connectModelChanged(self.updateGrid)
-        print(("Setting z offset to {}".format(z_offset)))
+        print("Setting z offset to {}".format(z_offset))
         self.z_offset = z_offset
 
     def setZOffset(self, z_offset):
@@ -339,7 +339,7 @@ for (
     _,
     robotConfig,
 ) in drcargs.DirectorConfig.getDefaultInstance().robotConfigs.items():
-    print(("Loading config for robot with name {}".format(robotConfig["robotName"])))
+    print("Loading config for robot with name {}".format(robotConfig["robotName"]))
     robotSystems.append(robotsystem.create(view, robotName=robotConfig["robotName"]))
 
 # If there is only one robot, the selector should not be shown
@@ -434,11 +434,11 @@ for robotSystem in robotSystems:
             if hasattr(source, "resetTime"):
                 source.resetTime()
             else:
-                print((
+                print(
                     "WARNING: source {} does not have a resetTime function. This is probably a mistake.".format(
                         source
                     )
-                ))
+                )
 
     reset_time_button.connect("clicked()", reset_sources_time)
     reset_time_button.connect(

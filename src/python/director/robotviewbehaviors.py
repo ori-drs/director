@@ -107,10 +107,10 @@ class RobotViewBehaviors(object):
         footFrame = self.robotModel.getLinkFrame(mainLink)
 
         if not footFrame:
-            print((
+            print(
                 "ERROR: The link '{}' provided for the key 'pelvisLink' in the configuration file does not exist in "
                 "the robot's URDF. Cannot place walking goal.".format(mainLink)
-            ))
+            )
             return
 
         worldPt1, worldPt2 = vis.getRayFromDisplayPoint(view, displayPoint)

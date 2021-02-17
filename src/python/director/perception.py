@@ -46,12 +46,12 @@ class CheckProvider(object):
             return self.func(*args, **kwargs)
         else:
             if self.num_calls % 50 == 0:
-                print((
+                print(
                     "Provider not yet intialised, skipping execution of {}.{}"
                     " (skipped {} times)".format(
                         args[0].__class__.__name__, self.func.__name__, self.num_calls
                     )
-                ))
+                )
             self.num_calls += 1
             return
 

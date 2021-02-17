@@ -86,7 +86,7 @@ class Visualizer:
             for path, pose in list(self.poses.items()):
                 self.settransform(path, pose)
         else:
-            print(("unhandled:", response))
+            print("unhandled: {}".format(response))
 
 if __name__ == '__main__':
     # We'll open the visualizer by spawning it as a subprocess.

@@ -225,11 +225,11 @@ class RobotConfig(object):
         if key in self.config:
             return self.config[key]
         else:
-            print((
+            print(
                 "Key {} was not found in director config, returning default value '{}'".format(
                     key, default
                 )
-            ))
+            )
             return default
 
 
