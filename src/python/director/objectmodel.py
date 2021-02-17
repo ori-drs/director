@@ -214,9 +214,7 @@ class ObjectModelTree(object):
 
     def getObjectChildren(self, obj):
         item = self._getItemForObject(obj)
-        return [
-            self._getObjectForItem(item.child(i)) for i in range(item.childCount())
-        ]
+        return [self._getObjectForItem(item.child(i)) for i in range(item.childCount())]
 
     def getTopLevelObjects(self):
         return [

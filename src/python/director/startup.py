@@ -2,7 +2,6 @@
 # that all the variables defined here become console variables.
 
 
-
 import os
 
 import PythonQt
@@ -507,9 +506,9 @@ for robotSystem in robotSystems:
     if useFeetlessRobot:
         robotSystem.ikPlanner.robotNoFeet = True
 
-print ("===== director setup complete, calling scripts for further setup =====")
+print("===== director setup complete, calling scripts for further setup =====")
 
 for scriptArgs in drcargs.args().scripts:
-    exec(compile(open(scriptArgs[0], "rb").read(), scriptArgs[0], 'exec'))
+    exec(compile(open(scriptArgs[0], "rb").read(), scriptArgs[0], "exec"))
 
 selector.finishSetup()

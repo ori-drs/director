@@ -24,7 +24,9 @@ class SceneLoader(object):
             for link in model.links:
                 if hasattr(link, "submodels"):
                     if len(link.submodels) > 0:
-                        print(model.name + " - This is an articulated object - SKIPPING!")
+                        print(
+                            model.name + " - This is an articulated object - SKIPPING!"
+                        )
                         break
                 for col in link.collisions:
                     t1 = transformUtils.getTransformFromNumpy(model.pose)
@@ -59,7 +61,9 @@ class SceneLoader(object):
                             uuid=newUUID(),
                             pose=p,
                             Color=color,
-                            Dimensions=list(map(float, col.geometry_data["size"].split(" "))),
+                            Dimensions=list(
+                                map(float, col.geometry_data["size"].split(" "))
+                            ),
                         )
                         self.affordanceManager.newAffordanceFromDescription(desc)
                     if col.geometry_type == "cylinder":
@@ -167,9 +171,11 @@ class SceneLoader(object):
                 elif aff.getDescription()["classname"] == "CylinderAffordanceItem":
                     world.append(self.generateCylinderLinkNode(aff))
             else:
-                print("{:s} is unsupported skipping {:s} affordance!".format(
-                    aff.getDescription()["classname"], aff.getDescription()["Name"]
-                ))
+                print(
+                    "{:s} is unsupported skipping {:s} affordance!".format(
+                        aff.getDescription()["classname"], aff.getDescription()["Name"]
+                    )
+                )
 
         # tree.write(sdfFile)
         # sdfFile.close()

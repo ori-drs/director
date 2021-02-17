@@ -112,9 +112,7 @@ class PolyDataItem(om.ObjectModelItem):
 
     def getArrayNames(self):
         pointData = self.polyData.GetPointData()
-        return [
-            pointData.GetArrayName(i) for i in range(pointData.GetNumberOfArrays())
-        ]
+        return [pointData.GetArrayName(i) for i in range(pointData.GetNumberOfArrays())]
 
     def setSolidColor(self, color):
         self.setProperty("Color", [float(c) for c in color])

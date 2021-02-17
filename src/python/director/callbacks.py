@@ -165,7 +165,7 @@ class BoundMethodProxy(object):
             raise ReferenceError
         elif self.inst is not None:
             # build a new instance method with a strong reference to the instance
-            #mtd = types.ModuleType(self.func, self.inst(), self.klass)
+            # mtd = types.ModuleType(self.func, self.inst(), self.klass)
             mtd = types.MethodType(self.func, self.inst())
         else:
             # not a bound method, just return the func

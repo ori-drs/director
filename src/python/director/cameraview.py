@@ -212,6 +212,7 @@ class ImageManager(object):
     def getProvider(self, imageName, robotName):
         return self.queue[robotName][imageName]
 
+
 def disableCameraTexture(obj):
     obj.actor.SetTexture(None)
     obj.actor.GetProperty().LightingOn()

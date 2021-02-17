@@ -262,8 +262,16 @@ def applyMirror(joints):
 
     configFile = getDirectorConfig()
     jointGroups = configFile["teleopJointGroups"]
-    leftArmJointList = [thisJointGroup for thisJointGroup in jointGroups if thisJointGroup["name"] == "Left Arm"][0]["joints"]
-    rightArmJointList = [thisJointGroup for thisJointGroup in jointGroups if thisJointGroup["name"] == "Right Arm"][0]["joints"]
+    leftArmJointList = [
+        thisJointGroup
+        for thisJointGroup in jointGroups
+        if thisJointGroup["name"] == "Left Arm"
+    ][0]["joints"]
+    rightArmJointList = [
+        thisJointGroup
+        for thisJointGroup in jointGroups
+        if thisJointGroup["name"] == "Right Arm"
+    ][0]["joints"]
 
     flipped = {}
     for name, position in joints.items():

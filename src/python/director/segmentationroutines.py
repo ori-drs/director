@@ -59,7 +59,9 @@ class SegmentationContext(object):
                     "No providername was given to getViewFrame but there is more than one possible provider."
                 )
             else:
-                return self.viewProviders[list(self.viewProviders.keys())[0]].getViewFrame()
+                return self.viewProviders[
+                    list(self.viewProviders.keys())[0]
+                ].getViewFrame()
         else:
             return self.viewProviders[providerName].getViewFrame()
 
@@ -70,7 +72,9 @@ class SegmentationContext(object):
                     "No providername was given to getViewOrigin but there is more than one possible provider."
                 )
             else:
-                return self.viewProviders[list(self.viewProviders.keys())[0]].getViewOrigin()
+                return self.viewProviders[
+                    list(self.viewProviders.keys())[0]
+                ].getViewOrigin()
         else:
             return self.viewProviders[providerName].getViewOrigin()
 

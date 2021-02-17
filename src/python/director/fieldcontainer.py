@@ -96,7 +96,9 @@ class FieldContainer(object):
         if not hasattr(self, "_fields"):
             object.__setattr__(self, "_fields", list(fields.keys()))
         else:
-            object.__setattr__(self, "_fields", list(set(self._fields + list(fields.keys()))))
+            object.__setattr__(
+                self, "_fields", list(set(self._fields + list(fields.keys())))
+            )
         for name, value in fields.items():
             object.__setattr__(self, name, value)
 
