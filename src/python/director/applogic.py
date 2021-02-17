@@ -76,7 +76,7 @@ _exclusiveDockWidgets = {}
 
 
 def hideDockWidgets(action=None):
-    for a, wList in _exclusiveDockWidgets.iteritems():
+    for a, wList in _exclusiveDockWidgets.items():
         if a is not action:
             for dock, widget in wList:
                 if not dock.isFloating():

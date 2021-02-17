@@ -335,7 +335,7 @@ def test(
     orbitTime = 5.0
     speed = 360.0 / orbitTime
 
-    for i in xrange(n):
+    for i in range(n):
 
         tNow = time.time()
         elapsed = tNow - tPrev
@@ -345,9 +345,9 @@ def test(
         saveScreenshot("out_%04d.%s" % (i, ext), shouldRender, shouldWrite)
 
     elapsed = time.time() - tStart
-    print n, "frames"
-    print "%.3f" % elapsed, "seconds"
-    print "%.2f" % (n / elapsed), "fps"
+    print(n, "frames")
+    print("%.3f" % elapsed, "seconds")
+    print("%.2f" % (n / elapsed), "fps")
 
 
 def init(view, imageWidget, robotName=""):

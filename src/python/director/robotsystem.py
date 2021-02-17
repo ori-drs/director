@@ -82,7 +82,7 @@ class RobotSystemFactory(object):
         )
 
         # Expand dict to keyword args, robotSystem object will have objects accessible via keys set in config
-        return FieldContainer(sources=perceptionSources.values(), **perceptionSources)
+        return FieldContainer(sources=list(perceptionSources.values()), **perceptionSources)
 
     def initAffordances(self, robotSystem):
 

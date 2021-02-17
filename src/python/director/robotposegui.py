@@ -126,14 +126,14 @@ def findPrefixInJointNames(jointNames, armJointList):
 def getLeftArmInJoints(joints, jointGroups):
     for jointGroup in jointGroups:
         if jointGroup["name"] == "Left Arm":
-            return findPrefixInJointNames(joints.keys(), jointGroup["joints"])
+            return findPrefixInJointNames(list(joints.keys()), jointGroup["joints"])
     return False
 
 
 def getRightArmInJoints(joints, jointGroups):
     for jointGroup in jointGroups:
         if jointGroup["name"] == "Right Arm":
-            return findPrefixInJointNames(joints.keys(), jointGroup["joints"])
+            return findPrefixInJointNames(list(joints.keys()), jointGroup["joints"])
     return False
 
 
@@ -146,7 +146,7 @@ def getJointNamesForPoseType(poseType):
     """
     jointSets = getJointSets()
     jointNames = []
-    for name, jointSet in jointSets.iteritems():
+    for name, jointSet in jointSets.items():
         if name in poseType:
             jointNames += jointSet
     return jointNames
@@ -197,7 +197,7 @@ def storePose(poseType, captureMethod, group, name, description, outFile):
     poseJoints = captureMethod["function"]()
 
     joints = dict()
-    for joint, position in poseJoints.iteritems():
+    for joint, position in poseJoints.items():
         if joint in jointSet:
             joints[joint] = position
 
@@ -262,15 +262,11 @@ def applyMirror(joints):
 
     configFile = getDirectorConfig()
     jointGroups = configFile["teleopJointGroups"]
-    leftArmJointList = filter(
-        lambda thisJointGroup: thisJointGroup["name"] == "Left Arm", jointGroups
-    )[0]["joints"]
-    rightArmJointList = filter(
-        lambda thisJointGroup: thisJointGroup["name"] == "Right Arm", jointGroups
-    )[0]["joints"]
+    leftArmJointList = [thisJointGroup for thisJointGroup in jointGroups if thisJointGroup["name"] == "Left Arm"][0]["joints"]
+    rightArmJointList = [thisJointGroup for thisJointGroup in jointGroups if thisJointGroup["name"] == "Right Arm"][0]["joints"]
 
     flipped = {}
-    for name, position in joints.iteritems():
+    for name, position in joints.items():
         name = flipLeftRight(name)
         if name in signFlips:
             position = -position
@@ -286,7 +282,7 @@ def publishPostureGoal(joints, postureName, channel="POSTURE_GOAL"):
     """
     msg = lcmbotcore.joint_angles_t()
     msg.utime = getUtime()
-    for name, position in joints.iteritems():
+    for name, position in joints.items():
         msg.joint_name.append(name)
         msg.joint_position.append(position)
     msg.num_joints = len(msg.joint_name)
@@ -479,7 +475,7 @@ class CapturePanel(object):
         self.updateGroupCombo()
         self.initCaptureMethods()
 
-        jointSetNames = getJointSets().keys()
+        jointSetNames = list(getJointSets().keys())
         updateComboStrings(self.ui.jointSetCombo, jointSetNames, jointSetNames[0])
 
     def updateGroupCombo(self):
@@ -702,7 +698,7 @@ class MainWindow(object):
         return sorted(self.loadConfigFile().keys())
 
     def checkPostures(self, config):
-        for groupName, postures in config.iteritems():
+        for groupName, postures in config.items():
             for i, posture in enumerate(postures):
                 for name in ["name", "description", "joints", "nominal_handedness"]:
                     if name not in posture:
@@ -721,7 +717,7 @@ class MainWindow(object):
 
         postures = []
         if groupName == "All":
-            for group, postureList in config.iteritems():
+            for group, postureList in config.items():
                 for posture in postureList:
                     posture["name"] = "%s - %s" % (group, posture["name"])
                 postures += postureList
@@ -748,8 +744,8 @@ def main():
         configFile = os.path.abspath(sys.argv[1])
         setDirectorConfigFile(configFile)
     except IndexError:
-        print "You must provide a director_config.json file."
-        print "Usage: %s <path to director_config.json>" % sys.argv[0]
+        print("You must provide a director_config.json file.")
+        print("Usage: %s <path to director_config.json>" % sys.argv[0])
         return
 
     # create a global instance of the LCMWrapper

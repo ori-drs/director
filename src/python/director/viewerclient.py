@@ -1,5 +1,5 @@
 # Used only in removed tests, To REMOVE
-from __future__ import absolute_import, division, print_function
+
 
 import time
 import json
@@ -171,7 +171,7 @@ class LazyTree(object):
 
     def descendants(self, prefix=tuple()):
         result = []
-        for (key, val) in self.children.items():
+        for (key, val) in list(self.children.items()):
             childpath = prefix + (key,)
             result.append(childpath)
             result.extend(val.descendants(childpath))

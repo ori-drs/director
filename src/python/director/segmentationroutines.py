@@ -13,10 +13,10 @@ from director import objectmodel as om
 from director.transformUtils import getTransformFromAxes
 from director import vtkAll as vtk
 
-import vtkNumpy
+from . import vtkNumpy
 import numpy as np
-from shallowCopy import shallowCopy
-from debugpolydata import DebugData
+from .shallowCopy import shallowCopy
+from .debugpolydata import DebugData
 
 
 class SegmentationContext(object):
@@ -41,48 +41,48 @@ class SegmentationContext(object):
 
     def getGroundHeight(self, providerName=None):
         if not providerName:
-            if len(self.groundHeightProviders.keys()) > 1:
+            if len(list(self.groundHeightProviders.keys())) > 1:
                 raise ValueError(
                     "No providername was given to getGroundHeight but there is more than one possible provider."
                 )
             else:
                 return self.groundHeightProviders[
-                    self.groundHeightProviders.keys()[0]
+                    list(self.groundHeightProviders.keys())[0]
                 ].getGroundHeight()
         else:
             return self.groundHeightProviders[providerName].getGroundHeight()
 
     def getViewFrame(self, providerName=None):
         if not providerName:
-            if len(self.viewProviders.keys()) > 1:
+            if len(list(self.viewProviders.keys())) > 1:
                 raise ValueError(
                     "No providername was given to getViewFrame but there is more than one possible provider."
                 )
             else:
-                return self.viewProviders[self.viewProviders.keys()[0]].getViewFrame()
+                return self.viewProviders[list(self.viewProviders.keys())[0]].getViewFrame()
         else:
             return self.viewProviders[providerName].getViewFrame()
 
     def getViewOrigin(self, providerName=None):
         if not providerName:
-            if len(self.viewProviders.keys()) > 1:
+            if len(list(self.viewProviders.keys())) > 1:
                 raise ValueError(
                     "No providername was given to getViewOrigin but there is more than one possible provider."
                 )
             else:
-                return self.viewProviders[self.viewProviders.keys()[0]].getViewOrigin()
+                return self.viewProviders[list(self.viewProviders.keys())[0]].getViewOrigin()
         else:
             return self.viewProviders[providerName].getViewOrigin()
 
     def getViewDirection(self, providerName=None):
         if not providerName:
-            if len(self.viewProviders.keys()) > 1:
+            if len(list(self.viewProviders.keys())) > 1:
                 raise ValueError(
                     "No providername was given to getViewDirection but there is more than one possible provider."
                 )
             else:
                 return self.viewProviders[
-                    self.viewProviders.keys()[0]
+                    list(self.viewProviders.keys())[0]
                 ].getViewDirection()
         else:
             return self.viewProviders[providerName].getViewDirection()
@@ -323,7 +323,7 @@ def extractClusters(polyData, clusterInXY=False, **kwargs):
         clusterLabels = vtkNumpy.getNumpyFromVtk(polyData, "cluster_labels")
 
     clusters = []
-    for i in xrange(1, clusterLabels.max() + 1):
+    for i in range(1, clusterLabels.max() + 1):
         cluster = thresholdPoints(polyData, "cluster_labels", [i, i])
         clusters.append(cluster)
     return clusters

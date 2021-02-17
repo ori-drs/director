@@ -87,7 +87,7 @@ class PointPicker(object):
         if self.annotationObj:
             self.annotationObj.setProperty("Visible", False)
         self.annotationObj = None
-        self.points = [None for i in xrange(self.numberOfPoints)]
+        self.points = [None for i in range(self.numberOfPoints)]
         self.hoverPos = None
         self.lastMovePos = [0, 0]
 
@@ -97,7 +97,7 @@ class PointPicker(object):
 
     def onMousePress(self, displayPoint, modifiers=None):
 
-        for i in xrange(self.numberOfPoints):
+        for i in range(self.numberOfPoints):
             if self.points[i] is None:
                 self.points[i] = self.hoverPos
                 break
@@ -538,7 +538,7 @@ class ObjectPicker(object):
             self.onMousePress(vis.mapMousePosition(obj, event), event.modifiers())
 
     def clear(self):
-        self.objects = [None for i in xrange(self.numberOfObjects)]
+        self.objects = [None for i in range(self.numberOfObjects)]
         self.hoverPos = None
         self.lastMovePos = [0, 0]
         self.unsetHoverProperties(self.pickedObj)
@@ -556,7 +556,7 @@ class ObjectPicker(object):
         if modifiers != self.modifier:
             return
 
-        for i in xrange(self.numberOfObjects):
+        for i in range(self.numberOfObjects):
 
             if self.objects[i] is None:
                 self.objects[i] = self.pickedObj
@@ -578,7 +578,7 @@ class ObjectPicker(object):
         if obj is None:
             return
 
-        for propName, value in self.storedProps.iteritems():
+        for propName, value in self.storedProps.items():
             if obj.hasProperty(propName):
                 obj.setProperty(propName, value)
         self.storedProps = {}

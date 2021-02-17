@@ -225,11 +225,11 @@ class RobotConfig(object):
         if key in self.config:
             return self.config[key]
         else:
-            print(
+            print((
                 "Key {} was not found in director config, returning default value '{}'".format(
                     key, default
                 )
-            )
+            ))
             return default
 
 
@@ -267,7 +267,7 @@ class DirectorConfig(object):
                     "DirectorConfig.getConfig should be called with a valid robot name and not an empty "
                     "string. Be specific about the robot you want the configuration for."
                 )
-                return self.robotConfigs[self.robotConfigs.keys()[0]]
+                return self.robotConfigs[list(self.robotConfigs.keys())[0]]
             else:
                 raise ValueError(
                     "DirectorConfig.getConfig was called without a valid robotName specified and had "

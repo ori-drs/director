@@ -450,7 +450,7 @@ def onModelPublisherString(msg):
     if updateModelPublisherString(msg) == lastStr:
         return
 
-    print "reloading models with new model publisher string"
+    print("reloading models with new model publisher string")
 
     if lastStr is not None:
         app.showInfoMessage(
@@ -461,7 +461,7 @@ def onModelPublisherString(msg):
 
     objs = getExistingRobotModels()
     for obj, jointController in _modelsToReload:
-        print "reloading model:", obj.getProperty("Name")
+        print("reloading model:", obj.getProperty("Name"))
         newModel = loadRobotModelFromString(getModelPublisherString())
         obj.setModel(newModel)
         jointController.push()
@@ -514,11 +514,11 @@ def getEnvironmentPackagePaths():
                 if packageName and packageName not in packages:
                     packages[packageName] = root
                 else:
-                    print "warning, skipping package path:", root
-                    print "existing package path:", packageName, packages[packageName]
+                    print("warning, skipping package path:", root)
+                    print("existing package path:", packageName, packages[packageName])
                     continue
 
-    return packages.values()
+    return list(packages.values())
 
 
 def getPackagePaths():
@@ -536,7 +536,7 @@ def getPackagePaths():
 
 
 def addPathsFromPackageMap(packageMap):
-    for path in packageMap.map.values():
+    for path in list(packageMap.map.values()):
         if os.path.exists(path):
             PythonQt.dd.ddDrakeModel.addPackageSearchPath(path)
 
@@ -566,7 +566,7 @@ class HandFactory(object):
 
     def getLoader(self, side):
 
-        assert side in self.defaultHandTypes.keys()
+        assert side in list(self.defaultHandTypes.keys())
         handType = self.defaultHandTypes[side]
         loader = self.loaders.get(handType)
         if loader is None:

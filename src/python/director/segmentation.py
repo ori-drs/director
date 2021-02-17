@@ -22,14 +22,14 @@ from director.segmentationroutines import *
 from director import cameraview
 from director import drcargs
 
-from thirdparty import qhull_2d
-from thirdparty import min_bounding_rect
+from .thirdparty import qhull_2d
+from .thirdparty import min_bounding_rect
 
 import numpy as np
-import vtkNumpy
-from debugpolydata import DebugData
-from shallowCopy import shallowCopy
-import ioutils
+from . import vtkNumpy
+from .debugpolydata import DebugData
+from .shallowCopy import shallowCopy
+from . import ioutils
 from director.uuidutil import newUUID
 
 DRILL_TRIANGLE_BOTTOM_LEFT = "bottom left"
@@ -709,10 +709,10 @@ def segmentGroundPlanes():
     prevHeadAxis = None
     for obj in objs:
         name = obj.getProperty("Name")
-        print "----- %s---------" % name
-        print "head axis:", obj.headAxis
+        print("----- %s---------" % name)
+        print("head axis:", obj.headAxis)
         origin, normal, groundPoints, _ = segmentGround(obj.polyData)
-        print "ground normal:", normal
+        print("ground normal:", normal)
         showPolyData(groundPoints, name + " ground points", visible=False)
         a = np.array([0, 0, 1])
         b = np.array(normal)
@@ -720,9 +720,9 @@ def segmentGroundPlanes():
             math.acos(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))
         )
         if diff > 90:
-            print 180 - diff
+            print(180 - diff)
         else:
-            print diff
+            print(diff)
 
         if prevHeadAxis is not None:
             a = prevHeadAxis
@@ -731,9 +731,9 @@ def segmentGroundPlanes():
                 math.acos(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))
             )
             if diff > 90:
-                print 180 - diff
+                print(180 - diff)
             else:
-                print diff
+                print(diff)
         prevHeadAxis = np.array(obj.headAxis)
 
         d.addLine([0, 0, 0], normal)
@@ -1750,7 +1750,7 @@ def applyKmeansLabel(polyData, arrayName, numberOfClusters, whiten=False):
         v1 /= np.linalg.norm(v1)
         v2 /= np.linalg.norm(v2)
         angle = np.arccos(np.dot(v1, v2))
-        print "angle between normals:", np.degrees(angle)
+        print("angle between normals:", np.degrees(angle))
 
     code, distance = scipy.cluster.vq.vq(ar, codes)
 
@@ -1774,7 +1774,7 @@ def findValveSpokeAngle(points):
     angle = np.mod(angle, 120)
 
     # find the spoke as the max of a histogram:
-    bins = range(0, 130, 10)  # 0,10,...130
+    bins = list(range(0, 130, 10))  # 0,10,...130
     freq, bins = np.histogram(angle, bins)
     amax = np.argmax(freq)
     spoke_angle = bins[amax] + 5  # correct for 5deg offset
@@ -3636,8 +3636,8 @@ def findAndFitDrillBarrel(polyData=None):
             if drillFrame is not None:
                 fitResults.append((clusterObj, drillFrame))
         except:
-            print traceback.format_exc()
-            print "fit drill failed for cluster:", clusterId
+            print(traceback.format_exc())
+            print("fit drill failed for cluster:", clusterId)
 
     if not fitResults:
         return
@@ -4013,7 +4013,7 @@ class PointPicker(TimerCallback):
         self.clear()
 
     def clear(self):
-        self.points = [None for i in xrange(self.numberOfPoints)]
+        self.points = [None for i in range(self.numberOfPoints)]
         self.hoverPos = None
         self.annotationFunc = None
         self.lastMovePos = [0, 0]
@@ -4027,7 +4027,7 @@ class PointPicker(TimerCallback):
         # if not modifiers:
         #    return
 
-        for i in xrange(self.numberOfPoints):
+        for i in range(self.numberOfPoints):
             if self.points[i] is None:
                 self.points[i] = self.hoverPos
                 break
@@ -4221,7 +4221,7 @@ def computeEdge(polyData, edgeAxis, perpAxis, binWidth=0.03):
 
     numberOfBins = len(bins) - 1
     edgePoints = []
-    for i in xrange(numberOfBins):
+    for i in range(numberOfBins):
         binPoints = points[binLabels == i]
         binDists = distToEdge[binLabels == i]
         if len(binDists):
@@ -4242,7 +4242,7 @@ def computeCentroids(polyData, axis, binWidth=0.025):
 
     numberOfBins = len(bins) - 1
     centroids = []
-    for i in xrange(numberOfBins):
+    for i in range(numberOfBins):
         binPoints = points[binLabels == i]
 
         if len(binPoints):
@@ -4263,7 +4263,7 @@ def computePointCountsAlongAxis(polyData, axis, binWidth=0.025):
 
     numberOfBins = len(bins) - 1
     binCount = []
-    for i in xrange(numberOfBins):
+    for i in range(numberOfBins):
         binPoints = points[binLabels == i]
         binCount.append(len(binPoints))
 
@@ -4328,10 +4328,10 @@ def getOrientedBoundingBox(polyData):
     assert f.GetNumberOfBoundingBoxes() == 1
 
     origin = np.zeros(3)
-    edges = [np.zeros(3) for i in xrange(3)]
+    edges = [np.zeros(3) for i in range(3)]
 
     f.GetBoundingBoxOrigin(0, origin)
-    for i in xrange(3):
+    for i in range(3):
         f.GetBoundingBoxEdge(0, i, edges[i])
 
     return origin, edges, shallowCopy(f.GetOutput())
@@ -4423,7 +4423,7 @@ def segmentBlockByAnnotation(blockDimensions, p1, p2, p3):
 def getBoardCorners(params):
     axes = [np.array(params[axis]) for axis in ["xaxis", "yaxis", "zaxis"]]
     widths = [np.array(params[axis]) / 2.0 for axis in ["xwidth", "ywidth", "zwidth"]]
-    edges = [axes[i] * widths[i] for i in xrange(3)]
+    edges = [axes[i] * widths[i] for i in range(3)]
     origin = np.array(params["origin"])
     return [
         origin + edges[0] + edges[1] + edges[2],
@@ -5113,7 +5113,7 @@ def startSegmentDebrisWallManual():
 
 
 def selectToolTip(point1):
-    print point1
+    print(point1)
 
 
 def segmentDebrisWallManual(point1, point2):
@@ -5583,7 +5583,7 @@ def segmentDrillWallFromTag(position, ray):
     polyData = getCurrentRevolutionData()
 
     if polyData is None:  # no data yet
-        print "no LIDAR data yet"
+        print("no LIDAR data yet")
         return False
 
     point1 = extractPointsAlongClickRay(position, ray, polyData)

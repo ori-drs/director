@@ -25,7 +25,7 @@ def getContextMenuActions(view, pickedObj, pickedPoint):
 
     robotName = applogic.getRobotSelector().selectedRobotName()
     # TODO replace iteritems with items in python3
-    for contextName, actionList in _contextMenuActions.iteritems():
+    for contextName, actionList in _contextMenuActions.items():
         # Only return default menu items or the items associated with the currently selected robot
         if contextName == "" or contextName == robotName:
             for func in actionList:

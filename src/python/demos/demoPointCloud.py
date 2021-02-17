@@ -15,7 +15,7 @@ from director.timercallback import TimerCallback
 
 reader= vtkRos.vtkRosPointCloudSubscriber()
 reader.Start("/velodyne/point_cloud_filtered")
-print reader
+print(reader)
 
 
 import time
@@ -31,7 +31,7 @@ def spin():
     nsec = reader.GetNsec()
     message = str(polyData.GetNumberOfPoints()) + " points, "
     message += frame_id + ", " + str(sec) + "." + str(nsec)
-    print message
+    print(message)
 
     vis.updatePolyData(polyData,'point cloud')
 
