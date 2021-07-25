@@ -234,7 +234,7 @@ class ScreenGrabberPanel(object):
             % self.frameCount
         )
         msg += '    cd "%s"\n\n' % self.movieOutputDirectory()
-        msg += "    avconv -r %d -i frame_%%07d.tiff \\\n" % self.captureRate()
+        msg += "    ffmpeg -r %d -i frame_%%07d.tiff \\\n" % self.captureRate()
         msg += "           -vcodec libx264 \\\n"
         msg += "           -preset slow \\\n"
         msg += "           -crf 18 \\\n"
