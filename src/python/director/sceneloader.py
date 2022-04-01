@@ -17,9 +17,11 @@ from director.thirdparty import pysdf
 class SceneLoader(object):
     def __init__(self):
         self.affordanceManager = segmentation.affordanceManager
+        self.sdf = None
 
     def loadSDF(self, filename):
         sdf = pysdf.SDF(file=filename)
+        self.sdf = sdf
         for model in sdf.world.models:
             for link in model.links:
                 if hasattr(link, "submodels"):
