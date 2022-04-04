@@ -10,7 +10,7 @@ catkin_package(
     pcl_ros pcl_plugin
     ctk_python_console
     qt_property_browser python_qt
-    anymal_msgs vtk_ros)
+    vtk_ros)
 
 # set a default build type if none was specified
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
