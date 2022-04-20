@@ -1143,6 +1143,8 @@ def init(view, robotStateJointController):
     validSourceTypes = ["gridMap", "depthImagePointCloud", "pointCloud"]
 
     perceptionSources = {}
+    if not config: # if config == None
+        return perceptionSources
     for sourceType in config:
         if sourceType not in validSourceTypes:
             raise ValueError(
