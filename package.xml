@@ -20,7 +20,6 @@
     <depend>ctk_python_console</depend>
     <depend>qt_property_browser</depend>
     <depend>python_qt</depend>
-    <depend>anymal_msgs</depend>
     <depend>vtk_ros</depend>
 </package>
 
