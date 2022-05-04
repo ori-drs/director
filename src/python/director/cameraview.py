@@ -73,13 +73,13 @@ class StaticImageManager(object):
     ImageManager
     '''
     def __init__(self):
-
+        self._newImage = False
         self.images = {}
         self.imageRotations180 = {}
 
 
     def addImage(self, name, image):
-
+        self._newImage = True
         self.images[name] = image
         self.imageRotations180[name] = False
 
@@ -109,6 +109,13 @@ class StaticImageManager(object):
     def getImageNames(self):
         return list(self.images.keys())
 
+    def hasNewImage(self):
+        if self._newImage:
+            self._newImage = False
+            return True
+        return False
+
+
 class StaticImageWidget(object):
     def __init__(self, imageManager, imageNames, view, visible=True):
         self.view = view
@@ -116,6 +123,8 @@ class StaticImageWidget(object):
         self.imageNames = imageNames
         self.visible = visible
         self.widgetWidth = 400
+        self.imageWidgets = []
+        self.flips = []
         self.showNonMainImages = True  # if false, show only imageNames[0]
 
         self.updateUtime = 0
@@ -153,9 +162,12 @@ class StaticImageWidget(object):
         self.imageWidgets[i].SelectableOn()
         self.imageWidgets[i].SetInteractor(self.view.renderWindow().GetInteractor())
 
+
+    def updateImageWidget(self, i):
+        image = self.imageManager.getImage(self.imageNames[i])
         imageRep = self.imageWidgets[i].GetRepresentation()
         imageRep.GetImageProperty().SetOpacity(1.0)
-        imageRep.SetImage(self.flips[i].GetOutput())
+        imageRep.SetImage(image)
 
     def setWidgetSize(self, desiredWidth=400):
 
@@ -226,7 +238,8 @@ class StaticImageWidget(object):
             return
 
         self.imageNames = self.imageManager.getImageNames()
-        self._initDataStructures()
+        if len(self.imageNames) != len(self.imageWidgets):
+            self._initDataStructures()
 
         if not self.haveImage():
             return
@@ -236,8 +249,13 @@ class StaticImageWidget(object):
             if 0 not in image.GetDimensions():
                 # the image is not empty
                 self.initImageFlip(i)
-                self.flips[i].Update()
-        #self.view.render()
+                self.updateImageWidget(i)
+                self.view.render()
+                #if self.imageManager.hasNewImage():
+                #    self.updateImageWidget(i)
+                    #self.view.render()
+                #self.flips[i].Update()
+
 
         if not self.initialized and self.visible and self.haveImage():
             self.show()
