@@ -73,13 +73,13 @@ class StaticImageManager(object):
     ImageManager
     '''
     def __init__(self):
-        self._newImage = False
+        self._newImage = {}
         self.images = {}
         self.imageRotations180 = {}
 
 
     def addImage(self, name, image):
-        self._newImage = True
+        self._newImage[name] = True
         self.images[name] = image
         self.imageRotations180[name] = False
 
@@ -109,9 +109,9 @@ class StaticImageManager(object):
     def getImageNames(self):
         return list(self.images.keys())
 
-    def hasNewImage(self):
-        if self._newImage:
-            self._newImage = False
+    def hasNewImage(self, name):
+        if name in self._newImage and self._newImage[name]:
+            self._newImage[name] = False
             return True
         return False
 
@@ -124,10 +124,8 @@ class StaticImageWidget(object):
         self.visible = visible
         self.widgetWidth = 400
         self.imageWidgets = []
-        self.flips = []
         self.showNonMainImages = True  # if false, show only imageNames[0]
 
-        self.updateUtime = 0
         self.initialized = False
 
         self.eventFilter = PythonQt.dd.ddPythonEventFilter()
@@ -141,21 +139,14 @@ class StaticImageWidget(object):
         self.timerCallback.start()
 
     def _initDataStructures(self):
-        # these two data structures are initialized when data is received
+        # data structures are initialized when data is received
         self.imageWidgets = [None for i in range(0, len(self.imageNames))]
-        self.flips = [None for i in range(0, len(self.imageNames))]
 
-    def initImageFlip(self, i):
-        if i >= len(self.flips):
+    def initImageWidget(self, i):
+        if i >= len(self.imageWidgets):
             return
-        if self.flips[i]:  # already initialized
+        if self.imageWidgets[i]:  # already initialized
             return
-
-        self.flips[i] = vtk.vtkImageFlip()
-        self.flips[i].SetFilteredAxis(1)
-        self.flips[i].SetInputData(
-            self.imageManager.getImage(self.imageNames[i])
-        )
 
         self.imageWidgets[i] = vtk.vtkLogoWidget()
         self.imageWidgets[i].ResizableOff()
@@ -244,17 +235,15 @@ class StaticImageWidget(object):
         if not self.haveImage():
             return
 
-        for i in range(0, len(self.flips)):
+        for i in range(0, len(self.imageWidgets)):
             image = self.imageManager.getImage(self.imageNames[i])
             if 0 not in image.GetDimensions():
                 # the image is not empty
-                self.initImageFlip(i)
-                self.updateImageWidget(i)
-                self.view.render()
-                #if self.imageManager.hasNewImage():
-                #    self.updateImageWidget(i)
-                    #self.view.render()
-                #self.flips[i].Update()
+                self.initImageWidget(i)
+                if self.imageManager.hasNewImage(self.imageNames[i]):
+                    # only update the image if a new one is received
+                    self.updateImageWidget(i)
+                    self.view.render()
 
 
         if not self.initialized and self.visible and self.haveImage():
