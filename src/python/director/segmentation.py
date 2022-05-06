@@ -4002,11 +4002,12 @@ def moveDrillToHand(drillOffset, hand="right"):
 
 
 class PointPicker(TimerCallback):
-    def __init__(self, numberOfPoints=3):
+    def __init__(self, numberOfPoints=3, polyDataName='pointcloud snapshot'):
         TimerCallback.__init__(self)
         self.targetFps = 30
         self.enabled = False
         self.numberOfPoints = numberOfPoints
+        self.polyDataName = polyDataName
         self.annotationObj = None
         self.drawLines = True
         self.view = getSegmentationView()
@@ -4081,13 +4082,13 @@ class PointPicker(TimerCallback):
         if not self.enabled:
             return
 
-        if not om.findObjectByName("pointcloud snapshot"):
+        if not om.findObjectByName(self.polyDataName):
             self.annotationFunc = None
             self.finish()
             return
 
         pickedPointFields = pickPoint(
-            self.lastMovePos, self.view, obj="pointcloud snapshot"
+            self.lastMovePos, self.view, obj=self.polyDataName
         )
         self.hoverPos = pickedPointFields.pickedPoint
         self.draw()
