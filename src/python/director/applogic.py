@@ -3,11 +3,18 @@ import time
 import math
 import director.vtkAll as vtk
 import director
+from director import objectmodel as om
 import PythonQt
 from PythonQt import QtCore
 from PythonQt import QtGui
 from director import getDRCBaseDir as getDRCBase
 import functools
+
+# For colorization button:
+from .shallowCopy import shallowCopy
+import numpy as np
+from . import vtkNumpy
+from director.visualization import *
 
 _mainWindow = None
 _defaultRenderView = None
@@ -161,6 +168,17 @@ def resetCamera(viewDirection=None, view=None):
     view.resetCamera()
     view.render()
 
+
+def colorCloud():
+
+    obj = om.getActiveObject()
+    objName = obj.properties.getProperty('Name')
+    polyData = obj.polyData
+    polyData = shallowCopy(polyData)
+    points = vtkNumpy.getNumpyFromVtk(polyData, "Points")
+    vtkNumpy.addNumpyToVtk(polyData, points[:, 2].copy(), "z")
+    updatePolyData(polyData,objName, colorByName="z")
+    obj.setProperty('Color By','z')
 
 def setBackgroundColor(color, color2=None, view=None):
     view = view or getCurrentRenderView()
@@ -377,6 +395,7 @@ def startup(globals):
         return
 
     _mainWindow.connect("resetCamera()", resetCamera)
+    _mainWindow.connect("colorCloud()", colorCloud)
     _mainWindow.connect("toggleStereoRender()", toggleStereoRender)
     _mainWindow.connect("toggleCameraTerrainMode()", toggleCameraTerrainMode)
 

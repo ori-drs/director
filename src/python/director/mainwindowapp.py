@@ -70,6 +70,10 @@ class MainWindowApp(object):
     def showPythonConsole(self):
         applogic.showPythonConsole()
 
+    def colorCloud(self):
+        print ("colorCloud")
+        applogic.showPythonConsole()
+
     def showOnlineDocumentation(self):
         QtGui.QDesktopServices.openUrl(
             QtCore.QUrl("https://openhumanoids.github.io/director/")
@@ -298,6 +302,13 @@ class MainWindowAppFactory(object):
             "Reset Camera",
             ":/images/reset_camera.png",
             callback=applogic.resetCamera,
+        )
+
+        app.addToolBarAction(
+            toolBar,
+            "Color Cloud",
+            ":/images/color_cloud.png",
+            callback=applogic.colorClQoud,
         )
 
         def getFreeCameraMode():
