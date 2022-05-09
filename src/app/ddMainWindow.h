@@ -44,6 +44,7 @@ public:
 signals:
 
   void resetCamera();
+  void colorCloud();
   void toggleStereoRender();
   void toggleCameraTerrainMode();
   void fileOpen();

@@ -122,6 +122,7 @@
    <addaction name="ActionToggleFramesSize"/>
    <addaction name="ActionToggleCameraTerrainMode"/>
    <addaction name="ActionResetCamera"/>
+   <addaction name="ActionColorCloud"/>
    <addaction name="separator"/>
   </widget>
   <widget class="QDockWidget" name="PropertiesDock">
@@ -322,6 +323,15 @@
    </property>
    <property name="text">
     <string>Reset Camera</string>
+   </property>
+  </action>
+  <action name="ActionColorCloud">
+   <property name="icon">
+    <iconset resource="images/resources.qrc">
+     <normaloff>:/images/color_cloud.png</normaloff>:/images/color_cloud.png</iconset>
+   </property>
+   <property name="text">
+    <string>Color Cloud</string>
    </property>
   </action>
   <action name="ActionToggleCameraTerrainMode">
