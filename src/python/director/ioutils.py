@@ -5,7 +5,7 @@ import shelve
 import os.path
 
 
-def readPolyData(filename, computeNormals=False):
+def readPolyData(filename, computeNormals=False, ignoreSensorPose=False):
 
     ext = os.path.splitext(filename)[1].lower()
 
@@ -26,6 +26,8 @@ def readPolyData(filename, computeNormals=False):
         raise Exception("Unknown file extension in readPolyData: %s" % filename)
 
     reader = readers[ext]()
+    if ext == ".pcd":
+        reader.IgnoreSensorPose(ignoreSensorPose)
     reader.SetFileName(filename)
     reader.Update()
     polyData = shallowCopy(reader.GetOutput())

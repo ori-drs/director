@@ -128,7 +128,10 @@ class RobotModelItem(om.ObjectModelItem):
         self._renderAllViews()
 
     def hasDataSet(self, dataSet):
-        return len(self.model.getLinkNameForMesh(dataSet)) != 0
+        if self.model:
+            return len(self.model.getLinkNameForMesh(dataSet)) != 0
+        else:
+            return False
 
     def connectModelChanged(self, func):
         return self.callbacks.connect(self.MODEL_CHANGED_SIGNAL, func)

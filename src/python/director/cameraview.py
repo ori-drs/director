@@ -67,6 +67,191 @@ def rayDebug(position, ray):
     obj.actor.GetProperty().SetLineWidth(2)
 
 
+class StaticImageManager(object):
+    '''
+    Manage static images ( loaded from file for instance ), for managing streamed data images, see
+    ImageManager
+    '''
+    def __init__(self):
+        self._newImage = {}
+        self.images = {}
+        self.imageRotations180 = {}
+
+
+    def addImage(self, name, image):
+        self._newImage[name] = True
+        self.images[name] = image
+        self.imageRotations180[name] = False
+
+    def updateImage(self, imageName):
+
+        image = self.images[imageName]
+
+        if self.imageRotations180[imageName]:
+            self.images[imageName].ShallowCopy(
+                filterUtils.rotateImage180(image)
+            )
+
+    def updateImages(self):
+        for imageName in list(self.images.keys()):
+            self.updateImage(imageName)
+
+    def setImageRotation180(self, imageName):
+        assert imageName in self.images
+        self.imageRotations180[imageName] = True
+
+    def hasImage(self, imageName):
+        return imageName in self.images
+
+    def getImage(self, imageName):
+        return self.images[imageName]
+
+    def getImageNames(self):
+        return list(self.images.keys())
+
+    def hasNewImage(self, name):
+        if name in self._newImage and self._newImage[name]:
+            self._newImage[name] = False
+            return True
+        return False
+
+
+class StaticImageWidget(object):
+    def __init__(self, imageManager, imageNames, view, visible=True):
+        self.view = view
+        self.imageManager = imageManager
+        self.imageNames = imageNames
+        self.visible = visible
+        self.widgetWidth = 400
+        self.imageWidgets = []
+        self.showNonMainImages = True  # if false, show only imageNames[0]
+
+        self.initialized = False
+
+        self.eventFilter = PythonQt.dd.ddPythonEventFilter()
+        self.view.installEventFilter(self.eventFilter)
+        self.eventFilter.addFilteredEventType(QtCore.QEvent.Resize)
+        self.eventFilter.connect("handleEvent(QObject*, QEvent*)", self.onResizeEvent)
+
+        self.timerCallback = TimerCallback()
+        self.timerCallback.targetFps = 1
+        self.timerCallback.callback = self.updateView
+        self.timerCallback.start()
+
+    def _initDataStructures(self):
+        # data structures are initialized when data is received
+        self.imageWidgets = [None for i in range(0, len(self.imageNames))]
+
+    def initImageWidget(self, i):
+        if i >= len(self.imageWidgets):
+            return
+        if self.imageWidgets[i]:  # already initialized
+            return
+
+        self.imageWidgets[i] = vtk.vtkLogoWidget()
+        self.imageWidgets[i].ResizableOff()
+        self.imageWidgets[i].SelectableOn()
+        self.imageWidgets[i].SetInteractor(self.view.renderWindow().GetInteractor())
+
+
+    def updateImageWidget(self, i):
+        image = self.imageManager.getImage(self.imageNames[i])
+        imageRep = self.imageWidgets[i].GetRepresentation()
+        imageRep.GetImageProperty().SetOpacity(1.0)
+        imageRep.SetImage(image)
+
+    def setWidgetSize(self, desiredWidth=400):
+
+        offsetY = 0
+        for i, imageName in enumerate(self.imageNames):
+            if not self.imageWidgets[i]:
+                continue
+
+            image = self.imageManager.getImage(imageName)
+            dims = image.GetDimensions()
+            if 0 in dims:
+                continue
+
+            aspectRatio = float(dims[0]) / dims[1]
+            imageWidth, imageHeight = desiredWidth, desiredWidth / aspectRatio
+            viewWidth, viewHeight = self.view.width, self.view.height
+
+            rep = self.imageWidgets[i].GetBorderRepresentation()
+            rep.SetShowBorderToOff()
+            coord = rep.GetPositionCoordinate()
+            coord2 = rep.GetPosition2Coordinate()
+            coord.SetCoordinateSystemToDisplay()
+            coord2.SetCoordinateSystemToDisplay()
+            coord.SetValue(0, viewHeight - imageHeight - offsetY)
+            coord2.SetValue(imageWidth, imageHeight)
+            offsetY += imageHeight
+
+        self.view.render()
+
+    def onResizeEvent(self):
+        self.setWidgetSize(self.widgetWidth)
+
+    # def setImageName(self, imageName):
+    #    self.imageName = imageName
+    #    self.flip.SetInputData(imageManager.getImage(imageName))
+
+    def setOpacity(self, opacity=1.0):
+        for imageWidget in self.imageWidgets:
+            if not imageWidget:
+                continue
+            imageWidget.GetRepresentation().GetImageProperty().SetOpacity(opacity)
+
+    def hide(self):
+        self.visible = False
+        for i, imageWidget in enumerate(self.imageWidgets):
+            if imageWidget is not None:
+                imageWidget.Off()
+        self.view.render()
+
+    def show(self):
+        self.visible = True
+        if self.haveImage():
+            for i, imageWidget in enumerate(self.imageWidgets):
+                if (i == 0 or self.showNonMainImages) and imageWidget:
+                    imageWidget.On()
+            self.view.render()
+
+    def haveImage(self):
+        for imageName in self.imageNames:
+            image = self.imageManager.getImage(imageName)
+            dims = image.GetDimensions()
+            if 0 not in dims:
+                return True
+        return False
+
+    def updateView(self):
+        if not self.visible or not self.view.isVisible():
+            return
+
+        self.imageNames = self.imageManager.getImageNames()
+        if len(self.imageNames) != len(self.imageWidgets):
+            self._initDataStructures()
+
+        if not self.haveImage():
+            return
+
+        for i in range(0, len(self.imageWidgets)):
+            image = self.imageManager.getImage(self.imageNames[i])
+            if 0 not in image.GetDimensions():
+                # the image is not empty
+                self.initImageWidget(i)
+                if self.imageManager.hasNewImage(self.imageNames[i]):
+                    # only update the image if a new one is received
+                    self.updateImageWidget(i)
+                    self.view.render()
+
+
+        if not self.initialized and self.visible and self.haveImage():
+            self.show()
+            self.setWidgetSize(self.widgetWidth)
+            self.initialized = True
+
+
 class ImageManager(object):
 
     _requiredProviderClass = perceptionmeta.ImageSourceMeta
@@ -390,7 +575,6 @@ class CameraView(object):
 
         self.updateSphereGeometry()
         self.view.render()
-
 
 class ImageWidget(object):
     def __init__(self, imageManager, imageNames, view, visible=True, robotName=None):
