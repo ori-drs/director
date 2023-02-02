@@ -155,7 +155,7 @@ class RobotModelItem(om.ObjectModelItem):
     def getLinkFrame(self, linkName):
         t = vtk.vtkTransform()
         t.PostMultiply()
-        if self.model.getLinkToWorld(linkName, t):
+        if self.model is not None and self.model.getLinkToWorld(linkName, t):
             return t
         else:
             return None
