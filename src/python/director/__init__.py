@@ -15,13 +15,13 @@ def _initCoverage():
 
 def getDRCBaseDir():
     rp = rospkg.RosPack()
-    return rp.get_path("director")
+    return rp.get_path("director_drs")
 
 
 def getDRCBaseIsSet():
     try:
         rp = rospkg.RosPack()
-        rp.get_path("director")
+        rp.get_path("director_drs")
         return True
     except rospkg.ResourceNotFound:
         return False
