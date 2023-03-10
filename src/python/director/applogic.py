@@ -390,9 +390,9 @@ def startup(globals):
     global _mainWindow
     _mainWindow = globals["_mainWindow"]
 
-    if not director.getDRCBaseIsSet():
-        showErrorMessage("director_drs package cannot be found")
-        return
+    #if not director.getDRCBaseIsSet():
+    #    showErrorMessage("director_drs package cannot be found")
+    #    return
 
     _mainWindow.connect("resetCamera()", resetCamera)
     _mainWindow.connect("colorCloud()", colorCloud)

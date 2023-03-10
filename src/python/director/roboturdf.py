@@ -550,7 +550,7 @@ def _setupPackagePaths():
             PythonQt.dd.ddDrakeModel.addPackageSearchPath(path)
 
 
-_setupPackagePaths()
+#_setupPackagePaths()
 
 
 class HandFactory(object):
