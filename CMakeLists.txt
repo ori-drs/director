@@ -7,10 +7,9 @@ find_package(catkin REQUIRED)
 
 catkin_package(
   CATKIN_DEPENDS  
-    pcl_ros pcl_plugin
+    pcl_plugin
     ctk_python_console
-    qt_property_browser python_qt
-    vtk_ros)
+    qt_property_browser python_qt)
 
 # set a default build type if none was specified
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
