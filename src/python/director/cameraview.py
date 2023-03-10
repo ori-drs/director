@@ -10,7 +10,6 @@ from director import vtkNumpy
 from director import objectmodel as om
 import director.vtkAll as vtk
 from director.debugpolydata import DebugData
-import vtkRosPython as vtkRos
 
 import PythonQt
 from PythonQt import QtCore, QtGui
