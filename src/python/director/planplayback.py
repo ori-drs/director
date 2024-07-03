@@ -12,7 +12,7 @@ from director.utime import getUtime
 from director import robotstate
 
 import pickle
-import scipy.interpolate
+#import scipy.interpolate
 
 
 def asRobotPlan(msg):

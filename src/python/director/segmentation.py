@@ -2133,9 +2133,10 @@ def applyArrowGlyphs(
             polyData, searchRadius=normalEstimationSearchRadius, searchCloud=voxelData
         )
         polyData = removeNonFinitePoints(polyData, "normals")
-        flipNormalsWithViewDirection(
-            polyData, SegmentationContext.getGlobalInstance().getViewDirection()
-        )
+        # mfallon - dont commit this:
+        #flipNormalsWithViewDirection(
+        #    polyData, SegmentationContext.getGlobalInstance().getViewDirection()
+        #)
 
     assert polyData.GetPointData().GetNormals()
 

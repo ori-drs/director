@@ -57,7 +57,7 @@ class PolyDataItem(om.ObjectModelItem):
             "Point Size",
             self.actor.GetProperty().GetPointSize(),
             attributes=om.PropertyAttributes(
-                decimals=0, minimum=1, maximum=20, singleStep=1, hidden=False
+                decimals=0, minimum=0, maximum=20, singleStep=1, hidden=False
             ),
         )
 
